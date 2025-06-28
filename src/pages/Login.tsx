@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const Login = () => {
  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { loading, error, userInfo } = useSelector((state: RootState) => state.auth);
+  const { loading, error, userInfo } = useAuth();
 
   useEffect(() => {
     if (userInfo) {
@@ -31,7 +32,7 @@ const Login = () => {
       });
       navigate('/');
     }
-  }, [userInfo, navigate]);
+  }, [userInfo, navigate, toast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

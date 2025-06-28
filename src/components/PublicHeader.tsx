@@ -63,7 +63,7 @@ const PublicHeader = () => {
                       alt="avatar"
                       className="w-8 h-8 rounded-full mr-2 inline-block"
                     />
-                    Profile
+                    
                   </Button>
                   <Button
                     onClick={handleLogout}
@@ -117,14 +117,14 @@ const PublicHeader = () => {
                             <Button
                               variant="outline"
                               className="w-full flex items-center justify-center"
-                              onClick={() => navigate("/profile")}
-                            >
+                              onClick={() => navigate("/learner/profile")}>
+                            
                               <img
                                 src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)}
                                 alt="avatar"
                                 className="w-8 h-8 rounded-full mr-2 inline-block"
                               />
-                              Profile
+                              
                             </Button>
                           </SheetClose>
                           <SheetClose asChild>

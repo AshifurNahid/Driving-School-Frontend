@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/hooks/useAuth';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -30,7 +31,7 @@ const dispatch = useDispatch();
   const navigate = useNavigate();
     const { toast } = useToast();
 
-const { userInfo, loading, error } = useSelector((state: RootState) => state.auth);
+const { userInfo, loading, error } = useAuth();
 
 
 useEffect(() => {

@@ -1,5 +1,5 @@
 
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -7,6 +7,10 @@ import { useUser } from '@/contexts/UserContext';
 import { BookOpen, User, LogOut, Settings, Users, BarChart3, Calendar, UserCog } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { SheetClose } from '../ui/sheet';
+import { useDispatch } from 'react-redux';
+import { logout } from '@/redux/actions/authAction';
 
 interface RoleBasedNavigationProps {
   currentPath?: string;
@@ -14,7 +18,14 @@ interface RoleBasedNavigationProps {
 
 const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
   const { user, isAdmin, isLearner, switchRole } = useUser();
+  const {userInfo}=useAuth();
+ const dispatch = useDispatch();
+  const navigate = useNavigate();
 
+  const handleLogout = () => {
+    dispatch(logout() as any);
+    navigate("/login");
+  };
   if (!user) return null;
 
   const getNavLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -22,6 +33,7 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
       "w-full flex justify-start",
       isActive && "bg-accent text-accent-foreground"
     );
+ 
 
   return (
     <header className="bg-card shadow-sm border-b border-border">
@@ -47,7 +59,7 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
               <NavLink to="/contact">Contact</NavLink>
             </Button>
 
-            {isLearner && (
+            {userInfo.role.title=='User' && (
               <>
                 <Button variant="ghost" asChild>
                   <NavLink to="/learner/courses">
@@ -61,16 +73,35 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
                     Appointments
                   </NavLink>
                 </Button>
-                <Button variant="ghost" asChild>
-                  <NavLink to="/learner/profile">
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </NavLink>
-                </Button>
-              </>
+              
+                  
+                          
+                            <Button
+                              variant="outline"
+                              className="w-full flex items-center justify-center"
+                              onClick={() => navigate("/learner/profile")}>
+                            
+                              <img
+                                src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)}
+                                alt="avatar"
+                                className="w-8 h-8 rounded-full mr-2 inline-block"
+                              />
+                              
+                            </Button>
+                        
+                     
+                            <Button
+                              onClick={handleLogout}
+                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+                            >
+                              Log Out
+                            </Button>
+                         
+                        </>
+           
             )}
             
-            {isAdmin && (
+            {userInfo.role.title=='Admin' && (
               <>
                 <Button variant="ghost" asChild>
                   <NavLink to="/admin">
@@ -104,24 +135,26 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
             {/* Role Switcher for Demo */}
             <div className="flex items-center space-x-2">
               <Badge variant={isAdmin ? "default" : "secondary"}>
-                {isAdmin ? "Admin" : "Learner"}
+                {userInfo.role.title=='Admin' ? "Admin" : "Learner"}
               </Badge>
+              {userInfo.role.title=='Admin' &&
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => switchRole(isAdmin ? 'learner' : 'admin')}
+                onClick={() => switchRole(userInfo.role.title=='Admin' ? 'learner' : 'admin')}
                 className="text-xs"
               >
                 <UserCog className="h-3 w-3 mr-1" />
-                Switch to {isAdmin ? 'Learner' : 'Admin'}
+                Switch to {userInfo.role.title=='Admin' ? 'Learner' : 'Admin'}
               </Button>
+}
             </div>
             
             <ThemeToggle />
-            <Avatar>
+            {/* <Avatar>
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-            </Avatar>
+            </Avatar> */}
           </div>
         </div>
       </div>
