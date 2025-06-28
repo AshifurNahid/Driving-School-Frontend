@@ -1,12 +1,23 @@
-
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
+import { RootState } from "@/redux/store";
+import { logout } from '@/redux/actions/authAction';
 
 const PublicHeader = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+
+  const handleLogout = () => {
+    dispatch(logout() as any);
+    navigate("/login");
+  };
+
   const getLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       "transition-colors font-medium",
@@ -40,12 +51,37 @@ const PublicHeader = () => {
           <div className="flex items-center space-x-4">
             <ThemeToggle />
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost" asChild className="font-medium">
-                <NavLink to="/login">Sign In</NavLink>
-              </Button>
-              <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium">
-                <NavLink to="/register">Get Started</NavLink>
-              </Button>
+              {userInfo ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    className="font-medium"
+                    onClick={() => navigate("/learner/profile")}
+                  >
+                    <img
+                      src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)}
+                      alt="avatar"
+                      className="w-8 h-8 rounded-full mr-2 inline-block"
+                    />
+                    Profile
+                  </Button>
+                  <Button
+                    onClick={handleLogout}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+                  >
+                    Log Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild className="font-medium">
+                    <NavLink to="/login">Sign In</NavLink>
+                  </Button>
+                  <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium">
+                    <NavLink to="/register">Get Started</NavLink>
+                  </Button>
+                </>
+              )}
             </div>
             <div className="md:hidden">
               <Sheet>
@@ -75,16 +111,45 @@ const PublicHeader = () => {
                       </SheetClose>
                     </nav>
                     <div className="mt-auto space-y-2">
-                      <SheetClose asChild>
-                        <Button variant="outline" asChild className="w-full">
-                            <NavLink to="/login">Sign In</NavLink>
-                        </Button>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium">
-                            <NavLink to="/register">Get Started</NavLink>
-                        </Button>
-                      </SheetClose>
+                      {userInfo ? (
+                        <>
+                          <SheetClose asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full flex items-center justify-center"
+                              onClick={() => navigate("/profile")}
+                            >
+                              <img
+                                src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)}
+                                alt="avatar"
+                                className="w-8 h-8 rounded-full mr-2 inline-block"
+                              />
+                              Profile
+                            </Button>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Button
+                              onClick={handleLogout}
+                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+                            >
+                              Log Out
+                            </Button>
+                          </SheetClose>
+                        </>
+                      ) : (
+                        <>
+                          <SheetClose asChild>
+                            <Button variant="outline" asChild className="w-full">
+                              <NavLink to="/login">Sign In</NavLink>
+                            </Button>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium">
+                              <NavLink to="/register">Get Started</NavLink>
+                            </Button>
+                          </SheetClose>
+                        </>
+                      )}
                     </div>
                   </div>
                 </SheetContent>
@@ -95,6 +160,5 @@ const PublicHeader = () => {
       </div>
     </header>
   );
-};
-
+}
 export default PublicHeader;
