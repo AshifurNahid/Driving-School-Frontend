@@ -1,6 +1,10 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState ,useEffect} from 'react';
+import { Link ,useNavigate} from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '@/redux/actions/authAction';
+import { RootState } from '@/redux/store';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,26 +12,33 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+ const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { loading, error, userInfo } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (userInfo) {
+
+      toast({
+        title: 'Login Successful',
+        description: `Welcome back, ${userInfo.full_name}!`
+      });
+      navigate('/');
+    }
+  }, [userInfo, navigate, toast]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate login process
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log('Login attempt:', { email, password });
-    setIsLoading(false);
-    
-    // In a real app, you would handle authentication here
-    // For now, we'll just log the attempt
+    dispatch(login(email, password) as any);
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 transition-colors duration-300">
@@ -107,8 +118,9 @@ const Login = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium" disabled={isLoading}>
-                {isLoading ? 'Signing In...' : 'Sign In'}
+             {error && <div className="text-red-500 text-sm">{error}</div>}
+              <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium" disabled={loading}>
+                {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
 

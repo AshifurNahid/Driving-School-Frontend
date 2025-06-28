@@ -10,9 +10,13 @@ import { useUser } from '@/contexts/UserContext';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 import { BookOpen, Download, Play, Calendar, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const LearnerProfile = () => {
+  const { userInfo } = useAuth();
   const { user } = useUser();
+  console.log('userInfo:', userInfo);
+  console.log('user:', user);
 
   // Mock data for enrolled courses
   const enrolledCourses = [
@@ -98,10 +102,10 @@ const LearnerProfile = () => {
                 </Avatar>
                 
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-foreground">{user.name}</h1>
-                  <p className="text-muted-foreground mt-1">{user.email}</p>
+                  <h1 className="text-3xl font-bold text-foreground">{userInfo.full_name}</h1>
+                  <p className="text-muted-foreground mt-1">{userInfo.email}</p>
                   <div className="flex items-center space-x-4 mt-3">
-                    <Badge variant="secondary">{user.role}</Badge>
+                    <Badge variant="secondary">{userInfo.role.title}</Badge>
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4 mr-1" />
                       Joined {new Date(user.joinDate).toLocaleDateString()}

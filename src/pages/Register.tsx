@@ -1,6 +1,11 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState,useEffect } from 'react';
+import { Link ,useNavigate} from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { register } from '@/redux/actions/authAction';
+import { useToast } from "@/hooks/use-toast";
+
+import { RootState } from '@/redux/store';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,19 +13,45 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/hooks/useAuth';
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    firstName: '',
+   firstName: '',
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+const dispatch = useDispatch();
+  const navigate = useNavigate();
+    const { toast } = useToast();
+
+const { userInfo, loading, error } = useAuth();
+
+
+useEffect(() => {
+  if (!loading && !error ) {
+    toast({
+      title: "Registration Successful",
+      description: "You can now sign in with your credentials.",
+    });
+    navigate("/login");
+  }
+}, [ loading, error, toast, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Registration Failed",
+        description: error,
+      });
+    }
+  }, [error, toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -29,28 +60,26 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    
+
     if (!agreeToTerms) {
       alert('Please agree to the terms and conditions');
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simulate registration process
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log('Registration attempt:', formData);
-    setIsLoading(false);
-    
-    // In a real app, you would handle registration here
+    // Call register action
+    dispatch(register(
+      `${formData.firstName} ${formData.lastName}`,
+      formData.email,
+      formData.password,
+      formData.phone
+    ) as any);
   };
 
   return (
@@ -168,6 +197,18 @@ const Register = () => {
                   </button>
                 </div>
               </div>
+                            <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="text"
+                  placeholder="Your phone number"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -187,8 +228,9 @@ const Register = () => {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading || !agreeToTerms}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
+              {/* {error && <div className="text-red-500 text-sm">{error}</div>} */}
+              <Button type="submit" className="w-full" disabled={loading || !agreeToTerms}>
+                {loading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
 
