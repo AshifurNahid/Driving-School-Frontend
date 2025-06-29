@@ -35,14 +35,14 @@ const { userInfo, loading, error } = useAuth();
 
 
 useEffect(() => {
-  if (!loading && !error ) {
+  if (!loading && error ==null) {
     toast({
       title: "Registration Successful",
       description: "You can now sign in with your credentials.",
     });
     navigate("/login");
   }
-}, [ loading, error, toast, navigate]);
+}, [ loading, error, toast, navigate,userInfo]);
 
   useEffect(() => {
     if (error) {
