@@ -13,6 +13,7 @@ import { CourseCard } from '@/components/course/CourseCard';
 import { type Course } from '@/types/course';
 import UserAppointmentView from '@/components/appointments/UserAppointmentView';
 import { useUser } from '@/contexts/UserContext';
+import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 
 const Index = () => {
   const { user, isLearner } = useUser();
@@ -143,7 +144,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <PublicHeader />
+      <RoleBasedNavigation />
 
       {/* Hero Section */}
       <section className="relative py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950">
@@ -269,7 +270,7 @@ const Index = () => {
       </section>
 
       {/* Featured Instructors */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-background">
+      {/* <section className="py-16 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-foreground mb-4">Meet Our Top Instructors</h3>
@@ -305,7 +306,7 @@ const Index = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Testimonials */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
@@ -343,7 +344,7 @@ const Index = () => {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600">
+      {/* <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600">
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-3xl font-bold text-white mb-6">
             Stay Updated with Latest Courses
@@ -361,10 +362,10 @@ const Index = () => {
             </Button>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+      {/* <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-3xl font-bold text-foreground mb-6">
             Ready to Start Your Teaching Journey?
@@ -382,7 +383,7 @@ const Index = () => {
             </Button>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <Footer />
     </div>

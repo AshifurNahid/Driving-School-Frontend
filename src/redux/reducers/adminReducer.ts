@@ -1,0 +1,107 @@
+import {
+  ADMIN_USER_LIST_REQUEST,
+  ADMIN_USER_LIST_SUCCESS,
+  ADMIN_USER_LIST_FAIL,
+  ADMIN_USER_DETAILS_REQUEST,
+  ADMIN_USER_DETAILS_SUCCESS,
+  ADMIN_USER_DETAILS_FAIL,
+  ADMIN_USER_DELETE_REQUEST,
+  ADMIN_USER_DELETE_SUCCESS,
+  ADMIN_USER_DELETE_FAIL,
+} from "../constants/adminConstants";
+import { User } from "@/types/user";
+
+// User List State
+interface AdminUserListState {
+  loading: boolean;
+  users: User[];
+  error: string | null;
+}
+
+const initialUserListState: AdminUserListState = {
+  loading: false,
+  users: [],
+  error: null,
+};
+
+export const adminUserListReducer = (
+  state = initialUserListState,
+  action: any
+): AdminUserListState => {
+  switch (action.type) {
+    case ADMIN_USER_LIST_REQUEST:
+      return { ...state, loading: true, error: null };
+    case ADMIN_USER_LIST_SUCCESS:
+      return { ...state, loading: false, users: action.payload, error: null };
+    case ADMIN_USER_LIST_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+// User Details State
+interface AdminUserDetailsState {
+  loading: boolean;
+  user: User | null;
+  error: string | null;
+}
+
+const initialUserDetailsState: AdminUserDetailsState = {
+  loading: false,
+  user: null,
+  error: null,
+};
+
+export const adminUserDetailsReducer = (
+  state = initialUserDetailsState,
+  action: any
+): AdminUserDetailsState => {
+  switch (action.type) {
+    case ADMIN_USER_DETAILS_REQUEST:
+      return { ...state, loading: true, error: null };
+    case ADMIN_USER_DETAILS_SUCCESS:
+      return { ...state, loading: false, user: action.payload, error: null };
+    case ADMIN_USER_DETAILS_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+// User Delete State
+interface AdminUserDeleteState {
+  loading: boolean;
+  success: boolean;
+  error: string | null;
+  message?: string | null;
+}
+
+const initialUserDeleteState: AdminUserDeleteState = {
+  loading: false,
+  success: false,
+  error: null,
+  message: null,
+};
+
+export const adminUserDeleteReducer = (
+  state = initialUserDeleteState,
+  action: any
+): AdminUserDeleteState => {
+  switch (action.type) {
+    case ADMIN_USER_DELETE_REQUEST:
+      return { ...state, loading: true, success: false, error: null, message: null };
+    case ADMIN_USER_DELETE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        error: null,
+        message: action.payload.message,
+      };
+    case ADMIN_USER_DELETE_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload, message: null };
+    default:
+      return state;
+  }
+};

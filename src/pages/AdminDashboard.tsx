@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Users, 
@@ -38,16 +38,52 @@ import UserAnalytics from '@/components/admin/UserAnalytics';
 import AdminAppointmentManagement from '@/components/admin/AdminAppointmentManagement';
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
+import { useDispatch, useSelector } from "react-redux";
+import { getAdminUserDetails ,deleteAdminUser} from "@/redux/actions/adminAction";
+import { RootState } from "@/redux/store";
+import { User } from "@/types/user";
+import { useAdminUsers } from '@/hooks/useAdminUsers';
+import UserDetailsModal from "@/components/admin/UserDetailsModal";
+
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+ 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [editingCourse, setEditingCourse] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
+  const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false);
+  const { users, loading: usersLoading, error: usersError } = useAdminUsers();
 
+
+  const dispatch = useDispatch();
+const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);
+  const { loading: deleteLoading, success: deleteSuccess, message: deleteMessage } = useSelector((state: RootState) => state.adminUserDelete);
+
+const handleViewUser = (userId: number) => {
+  dispatch(getAdminUserDetails(userId));
+  setUserDetailsModalOpen(true);
+};
+const handleDeleteUser = (userId: number) => {
+    dispatch(deleteAdminUser(userId));
+    toast({
+        title: "User Deleted",
+        description: deleteMessage || "User successfully deleted.",
+      });
+  };
+ 
+
+// useEffect(() => {
+//   if (message) {
+//     toast({
+//       title: "Success",
+//       description: message,
+//     });
+//   }
+// }, [message, toast]);
   // Mock data
   const stats = {
     totalUsers: 52847,
@@ -112,29 +148,7 @@ const AdminDashboard = () => {
     }
   ]);
 
-  const users = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      email: "sarah@example.com",
-      role: "Instructor",
-      joinDate: "2024-01-10",
-      courses: 8,
-      students: 2500,
-      status: "active"
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      email: "michael@example.com",
-      role: "Student",
-      joinDate: "2024-01-12",
-      courses: 0,
-      enrollments: 12,
-      status: "active"
-    }
-  ];
-
+ 
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'users', label: 'User Management', icon: Users },
@@ -220,6 +234,11 @@ const AdminDashboard = () => {
       }, 100);
     }
   };
+
+  // Fetch users on mount
+  // useEffect(() => {
+  //   dispatch(getAdminUsers());
+  // }, [dispatch]);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -437,62 +456,98 @@ const AdminDashboard = () => {
               <Card>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left p-4 font-medium text-foreground">User</th>
-                          <th className="text-left p-4 font-medium text-foreground">Role</th>
-                          <th className="text-left p-4 font-medium text-foreground">Join Date</th>
-                          <th className="text-left p-4 font-medium text-foreground">Activity</th>
-                          <th className="text-left p-4 font-medium text-foreground">Status</th>
-                          <th className="text-left p-4 font-medium text-foreground">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((user) => (
-                          <tr key={user.id} className="border-b border-border">
-                            <td className="p-4">
-                              <div className="flex items-center">
-                                <Avatar className="h-10 w-10 mr-3">
-                                  <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium text-foreground">{user.name}</div>
-                                  <div className="text-sm text-muted-foreground">{user.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <Badge variant={user.role === 'Instructor' ? 'default' : 'secondary'}>
-                                {user.role}
-                              </Badge>
-                            </td>
-                            <td className="p-4 text-muted-foreground">{user.joinDate}</td>
-                            <td className="p-4 text-muted-foreground">
-                              {user.role === 'Instructor' ? `${user.courses} courses` : `${user.enrollments} enrollments`}
-                            </td>
-                            <td className="p-4">
-                              <Badge variant="outline" className="text-green-600 border-green-600">
-                                {user.status}
-                              </Badge>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex space-x-2">
-                                <Button size="sm" variant="outline">
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                                <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </td>
+                    {usersLoading ? (
+                      <div className="p-6 text-center text-muted-foreground">Loading users...</div>
+                    ) : usersError ? (
+                      <div className="p-6 text-center text-red-600">{usersError}</div>
+                    ) : (
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="text-left p-4 font-medium text-foreground">User</th>
+                            <th className="text-left p-4 font-medium text-foreground">Role</th>
+                            <th className="text-left p-4 font-medium text-foreground">Email</th>
+                            <th className="text-left p-4 font-medium text-foreground">Phone</th>
+                            <th className="text-left p-4 font-medium text-foreground">Status</th>
+                            <th className="text-left p-4 font-medium text-foreground">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {users && users.length > 0 ? (
+                            users.map((user: User) => (
+                              <tr key={user.id} className="border-b border-border">
+                                <td className="p-4">
+                                  <div className="flex items-center">
+                                    <Avatar className="h-10 w-10 mr-3">
+                                      <AvatarImage
+                                        src={
+                                          user.user_detail?.image_path ||
+                                          `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}`
+                                        }
+                                        alt={user.full_name}
+                                      />
+                                      <AvatarFallback>
+                                        {user.full_name
+                                          .split(" ")
+                                          .map((n) => n[0])
+                                          .join("")}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <div className="font-medium text-foreground">{user.full_name}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <Badge variant={user.role.title === 'Instructor' ? 'default' : 'secondary'}>
+                                    {user.role.title}
+                                  </Badge>
+                                </td>
+                                <td className="p-4 text-muted-foreground">{user.email}</td>
+                                <td className="p-4 text-muted-foreground">{user.phone}</td>
+                                <td className="p-4">
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      user.status === 1
+                                        ? "text-green-600 border-green-600"
+                                        : "text-orange-600 border-orange-600"
+                                    }
+                                  >
+                                    {user.status === 1 ? "Active" : "Inactive"}
+                                  </Badge>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex space-x-2">
+                                     <Button size="sm" variant="outline" onClick={() => handleViewUser(user.id)}>
+                                    <Eye className="h-3 w-3" />
+                                    </Button>
+                                    <Button size="sm" variant="outline">
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+   <Button
+    size="sm"
+    variant="outline"
+    className="text-red-600 hover:text-red-700"
+    onClick={() => handleDeleteUser(user.id)}
+    disabled={deleteLoading}
+  >
+    <Trash2 className="h-3 w-3" />
+  </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                                No users found.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -839,8 +894,15 @@ const AdminDashboard = () => {
           )}
         </>
       )}
+<UserDetailsModal
+  open={userDetailsModalOpen}
+  onClose={() => setUserDetailsModalOpen(false)}
+  user={userDetails}
+/>
     </div>
+    
   );
+ 
 };
 
 export default AdminDashboard;
