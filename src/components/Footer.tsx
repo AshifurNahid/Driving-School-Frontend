@@ -33,14 +33,14 @@ const Footer = () => {
               <li><Link to="/" className="hover:text-white transition-colors">Free Courses</Link></li>
             </ul>
           </div>
-          <div>
+          {/* <div>
             <h5 className="font-semibold mb-4">Teach</h5>
             <ul className="space-y-2 text-gray-400">
               <li><Link to="/upload-course" className="hover:text-white transition-colors">Create Course</Link></li>
               <li><Link to="/dashboard" className="hover:text-white transition-colors">Instructor Dashboard</Link></li>
               <li><Link to="/" className="hover:text-white transition-colors">Teaching Resources</Link></li>
             </ul>
-          </div>
+          </div> */}
           <div>
             <h5 className="font-semibold mb-4">Support</h5>
             <ul className="space-y-2 text-gray-400">

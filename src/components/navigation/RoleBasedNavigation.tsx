@@ -109,28 +109,37 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
                     Admin Dashboard
                   </NavLink>
                 </Button>
-                <Button variant="ghost" asChild>
+                {/* <Button variant="ghost" asChild>
                   <NavLink to="/dashboard">
                     <Users className="h-4 w-4 mr-2" />
                     Instructor Dashboard
                   </NavLink>
-                </Button>
-                <Button variant="ghost" asChild>
+                </Button> */}
+                {/* <Button variant="ghost" asChild>
                   <NavLink to="/appointments">
                     <Calendar className="h-4 w-4 mr-2" />
                     Appointments
                   </NavLink>
-                </Button>
+                </Button> */}
                 <Button variant="ghost" asChild>
                   <NavLink to="/upload-course">
                     <Settings className="h-4 w-4 mr-2" />
                     Upload Course
                   </NavLink>
                 </Button>
+               
+                  <Button
+                    onClick={handleLogout}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+                  >
+                    Log Out
+                  </Button>
               </>
             )}
           </nav>
-
+ 
+                     
+                   
           <div className="flex items-center space-x-4">
             {/* Role Switcher for Demo */}
             <div className="flex items-center space-x-2">

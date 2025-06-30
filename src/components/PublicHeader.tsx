@@ -46,7 +46,7 @@ const PublicHeader = () => {
             <NavLink to="/about" className={getLinkClass}>About</NavLink>
             <NavLink to="/contact" className={getLinkClass}>Contact</NavLink>
             <NavLink to="/courses" className={getLinkClass}>Browse Courses</NavLink>
-            <NavLink to="/dashboard" className={getLinkClass}>Dashboard</NavLink>
+            {/* <NavLink to="/dashboard" className={getLinkClass}>Dashboard</NavLink> */}
           </nav>
           <div className="flex items-center space-x-4">
             <ThemeToggle />

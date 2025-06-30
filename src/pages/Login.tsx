@@ -30,7 +30,11 @@ const Login = () => {
         title: 'Login Successful',
         description: `Welcome back, ${userInfo.full_name}!`
       });
-      navigate('/');
+      if(userInfo.role.title === 'Admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     }
   }, [userInfo, navigate, toast]);
 
