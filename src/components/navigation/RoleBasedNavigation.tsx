@@ -1,4 +1,3 @@
-
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -59,7 +58,7 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
               <NavLink to="/contact">Contact</NavLink>
             </Button>
 
-            {userInfo.role.title=='User' && (
+            {userInfo && userInfo.role?.title === 'User' && (
               <>
                 <Button variant="ghost" asChild>
                   <NavLink to="/learner/courses">
@@ -100,8 +99,8 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
                         </>
            
             )}
-            
-            {userInfo.role.title=='Admin' && (
+
+            {userInfo && userInfo.role?.title === 'Admin' && (
               <>
                 <Button variant="ghost" asChild>
                   <NavLink to="/admin">
@@ -144,19 +143,19 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
             {/* Role Switcher for Demo */}
             <div className="flex items-center space-x-2">
               <Badge variant={isAdmin ? "default" : "secondary"}>
-                {userInfo.role.title=='Admin' ? "Admin" : "Learner"}
+                {userInfo && userInfo.role?.title === 'Admin' ? "Admin" : "Learner"}
               </Badge>
-              {userInfo.role.title=='Admin' &&
+              {userInfo && userInfo.role?.title === 'Admin' && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => switchRole(userInfo.role.title=='Admin' ? 'learner' : 'admin')}
+                onClick={() => switchRole(userInfo.role.title === 'Admin' ? 'learner' : 'admin')}
                 className="text-xs"
               >
                 <UserCog className="h-3 w-3 mr-1" />
-                Switch to {userInfo.role.title=='Admin' ? 'Learner' : 'Admin'}
+                Switch to {userInfo.role.title === 'Admin' ? 'Learner' : 'Admin'}
               </Button>
-}
+)}
             </div>
             
             <ThemeToggle />
