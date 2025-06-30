@@ -34,24 +34,7 @@ const dispatch = useDispatch();
 const { userInfo, loading, error } = useAuth();
 
 
-useEffect(() => {
-  if (!loading && error ==null) {
-    toast({
-      title: "Registration Successful",
-      description: "You can now sign in with your credentials.",
-    });
-    navigate("/login");
-  }
-}, [ loading, error, toast, navigate,userInfo]);
 
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Registration Failed",
-        description: error,
-      });
-    }
-  }, [error, toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -80,6 +63,20 @@ useEffect(() => {
       formData.password,
       formData.phone
     ) as any);
+
+     if (!loading && error ==null) {
+    toast({
+      title: "Registration Successful",
+      description: "You can now sign in with your credentials.",
+    });
+      if (error) {
+      toast({
+        title: "Registration Failed",
+        description: error,
+      });
+    }
+    navigate("/login");
+  }
   };
 
   return (

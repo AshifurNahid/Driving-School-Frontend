@@ -58,83 +58,74 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
               <NavLink to="/contact">Contact</NavLink>
             </Button>
 
-            {userInfo && userInfo.role?.title === 'User' && (
-              <>
-                <Button variant="ghost" asChild>
-                  <NavLink to="/learner/courses">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    My Courses
-                  </NavLink>
-                </Button>
-                <Button variant="ghost" asChild>
-                  <NavLink to="/appointments">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Appointments
-                  </NavLink>
-                </Button>
-              
-                  
-                          
-                            <Button
-                              variant="outline"
-                              className="w-full flex items-center justify-center"
-                              onClick={() => navigate("/learner/profile")}>
-                            
-                              <img
-                                src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)}
-                                alt="avatar"
-                                className="w-8 h-8 rounded-full mr-2 inline-block"
-                              />
-                              
-                            </Button>
-                        
-                     
-                            <Button
-                              onClick={handleLogout}
-                              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
-                            >
-                              Log Out
-                            </Button>
-                         
-                        </>
-           
-            )}
-
-            {userInfo && userInfo.role?.title === 'Admin' && (
-              <>
-                <Button variant="ghost" asChild>
-                  <NavLink to="/admin">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Admin Dashboard
-                  </NavLink>
-                </Button>
-                {/* <Button variant="ghost" asChild>
-                  <NavLink to="/dashboard">
-                    <Users className="h-4 w-4 mr-2" />
-                    Instructor Dashboard
-                  </NavLink>
-                </Button> */}
-                {/* <Button variant="ghost" asChild>
-                  <NavLink to="/appointments">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Appointments
-                  </NavLink>
-                </Button> */}
-                <Button variant="ghost" asChild>
-                  <NavLink to="/upload-course">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Upload Course
-                  </NavLink>
-                </Button>
-               
-                  <Button
-                    onClick={handleLogout}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
-                  >
-                    Log Out
-                  </Button>
-              </>
-            )}
+            {userInfo ? (
+  userInfo.role?.title === 'Admin' ? (
+    <>
+      <Button variant="ghost" asChild>
+        <NavLink to="/admin">
+          <BarChart3 className="h-4 w-4 mr-2" />
+          Admin Dashboard
+        </NavLink>
+      </Button>
+      <Button variant="ghost" asChild>
+        <NavLink to="/upload-course">
+          <Settings className="h-4 w-4 mr-2" />
+          Upload Course
+        </NavLink>
+      </Button>
+      <Button
+        onClick={handleLogout}
+        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+      >
+        Log Out
+      </Button>
+    </>
+  ) : (
+    <>
+      <Button variant="ghost" asChild>
+        <NavLink to="/learner/courses">
+          <BookOpen className="h-4 w-4 mr-2" />
+          My Courses
+        </NavLink>
+      </Button>
+      <Button variant="ghost" asChild>
+        <NavLink to="/appointments">
+          <Calendar className="h-4 w-4 mr-2" />
+          Appointments
+        </NavLink>
+      </Button>
+      <Button
+        variant="outline"
+        className="w-full flex items-center justify-center"
+        onClick={() => navigate("/learner/profile")}
+      >
+        <img
+          src={
+            userInfo.user_detail?.image_path ||
+            "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)
+          }
+          alt="avatar"
+          className="w-8 h-8 rounded-full mr-2 inline-block"
+        />
+      </Button>
+      <Button
+        onClick={handleLogout}
+        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+      >
+        Log Out
+      </Button>
+    </>
+  )
+) : (
+  <>
+    <Button variant="outline" asChild className="w-full">
+      <NavLink to="/login">Sign In</NavLink>
+    </Button>
+    <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium">
+      <NavLink to="/register">Get Started</NavLink>
+    </Button>
+  </>
+)}
           </nav>
  
                      
@@ -155,8 +146,14 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
                 <UserCog className="h-3 w-3 mr-1" />
                 Switch to {userInfo.role.title === 'Admin' ? 'Learner' : 'Admin'}
               </Button>
+           
+                        
+                       
 )}
             </div>
+              
+                          
+                       
             
             <ThemeToggle />
             {/* <Avatar>

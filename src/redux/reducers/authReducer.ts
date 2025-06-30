@@ -12,7 +12,7 @@ import { User } from "@/types/user";
 interface AuthState {
   loading: boolean;
   userInfo: User | null;
-  error: string | null;
+  error?: string | null;
 }
 
 const userInfoFromStorage = localStorage.getItem("userInfo")
