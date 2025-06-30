@@ -20,3 +20,34 @@ export const getAdminUsers = (pageNumber = 1, pageSize = 20) => async (dispatch:
     });
   }
 };
+
+// Get User Details (Admin)
+export const getAdminUserDetails = (userId: number|string) => async (dispatch: any) => {
+  try {
+    dispatch({ type: "ADMIN_USER_DETAILS_REQUEST" });
+    const { data } = await api.get(`/users/${userId}`);
+    dispatch({ type: "ADMIN_USER_DETAILS_SUCCESS", payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_USER_DETAILS_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// delete User (Admin)
+export const deleteAdminUser = (userId: number | string) => async (dispatch: any) => {
+  try {
+    dispatch({ type: "ADMIN_USER_DELETE_REQUEST" });
+    const { data } = await api.delete(`/users/${userId}`);
+    dispatch({
+      type: "ADMIN_USER_DELETE_SUCCESS",
+      payload: { userId, message: data.data || "User Successfully Deleted" },
+    });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_USER_DELETE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};

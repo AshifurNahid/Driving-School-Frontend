@@ -39,22 +39,51 @@ import AdminAppointmentManagement from '@/components/admin/AdminAppointmentManag
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
-import { getAdminUsers } from "@/redux/actions/adminAction";
+import { getAdminUserDetails ,deleteAdminUser} from "@/redux/actions/adminAction";
 import { RootState } from "@/redux/store";
 import { User } from "@/types/user";
 import { useAdminUsers } from '@/hooks/useAdminUsers';
+import UserDetailsModal from "@/components/admin/UserDetailsModal";
+
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+ 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [editingCourse, setEditingCourse] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
+  const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false);
   const { users, loading: usersLoading, error: usersError } = useAdminUsers();
 
+
+  const dispatch = useDispatch();
+const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);
+  const { loading: deleteLoading, success: deleteSuccess, message: deleteMessage } = useSelector((state: RootState) => state.adminUserDelete);
+
+const handleViewUser = (userId: number) => {
+  dispatch(getAdminUserDetails(userId));
+  setUserDetailsModalOpen(true);
+};
+const handleDeleteUser = (userId: number) => {
+    dispatch(deleteAdminUser(userId));
+    toast({
+        title: "User Deleted",
+        description: deleteMessage || "User successfully deleted.",
+      });
+  };
+ 
+
+// useEffect(() => {
+//   if (message) {
+//     toast({
+//       title: "Success",
+//       description: message,
+//     });
+//   }
+// }, [message, toast]);
   // Mock data
   const stats = {
     totalUsers: 52847,
@@ -207,9 +236,9 @@ const AdminDashboard = () => {
   };
 
   // Fetch users on mount
-  useEffect(() => {
-    dispatch(getAdminUsers());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(getAdminUsers());
+  // }, [dispatch]);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -490,15 +519,21 @@ const AdminDashboard = () => {
                                 </td>
                                 <td className="p-4">
                                   <div className="flex space-x-2">
-                                    <Button size="sm" variant="outline">
-                                      <Eye className="h-3 w-3" />
+                                     <Button size="sm" variant="outline" onClick={() => handleViewUser(user.id)}>
+                                    <Eye className="h-3 w-3" />
                                     </Button>
                                     <Button size="sm" variant="outline">
                                       <Edit className="h-3 w-3" />
                                     </Button>
-                                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
+   <Button
+    size="sm"
+    variant="outline"
+    className="text-red-600 hover:text-red-700"
+    onClick={() => handleDeleteUser(user.id)}
+    disabled={deleteLoading}
+  >
+    <Trash2 className="h-3 w-3" />
+  </Button>
                                   </div>
                                 </td>
                               </tr>
@@ -859,8 +894,15 @@ const AdminDashboard = () => {
           )}
         </>
       )}
+<UserDetailsModal
+  open={userDetailsModalOpen}
+  onClose={() => setUserDetailsModalOpen(false)}
+  user={userDetails}
+/>
     </div>
+    
   );
+ 
 };
 
 export default AdminDashboard;
