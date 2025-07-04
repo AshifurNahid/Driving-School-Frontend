@@ -3,6 +3,9 @@ import {
   ADMIN_USER_LIST_REQUEST,
   ADMIN_USER_LIST_SUCCESS,
   ADMIN_USER_LIST_FAIL,
+  ROLE_LIST_REQUEST,
+  ROLE_LIST_SUCCESS,
+  ROLE_LIST_FAIL,
 } from "../constants/adminConstants";
 
 // Get Users (Admin)
@@ -47,6 +50,20 @@ export const deleteAdminUser = (userId: number | string) => async (dispatch: any
   } catch (error: any) {
     dispatch({
       type: "ADMIN_USER_DELETE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Get Roles (Admin)
+export const getAdminRoles = () => async (dispatch: any) => {
+  try {
+    dispatch({ type: ROLE_LIST_REQUEST });
+    const { data } = await api.get("/roles");
+    dispatch({ type: ROLE_LIST_SUCCESS, payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: ROLE_LIST_FAIL,
       payload: error.response?.data?.message || error.message,
     });
   }

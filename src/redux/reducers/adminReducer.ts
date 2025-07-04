@@ -9,7 +9,7 @@ import {
   ADMIN_USER_DELETE_SUCCESS,
   ADMIN_USER_DELETE_FAIL,
 } from "../constants/adminConstants";
-import { User } from "@/types/user";
+import { User, UserRole } from "@/types/user";
 
 // User List State
 interface AdminUserListState {
@@ -101,6 +101,35 @@ export const adminUserDeleteReducer = (
       };
     case ADMIN_USER_DELETE_FAIL:
       return { ...state, loading: false, success: false, error: action.payload, message: null };
+    default:
+      return state;
+  }
+};
+
+
+// Get Roles State
+interface AdminRoleListState {
+  loading: boolean;
+  roles: UserRole[]; // Assuming roles are strings, adjust as necessary
+  error: string | null;
+}
+
+const initialRoleListState: AdminRoleListState = {
+  loading: false,
+  roles: [],
+  error: null,
+};
+export const adminRoleListReducer = (
+  state = initialRoleListState,
+  action: any
+): AdminRoleListState => {
+  switch (action.type) {
+    case "ROLE_LIST_REQUEST":
+      return { ...state, loading: true, error: null };
+    case "ROLE_LIST_SUCCESS":
+      return { ...state, loading: false, roles: action.payload, error: null };
+    case "ROLE_LIST_FAIL":
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }
