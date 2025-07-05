@@ -39,11 +39,13 @@ import AdminAppointmentManagement from '@/components/admin/AdminAppointmentManag
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
-import { getAdminUserDetails ,deleteAdminUser} from "@/redux/actions/adminAction";
-import { RootState } from "@/redux/store";
+import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers } from "@/redux/actions/adminAction";
+import { RootState, AppDispatch } from "@/redux/store";
 import { User } from "@/types/user";
 import { useAdminUsers } from '@/hooks/useAdminUsers';
 import UserDetailsModal from "@/components/admin/UserDetailsModal";
+import UserRoleEditModal from "@/components/admin/UserRoleEditModal";
+import ReactPaginate from "react-paginate";
 
 
 const AdminDashboard = () => {
@@ -56,34 +58,79 @@ const AdminDashboard = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
   const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false);
-  const { users, loading: usersLoading, error: usersError } = useAdminUsers();
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10; // or whatever you want
 
-
-  const dispatch = useDispatch();
-const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);
+  const dispatch = useDispatch<AppDispatch>();
+  const { users, loading: usersLoading, error: usersError, page } = useSelector(
+    (state: RootState) => state.adminUserList
+  );
+  const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);
   const { loading: deleteLoading, success: deleteSuccess, message: deleteMessage } = useSelector((state: RootState) => state.adminUserDelete);
+  const { roles, loading: rolesLoading } = useSelector((state: RootState) => state.adminRoleList);
+  const { loading: roleUpdateLoading, user:userDetail, error: roleUpdateError } = useSelector((state: RootState) => state.adminUserDetails); // adjust if you have a dedicated slice
 
-const handleViewUser = (userId: number) => {
-  dispatch(getAdminUserDetails(userId));
-  setUserDetailsModalOpen(true);
-};
-const handleDeleteUser = (userId: number) => {
+  // Handle viewing user details
+  const handleViewUser = (userId: number) => {
+    dispatch(getAdminUserDetails(userId));
+    setUserDetailsModalOpen(true);
+  };
+
+  // Handle deleting a user
+  const handleDeleteUser = (userId: number) => {
     dispatch(deleteAdminUser(userId));
-    toast({
+  };
+
+  // Show toast and refetch users after successful delete
+  useEffect(() => {
+    if (deleteSuccess) {
+      toast({
         title: "User Deleted",
         description: deleteMessage || "User successfully deleted.",
       });
-  };
- 
+      dispatch(getAdminUsers());
+    }
+  }, [deleteSuccess, deleteMessage, dispatch, toast]);
 
-// useEffect(() => {
-//   if (message) {
-//     toast({
-//       title: "Success",
-//       description: message,
-//     });
-//   }
-// }, [message, toast]);
+  // Handle editing user role
+  const handleEditUser = (user: User) => {
+    setEditUser(user);
+    setEditUserModalOpen(true);
+    if (!roles || roles.length === 0) {
+      dispatch(getAdminRoles());
+    }
+  };
+
+  // Save role change
+  const handleSaveRole = (roleId: number) => {
+    if (editUser) {
+      dispatch(updateAdminRole(editUser.id, roleId));
+      if (!roleUpdateLoading) {
+      toast({
+        title: "Role Updated",
+        description: "User role updated successfully.",
+      });
+      setEditUserModalOpen(false);
+    }
+    }
+  };
+
+  // Show toast and close modal on role update
+  // useEffect(() => {
+    
+  //     dispatch(getAdminUsers());
+  //   }
+  //   if (roleUpdateError) {
+  //     toast({
+  //       title: "Error",
+  //       description: roleUpdateError,
+  //       variant: "destructive",
+  //     });
+  //   }
+  // }, [roleUpdateLoading, roleUpdateError, toast, dispatch]);
+
   // Mock data
   const stats = {
     totalUsers: 52847,
@@ -236,9 +283,13 @@ const handleDeleteUser = (userId: number) => {
   };
 
   // Fetch users on mount
-  // useEffect(() => {
-  //   dispatch(getAdminUsers());
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(getAdminUsers(currentPage, pageSize));
+  }, [dispatch, currentPage]);
+
+  const handlePageClick = (selectedItem: { selected: number }) => {
+    setCurrentPage(selectedItem.selected + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -519,21 +570,21 @@ const handleDeleteUser = (userId: number) => {
                                 </td>
                                 <td className="p-4">
                                   <div className="flex space-x-2">
-                                     <Button size="sm" variant="outline" onClick={() => handleViewUser(user.id)}>
-                                    <Eye className="h-3 w-3" />
+                                    <Button size="sm" variant="outline" onClick={() => handleViewUser(user.id)}>
+                                      <Eye className="h-3 w-3" />
                                     </Button>
-                                    <Button size="sm" variant="outline">
+                                    <Button size="sm" variant="outline" onClick={() => handleEditUser(user)}>
                                       <Edit className="h-3 w-3" />
                                     </Button>
-   <Button
-    size="sm"
-    variant="outline"
-    className="text-red-600 hover:text-red-700"
-    onClick={() => handleDeleteUser(user.id)}
-    disabled={deleteLoading}
-  >
-    <Trash2 className="h-3 w-3" />
-  </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-red-600 hover:text-red-700"
+                                      onClick={() => handleDeleteUser(user.id)}
+                                      disabled={deleteLoading}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 </td>
                               </tr>
@@ -551,6 +602,25 @@ const handleDeleteUser = (userId: number) => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Pagination */}
+              <div className="mt-4">
+                <ReactPaginate
+                  previousLabel={"← Previous"}
+                  nextLabel={"Next →"}
+                  breakLabel={"..."}
+                  pageCount={5} // Replace with total pages if you have it from backend
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={3}
+                  onPageChange={handlePageClick}
+                  containerClassName={"pagination flex justify-center mt-4"}
+                  pageClassName={"mx-1"}
+                  activeClassName={"font-bold text-blue-600"}
+                  previousClassName={"mx-2"}
+                  nextClassName={"mx-2"}
+                  forcePage={currentPage - 1}
+                />
+              </div>
             </div>
           )}
 
@@ -894,11 +964,19 @@ const handleDeleteUser = (userId: number) => {
           )}
         </>
       )}
-<UserDetailsModal
-  open={userDetailsModalOpen}
-  onClose={() => setUserDetailsModalOpen(false)}
-  user={userDetails}
-/>
+      <UserDetailsModal
+        open={userDetailsModalOpen}
+        onClose={() => setUserDetailsModalOpen(false)}
+        user={userDetails}
+      />
+      <UserRoleEditModal
+        open={editUserModalOpen}
+        onClose={() => setEditUserModalOpen(false)}
+        user={editUser}
+        roles={roles}
+        onSave={handleSaveRole}
+        loading={roleUpdateLoading}
+      />
     </div>
     
   );

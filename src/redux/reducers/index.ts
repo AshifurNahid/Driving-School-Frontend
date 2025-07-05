@@ -4,6 +4,7 @@ import {
   adminUserListReducer,
   adminUserDetailsReducer,
   adminUserDeleteReducer,
+  adminRoleListReducer,
 } from "./adminReducer";
 
 const rootReducer = combineReducers({
@@ -11,6 +12,7 @@ const rootReducer = combineReducers({
   adminUserList: adminUserListReducer,
   adminUserDetails: adminUserDetailsReducer,
   adminUserDelete: adminUserDeleteReducer,
+  adminRoleList: adminRoleListReducer,
   // add other reducers here
 });
 
