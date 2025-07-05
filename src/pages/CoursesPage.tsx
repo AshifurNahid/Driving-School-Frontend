@@ -12,81 +12,9 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { CourseCard } from '@/components/course/CourseCard';
-import { type Course } from '@/types/course';
-
-const allCoursesData = [
-  {
-    id: 'c1',
-    title: "Complete Web Development Bootcamp",
-    instructor: "Sarah Johnson",
-    thumbnail: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=250&fit=crop",
-    price: 49.99,
-    type: 'online',
-    rating: 4.8,
-    enrollments: 12500,
-    createdAt: '2024-05-20T10:00:00Z',
-  },
-  {
-    id: 'c2',
-    title: "In-Car G2 Road Test Preparation",
-    instructor: "David Lee",
-    thumbnail: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=250&fit=crop",
-    price: 150.00,
-    type: 'physical',
-    rating: 4.9,
-    enrollments: 850,
-    createdAt: '2024-05-15T12:00:00Z',
-  },
-  {
-    id: 'c3',
-    title: "JavaScript Fundamentals",
-    instructor: "Michael Chen",
-    thumbnail: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=250&fit=crop",
-    price: 29.99,
-    type: 'online',
-    rating: 4.7,
-    enrollments: 9800,
-    createdAt: '2024-04-28T14:30:00Z',
-  },
-  {
-    id: 'c4',
-    title: "Advanced React Patterns",
-    instructor: "John Doe",
-    thumbnail: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=250&fit=crop",
-    price: 79.99,
-    type: 'online',
-    rating: 4.9,
-    enrollments: 6500,
-    createdAt: '2024-06-01T09:00:00Z',
-  },
-  {
-    id: 'c5',
-    title: "Defensive Driving Masterclass",
-    instructor: "Maria Garcia",
-    thumbnail: "https://images.unsplash.com/photo-1549399542-7e6949257094?w=400&h=250&fit=crop",
-    price: 250.00,
-    type: 'physical',
-    rating: 5.0,
-    enrollments: 450,
-    createdAt: '2024-03-10T11:00:00Z',
-  },
-  {
-    id: 'c6',
-    title: "Python for Data Science",
-    instructor: "Emily White",
-    thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop",
-    price: 59.99,
-    type: 'online',
-    rating: 4.8,
-    enrollments: 15000,
-    createdAt: '2024-05-25T18:00:00Z',
-  },
-];
-
-const courses: Course[] = allCoursesData.map(course => ({
-  ...course,
-  category: course.type,
-}));
+import { type Course } from '@/types/courses';
+import { useCourses } from '@/hooks/useCourses';
+import ReactPaginate from "react-paginate";
 
 const CoursesPage = () => {
   const { user } = useUser();
@@ -94,11 +22,19 @@ const CoursesPage = () => {
   const [sort, setSort] = useState('popularity');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Use the hook for paginated courses
+  const { courses, loading, error, currentPage, setCurrentPage } = useCourses(1, 10);
+
+  // Filtering and sorting
   const filteredCourses = useMemo(() => {
+    if (!courses) return [];
     return courses
       .filter(course => filter === 'all' || course.category === filter)
-      .filter(course => course.title.toLowerCase().includes(searchTerm.toLowerCase()) || course.instructor.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [filter, searchTerm]);
+      .filter(course =>
+        course.title.toLowerCase().includes(searchTerm.toLowerCase())
+        // If you want to filter by instructor, add instructor to your Course type and API
+      );
+  }, [courses, filter, searchTerm]);
 
   const sortedCourses = useMemo(() => {
     const sorted = [...filteredCourses];
@@ -108,13 +44,20 @@ const CoursesPage = () => {
       case 'price-desc':
         return sorted.sort((a, b) => b.price - a.price);
       case 'newest':
-        // @ts-ignore
-        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        // If you have createdAt in your API, use it; otherwise, skip
+        return sorted;
       case 'popularity':
       default:
-        return sorted.sort((a, b) => b.enrollments - a.enrollments);
+        return sorted;
     }
   }, [sort, filteredCourses]);
+
+  // Pagination UI (if you have totalCourses from Redux, use it; otherwise, hide or hardcode pageCount)
+  const pageCount = 1; // Replace with Math.ceil(totalCourses / 10) if available
+
+  const handlePageClick = (selectedItem: { selected: number }) => {
+    setCurrentPage(selectedItem.selected + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -158,10 +101,34 @@ const CoursesPage = () => {
             </div>
           </div>
 
-          {sortedCourses.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {sortedCourses.map(course => <CourseCard key={course.id} course={course} />)}
-            </div>
+          {loading ? (
+            <div className="text-center py-16 bg-card rounded-lg">Loading...</div>
+          ) : error ? (
+            <div className="text-center py-16 bg-card rounded-lg text-red-600">{error}</div>
+          ) : sortedCourses.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                {sortedCourses.map(course => <CourseCard key={course.id} course={course} />)}
+              </div>
+              {/* Pagination */}
+              <div className="mt-8">
+                <ReactPaginate
+                  previousLabel={"← Previous"}
+                  nextLabel={"Next →"}
+                  breakLabel={"..."}
+                  pageCount={pageCount}
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={3}
+                  onPageChange={handlePageClick}
+                  containerClassName={"pagination flex justify-center mt-4"}
+                  pageClassName={"mx-1"}
+                  activeClassName={"font-bold text-blue-600"}
+                  previousClassName={"mx-2"}
+                  nextClassName={"mx-2"}
+                  forcePage={currentPage - 1}
+                />
+              </div>
+            </>
           ) : (
             <div className="text-center py-16 bg-card rounded-lg">
                 <h3 className="text-2xl font-semibold text-foreground">No Courses Found</h3>

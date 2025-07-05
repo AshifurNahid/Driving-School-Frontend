@@ -12,3 +12,5 @@ export type Course = {
   description?: string;
   featured?: boolean;
 };
+
+
