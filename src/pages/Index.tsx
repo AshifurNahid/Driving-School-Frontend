@@ -10,75 +10,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import PublicHeader from '@/components/PublicHeader';
 import Footer from '@/components/Footer';
 import { CourseCard } from '@/components/course/CourseCard';
-import { type Course } from '@/types/course';
+import { type Course } from '@/types/courses';
 import UserAppointmentView from '@/components/appointments/UserAppointmentView';
 import { useUser } from '@/contexts/UserContext';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
+import { useCourses } from '@/hooks/useCourses';
 
 const Index = () => {
   const { user, isLearner } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-
-  const coursesData = [
-    {
-      id: 1,
-      title: "Complete Web Development Bootcamp",
-      description: "Learn HTML, CSS, JavaScript, React, Node.js and more",
-      instructor: "Sarah Johnson",
-      category: "Web Development",
-      price: 99.99,
-      rating: 4.8,
-      students: 12500,
-      duration: "42 hours",
-      thumbnail: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=300&h=180&fit=crop",
-      featured: true
-    },
-    {
-      id: 2,
-      title: "Python for Data Science",
-      description: "Master Python programming for data analysis and machine learning",
-      instructor: "Dr. Michael Chen",
-      category: "Data Science",
-      price: 79.99,
-      rating: 4.7,
-      students: 8900,
-      duration: "35 hours",
-      thumbnail: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=180&fit=crop",
-      featured: false
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Fundamentals",
-      description: "Learn the principles of user experience and interface design",
-      instructor: "Emma Rodriguez",
-      category: "Design",
-      price: 69.99,
-      rating: 4.9,
-      students: 6700,
-      duration: "28 hours",
-      thumbnail: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=180&fit=crop",
-      featured: true
-    },
-    {
-      id: 4,
-      title: "Digital Marketing Mastery",
-      description: "Complete guide to social media marketing and SEO",
-      instructor: "James Wilson",
-      category: "Marketing",
-      price: 89.99,
-      rating: 4.6,
-      students: 5400,
-      duration: "32 hours",
-      thumbnail: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=300&h=180&fit=crop",
-      featured: false
-    }
-  ];
-
-  const mappedCourses: Course[] = coursesData.map(c => ({
-    ...c,
-    enrollments: c.students,
-  }));
+  const { courses, loading, error } = useCourses(1, 8); // Fetch 8 courses for the homepage
 
   // Featured instructors data
   const featuredInstructors = [
@@ -135,7 +77,8 @@ const Index = () => {
 
   const categories = ["Web Development", "Data Science", "Design", "Marketing", "Business"];
 
-  const filteredCourses = mappedCourses.filter(course => {
+  // Filter and search courses from API
+  const filteredCourses = (courses || []).filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (course.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
@@ -261,11 +204,22 @@ const Index = () => {
             <p className="text-lg text-muted-foreground font-medium">Handpicked courses by our expert team</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center py-16 bg-card rounded-lg">Loading...</div>
+          ) : error ? (
+            <div className="text-center py-16 bg-card rounded-lg text-red-600">{error}</div>
+          ) : filteredCourses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-card rounded-lg">
+              <h3 className="text-2xl font-semibold text-foreground">No Courses Found</h3>
+              <p className="text-muted-foreground mt-2">Try adjusting your search or filters.</p>
+            </div>
+          )}
         </div>
       </section>
 
