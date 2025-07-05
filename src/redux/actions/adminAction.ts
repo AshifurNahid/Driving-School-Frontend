@@ -9,13 +9,20 @@ import {
 } from "../constants/adminConstants";
 
 // Get Users (Admin)
-export const getAdminUsers = (pageNumber = 1, pageSize = 20) => async (dispatch: any) => {
+export const getAdminUsers = (page = 1, pageSize = 10) => async (dispatch: any) => {
   try {
     dispatch({ type: ADMIN_USER_LIST_REQUEST });
-    const { data } = await api.get("/users", {
-      params: { PageNumber: pageNumber, PageSize: pageSize },
+    const { data } = await api.get(`/users?PageNumber=${page}&PageSize=${pageSize}`);
+    // You may need to get total count from headers or a separate API if your backend supports it
+    dispatch({
+      type: ADMIN_USER_LIST_SUCCESS,
+      payload: {
+        users: data.data,
+        page,
+        pageSize,
+        // totalUsers: data.totalUsers, // If your backend provides this
+      },
     });
-    dispatch({ type: ADMIN_USER_LIST_SUCCESS, payload: data.data });
   } catch (error: any) {
     dispatch({
       type: ADMIN_USER_LIST_FAIL,
@@ -64,6 +71,20 @@ export const getAdminRoles = () => async (dispatch: any) => {
   } catch (error: any) {
     dispatch({
       type: ROLE_LIST_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Update Role (Admin)
+export const updateAdminRole = (userID: number | string, roleID: number)=> async (dispatch: any) => {
+  try {
+    dispatch({ type: "ROLE_UPDATE_REQUEST" });
+    const { data } = await api.put(`/users-role/${userID}`, { role_id: roleID });
+    dispatch({ type: "ROLE_UPDATE_SUCCESS", payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: "ROLE_UPDATE_FAIL",
       payload: error.response?.data?.message || error.message,
     });
   }
