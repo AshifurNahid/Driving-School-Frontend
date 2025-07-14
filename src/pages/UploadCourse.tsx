@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Eye, Play, ChevronDown, ChevronRight, BookOpen, Video, Brain, HelpCircle, Car, Monitor } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Eye, Play, ChevronDown, ChevronRight, BookOpen, Video, Brain, Car, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PhysicalCourseForm from '@/components/course/PhysicalCourseForm';
+import { QuizModal } from '@/components/course/QuizModal';
+import { MaterialModal } from '@/components/course/MaterialModal';
 
 type CourseType = 'online' | 'physical';
 
@@ -23,7 +24,7 @@ interface Subsection {
 }
 
 interface Question {
-  id: string;
+  id?: string;
   type: 'mcq' | 'true-false' | 'short-answer';
   question: string;
   options?: string[];
@@ -41,6 +42,11 @@ interface Quiz {
   allowRetakes: boolean;
 }
 
+interface ModuleMaterial {
+  name: string;
+  url: string;
+}
+
 interface Module {
   title: string;
   description: string;
@@ -48,6 +54,7 @@ interface Module {
   quiz?: Quiz;
   isExpanded: boolean;
   isQuizExpanded: boolean;
+  materials?: ModuleMaterial[];
 }
 
 interface PhysicalCourseData {
@@ -59,6 +66,11 @@ interface PhysicalCourseData {
   location: string;
 }
 
+interface CourseMaterial {
+  name: string;
+  url: string;
+}
+
 interface Course {
   title: string;
   description: string;
@@ -68,7 +80,16 @@ interface Course {
   courseType: CourseType;
   modules: Module[];
   physicalCourseData?: PhysicalCourseData;
+  materials: CourseMaterial[];
 }
+
+const steps = [
+  { key: 'type', label: 'Course Type' },
+  { key: 'info', label: 'Course Info' },
+  { key: 'content', label: 'Content' },
+  // { key: 'materials', label: 'Materials' },
+  { key: 'preview', label: 'Preview & Publish' },
+];
 
 const UploadCourse = () => {
   const [course, setCourse] = useState<Course>({
@@ -86,16 +107,92 @@ const UploadCourse = () => {
       includes: '',
       description: '',
       location: ''
-    }
+    },
+    materials: [],
   });
 
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [quizModal, setQuizModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
+  const [materialModal, setMaterialModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
 
+  // --- Step validation logic ---
+  const isTypeStepValid = !!course.courseType;
+  const isInfoStepValid =
+    course.title.trim() &&
+    course.description.trim() &&
+    course.category &&
+    course.price > 0 &&
+    course.thumbnail.trim() &&
+    (course.courseType === 'physical'
+      ? !!course.physicalCourseData?.title &&
+        !!course.physicalCourseData?.duration &&
+        !!course.physicalCourseData?.location
+      : true);
+
+  const isContentStepValid =
+    course.courseType === 'physical' ||
+    (course.modules.length > 0 &&
+      course.modules.every((m) => m.title.trim() && m.subsections.length > 0));
+
+  const isMaterialsStepValid = course.materials.length > 0;
+
+  // --- Navigation logic ---
+  const canGoNext = () => {
+    if (currentStep === 0) return isTypeStepValid;
+    if (currentStep === 1) return isInfoStepValid;
+    if (currentStep === 2) return isContentStepValid;
+    // if (currentStep === 3) return isMaterialsStepValid;
+    return true;
+  };
+
+  const goNext = () => {
+    if (canGoNext() && currentStep < steps.length - 1) setCurrentStep(currentStep + 1);
+  };
+  const goBack = () => {
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
+  };
+
+  // --- Modal Save Handlers ---
+  const handleQuizSave = (quiz: Quiz) => {
+    if (quizModal.moduleIdx !== null) {
+      const newModules = [...course.modules];
+      newModules[quizModal.moduleIdx].quiz = quiz;
+      setCourse({ ...course, modules: newModules });
+    }
+  };
+  const handleMaterialSave = (materials: ModuleMaterial[]) => {
+    if (materialModal.moduleIdx !== null) {
+      const newModules = [...course.modules];
+      newModules[materialModal.moduleIdx].materials = materials;
+      setCourse({ ...course, modules: newModules });
+    }
+  };
+
+  // --- Course Material Handlers (Course-level, as PDF URLs) ---
+  const addCourseMaterial = () => {
+    setCourse(prev => ({
+      ...prev,
+      materials: [...prev.materials, { name: '', url: '' }]
+    }));
+  };
+  const updateCourseMaterial = (idx: number, field: keyof CourseMaterial, value: string) => {
+    const newMaterials = [...course.materials];
+    newMaterials[idx][field] = value;
+    setCourse(prev => ({ ...prev, materials: newMaterials }));
+  };
+  const removeCourseMaterial = (idx: number) => {
+    setCourse(prev => ({
+      ...prev,
+      materials: prev.materials.filter((_, i) => i !== idx)
+    }));
+  };
+
+  // --- Module logic (add, remove, update, etc.) ---
   const handleCourseTypeChange = (type: CourseType) => {
     setCourse(prev => ({
       ...prev,
       courseType: type,
-      // Clear modules if switching to physical
       modules: type === 'physical' ? [] : prev.modules
     }));
   };
@@ -115,7 +212,7 @@ const UploadCourse = () => {
       ...course,
       modules: [
         ...course.modules,
-        { title: '', description: '', subsections: [], isExpanded: true, isQuizExpanded: false },
+        { title: '', description: '', subsections: [], isExpanded: true, isQuizExpanded: false, materials: [] },
       ],
     });
   };
@@ -134,84 +231,6 @@ const UploadCourse = () => {
 
   const toggleModuleExpansion = (moduleIndex: number) => {
     updateModule(moduleIndex, 'isExpanded', !course.modules[moduleIndex].isExpanded);
-  };
-
-  const toggleQuizExpansion = (moduleIndex: number) => {
-    updateModule(moduleIndex, 'isQuizExpanded', !course.modules[moduleIndex].isQuizExpanded);
-  };
-
-  const addQuizToModule = (moduleIndex: number) => {
-    const newModules = [...course.modules];
-    newModules[moduleIndex].quiz = {
-      title: '',
-      description: '',
-      questions: [],
-      passPercentage: 70,
-      allowRetakes: true
-    };
-    newModules[moduleIndex].isQuizExpanded = true;
-    setCourse({ ...course, modules: newModules });
-  };
-
-  const removeQuizFromModule = (moduleIndex: number) => {
-    const newModules = [...course.modules];
-    delete newModules[moduleIndex].quiz;
-    newModules[moduleIndex].isQuizExpanded = false;
-    setCourse({ ...course, modules: newModules });
-  };
-
-  const updateQuiz = (moduleIndex: number, field: string, value: any) => {
-    const newModules = [...course.modules];
-    if (newModules[moduleIndex].quiz) {
-      newModules[moduleIndex].quiz = { ...newModules[moduleIndex].quiz!, [field]: value };
-      setCourse({ ...course, modules: newModules });
-    }
-  };
-
-  const addQuestionToQuiz = (moduleIndex: number) => {
-    const newQuestion: Question = {
-      id: Date.now().toString(),
-      type: 'mcq',
-      question: '',
-      options: ['', '', '', ''],
-      correctAnswer: '',
-      points: 1
-    };
-    const newModules = [...course.modules];
-    if (newModules[moduleIndex].quiz) {
-      newModules[moduleIndex].quiz!.questions = [...newModules[moduleIndex].quiz!.questions, newQuestion];
-      setCourse({ ...course, modules: newModules });
-    }
-  };
-
-  const removeQuestionFromQuiz = (moduleIndex: number, questionIndex: number) => {
-    const newModules = [...course.modules];
-    if (newModules[moduleIndex].quiz) {
-      newModules[moduleIndex].quiz!.questions.splice(questionIndex, 1);
-      setCourse({ ...course, modules: newModules });
-    }
-  };
-
-  const updateQuestion = (moduleIndex: number, questionIndex: number, updates: Partial<Question>) => {
-    const newModules = [...course.modules];
-    if (newModules[moduleIndex].quiz) {
-      newModules[moduleIndex].quiz!.questions[questionIndex] = {
-        ...newModules[moduleIndex].quiz!.questions[questionIndex],
-        ...updates
-      };
-      setCourse({ ...course, modules: newModules });
-    }
-  };
-
-  const updateQuestionOption = (moduleIndex: number, questionIndex: number, optionIndex: number, value: string) => {
-    const newModules = [...course.modules];
-    if (newModules[moduleIndex].quiz) {
-      const question = newModules[moduleIndex].quiz!.questions[questionIndex];
-      if (question.options) {
-        question.options[optionIndex] = value;
-        setCourse({ ...course, modules: newModules });
-      }
-    }
   };
 
   const addSubsection = (moduleIndex: number) => {
@@ -244,140 +263,11 @@ const UploadCourse = () => {
   };
 
   const handleSubmit = () => {
+    // Submit logic here
     console.log('Course data:', course);
-    // Implementation for course submission would go here
   };
 
-  const getTotalSubsections = () => {
-    return course.modules.reduce((total, module) => total + module.subsections.length, 0);
-  };
-
-  const getTotalQuizzes = () => {
-    return course.modules.filter(module => module.quiz && module.quiz.questions.length > 0).length;
-  };
-
-  const getEstimatedDuration = () => {
-    if (course.courseType === 'physical') {
-      return course.physicalCourseData?.duration || 'TBD';
-    }
-    const subsectionCount = getTotalSubsections();
-    return `${Math.ceil(subsectionCount * 1.5)} hours`;
-  };
-
-  const renderQuestionEditor = (moduleIndex: number, question: Question, questionIndex: number) => {
-    return (
-      <Card key={question.id} className="mb-3 bg-background/50">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start mb-3">
-            <Badge variant="outline" className="text-xs">
-              Question {questionIndex + 1}
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => removeQuestionFromQuiz(moduleIndex, questionIndex)}
-              className="text-red-600 hover:text-red-700 -mt-1 -mr-1"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <Select 
-              value={question.type} 
-              onValueChange={(value: 'mcq' | 'true-false' | 'short-answer') => 
-                updateQuestion(moduleIndex, questionIndex, { 
-                  type: value,
-                  options: value === 'mcq' ? ['', '', '', ''] : value === 'true-false' ? ['True', 'False'] : undefined,
-                  correctAnswer: value === 'true-false' ? true : ''
-                })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="mcq">Multiple Choice</SelectItem>
-                <SelectItem value="true-false">True/False</SelectItem>
-                <SelectItem value="short-answer">Short Answer</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input 
-              type="number" 
-              value={question.points}
-              onChange={(e) => updateQuestion(moduleIndex, questionIndex, { points: parseInt(e.target.value) || 1 })}
-              placeholder="Points"
-              min="1"
-            />
-          </div>
-
-          <Textarea 
-            value={question.question}
-            onChange={(e) => updateQuestion(moduleIndex, questionIndex, { question: e.target.value })}
-            placeholder="Enter your question here..."
-            className="mb-3"
-          />
-
-          {question.type === 'mcq' && (
-            <div className="space-y-2 mb-3">
-              {question.options?.map((option, optIndex) => (
-                <div key={optIndex} className="flex items-center gap-2">
-                  <RadioGroup 
-                    value={question.correctAnswer as string}
-                    onValueChange={(value) => updateQuestion(moduleIndex, questionIndex, { correctAnswer: value })}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value={optIndex.toString()} id={`q${questionIndex}-opt${optIndex}`} />
-                    </div>
-                  </RadioGroup>
-                  <Input 
-                    value={option}
-                    onChange={(e) => updateQuestionOption(moduleIndex, questionIndex, optIndex, e.target.value)}
-                    placeholder={`Option ${optIndex + 1}`}
-                    className="flex-1"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {question.type === 'true-false' && (
-            <RadioGroup 
-              value={question.correctAnswer?.toString()}
-              onValueChange={(value) => updateQuestion(moduleIndex, questionIndex, { correctAnswer: value === 'true' })}
-              className="flex gap-4 mb-3"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="true" id={`q${questionIndex}-true`} />
-                <label htmlFor={`q${questionIndex}-true`}>True</label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="false" id={`q${questionIndex}-false`} />
-                <label htmlFor={`q${questionIndex}-false`}>False</label>
-              </div>
-            </RadioGroup>
-          )}
-
-          {question.type === 'short-answer' && (
-            <Input 
-              value={question.correctAnswer as string}
-              onChange={(e) => updateQuestion(moduleIndex, questionIndex, { correctAnswer: e.target.value })}
-              placeholder="Sample correct answer"
-              className="mb-3"
-            />
-          )}
-
-          <Textarea 
-            value={question.explanation || ''}
-            onChange={(e) => updateQuestion(moduleIndex, questionIndex, { explanation: e.target.value })}
-            placeholder="Explanation (optional)"
-            rows={2}
-          />
-        </CardContent>
-      </Card>
-    );
-  };
-
+  // --- Stepper UI ---
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -408,133 +298,145 @@ const UploadCourse = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Create New Course</h1>
-          <p className="text-muted-foreground mt-2">Build your driving course - choose between online or physical instruction</p>
+        {/* Stepper */}
+        <div className="flex items-center mb-8">
+          {steps.map((step, idx) => (
+            <React.Fragment key={step.key}>
+              <div className={`flex flex-col items-center ${idx === currentStep ? 'text-blue-600 font-bold' : 'text-muted-foreground'}`}>
+                <div className={`rounded-full border-2 w-8 h-8 flex items-center justify-center mb-1 ${idx === currentStep ? 'border-blue-600' : 'border-border'}`}>
+                  {idx + 1}
+                </div>
+                <span className="text-xs">{step.label}</span>
+              </div>
+              {idx < steps.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-2 ${idx < currentStep ? 'bg-blue-600' : 'bg-border'}`}></div>
+              )}
+            </React.Fragment>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Course Form */}
+          {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Course Type Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Type</CardTitle>
-                <CardDescription>Choose the type of driving course you want to create</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RadioGroup 
-                  value={course.courseType} 
-                  onValueChange={(value) => handleCourseTypeChange(value as CourseType)}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                >
-                  <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value="online" id="online" />
-                    <label htmlFor="online" className="flex items-center gap-3 cursor-pointer flex-1">
-                      <Monitor className="h-8 w-8 text-blue-600" />
-                      <div>
-                        <p className="font-medium">Online Course</p>
-                        <p className="text-sm text-muted-foreground">Video-based learning with modules</p>
-                      </div>
-                    </label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <RadioGroupItem value="physical" id="physical" />
-                    <label htmlFor="physical" className="flex items-center gap-3 cursor-pointer flex-1">
-                      <Car className="h-8 w-8 text-green-600" />
-                      <div>
-                        <p className="font-medium">Physical Course</p>
-                        <p className="text-sm text-muted-foreground">In-car instruction and practice</p>
-                      </div>
-                    </label>
-                  </div>
-                </RadioGroup>
-              </CardContent>
-            </Card>
+            {/* Step 1: Course Type */}
+            {currentStep === 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Course Type</CardTitle>
+                  <CardDescription>Choose the type of driving course you want to create</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RadioGroup 
+                    value={course.courseType} 
+                    onValueChange={(value) => handleCourseTypeChange(value as CourseType)}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                  >
+                    <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="online" id="online" />
+                      <label htmlFor="online" className="flex items-center gap-3 cursor-pointer flex-1">
+                        <Monitor className="h-8 w-8 text-blue-600" />
+                        <div>
+                          <p className="font-medium">Online Course</p>
+                          <p className="text-sm text-muted-foreground">Video-based learning with modules</p>
+                        </div>
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="physical" id="physical" />
+                      <label htmlFor="physical" className="flex items-center gap-3 cursor-pointer flex-1">
+                        <Car className="h-8 w-8 text-green-600" />
+                        <div>
+                          <p className="font-medium">Physical Course</p>
+                          <p className="text-sm text-muted-foreground">In-car instruction and practice</p>
+                        </div>
+                      </label>
+                    </div>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Information</CardTitle>
-                <CardDescription>Basic details about your course</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Course Title</Label>
-                  <Input
-                    id="title"
-                    value={course.title}
-                    onChange={(e) => setCourse({ ...course, title: e.target.value })}
-                    placeholder={course.courseType === 'physical' ? "e.g., Test Prep Package" : "e.g., Complete Online Driver's Ed"}
-                    className="text-lg"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Course Description</Label>
-                  <Textarea
-                    id="description"
-                    value={course.description}
-                    onChange={(e) => setCourse({ ...course, description: e.target.value })}
-                    placeholder={course.courseType === 'physical' 
-                      ? "Describe the benefits and preparation this physical course provides..."
-                      : "Describe what students will learn in this online course..."
-                    }
-                    rows={4}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Step 2: Course Info */}
+            {currentStep === 1 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Course Information</CardTitle>
+                  <CardDescription>Basic details about your course</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select value={course.category} onValueChange={(value) => setCourse({ ...course, category: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner-driver-ed">Beginner Driver Education</SelectItem>
-                        <SelectItem value="defensive-driving">Defensive Driving</SelectItem>
-                        <SelectItem value="test-preparation">Test Preparation</SelectItem>
-                        <SelectItem value="refresher-course">Refresher Course</SelectItem>
-                        <SelectItem value="advanced-driving">Advanced Driving Skills</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price (CAD)</Label>
+                    <Label htmlFor="title">Course Title</Label>
                     <Input
-                      id="price"
-                      type="number"
-                      value={course.price}
-                      onChange={(e) => setCourse({ ...course, price: parseFloat(e.target.value) || 0 })}
-                      placeholder={course.courseType === 'physical' ? "550" : "99.99"}
-                      min="0"
-                      step="0.01"
+                      id="title"
+                      value={course.title}
+                      onChange={(e) => setCourse({ ...course, title: e.target.value })}
+                      placeholder={course.courseType === 'physical' ? "e.g., Test Prep Package" : "e.g., Complete Online Driver's Ed"}
+                      className="text-lg"
                     />
                   </div>
-
                   <div className="space-y-2">
-                    <Label htmlFor="thumbnail">Thumbnail Image URL</Label>
-                    <Input
-                      id="thumbnail"
-                      value={course.thumbnail}
-                      onChange={(e) => setCourse({ ...course, thumbnail: e.target.value })}
-                      placeholder="https://example.com/image.jpg"
+                    <Label htmlFor="description">Course Description</Label>
+                    <Textarea
+                      id="description"
+                      value={course.description}
+                      onChange={(e) => setCourse({ ...course, description: e.target.value })}
+                      placeholder={course.courseType === 'physical' 
+                        ? "Describe the benefits and preparation this physical course provides..."
+                        : "Describe what students will learn in this online course..."
+                      }
+                      rows={4}
                     />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Select value={course.category} onValueChange={(value) => setCourse({ ...course, category: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner-driver-ed">Beginner Driver Education</SelectItem>
+                          <SelectItem value="defensive-driving">Defensive Driving</SelectItem>
+                          <SelectItem value="test-preparation">Test Preparation</SelectItem>
+                          <SelectItem value="refresher-course">Refresher Course</SelectItem>
+                          <SelectItem value="advanced-driving">Advanced Driving Skills</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price (CAD)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={course.price}
+                        onChange={(e) => setCourse({ ...course, price: parseFloat(e.target.value) || 0 })}
+                        placeholder={course.courseType === 'physical' ? "550" : "99.99"}
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="thumbnail">Thumbnail Image URL</Label>
+                      <Input
+                        id="thumbnail"
+                        value={course.thumbnail}
+                        onChange={(e) => setCourse({ ...course, thumbnail: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                  </div>
+                  {course.courseType === 'physical' && (
+                    <PhysicalCourseForm 
+                      data={course.physicalCourseData!}
+                      onChange={handlePhysicalCourseDataChange}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Physical Course Form or Online Course Content */}
-            {course.courseType === 'physical' ? (
-              <PhysicalCourseForm 
-                data={course.physicalCourseData!}
-                onChange={handlePhysicalCourseDataChange}
-              />
-            ) : (
+            {/* Step 3: Content */}
+            {currentStep === 2 && course.courseType === 'online' && (
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -598,7 +500,6 @@ const UploadCourse = () => {
                             </div>
                           </CardHeader>
                         </CollapsibleTrigger>
-
                         <CollapsibleContent>
                           <CardContent className="space-y-6 border-t border-border">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -619,7 +520,6 @@ const UploadCourse = () => {
                                 />
                               </div>
                             </div>
-
                             {/* Lessons Section */}
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
@@ -636,7 +536,6 @@ const UploadCourse = () => {
                                   Add Lesson
                                 </Button>
                               </div>
-
                               {/* Subsections */}
                               {module.subsections.map((subsection, subsectionIndex) => (
                                 <Card key={subsectionIndex} className="bg-muted/30">
@@ -671,7 +570,6 @@ const UploadCourse = () => {
                                   </CardContent>
                                 </Card>
                               ))}
-
                               {module.subsections.length === 0 && (
                                 <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-lg">
                                   <Video className="h-6 w-6 mx-auto mb-2 opacity-50" />
@@ -679,9 +577,7 @@ const UploadCourse = () => {
                                 </div>
                               )}
                             </div>
-
                             <Separator />
-
                             {/* Quiz Section */}
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
@@ -689,112 +585,45 @@ const UploadCourse = () => {
                                   <Brain className="h-4 w-4 mr-2" />
                                   Module Quiz (Optional)
                                 </h4>
-                                {!module.quiz ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => addQuizToModule(moduleIndex)}
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Quiz
-                                  </Button>
-                                ) : (
-                                  <div className="flex gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => toggleQuizExpansion(moduleIndex)}
-                                    >
-                                      {module.isQuizExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => removeQuizFromModule(moduleIndex)}
-                                      className="text-red-600 hover:text-red-700"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setQuizModal({ open: true, moduleIdx: moduleIndex })}
+                                >
+                                  {module.quiz ? "Edit Quiz" : "Add Quiz"}
+                                </Button>
                               </div>
-
                               {module.quiz && (
-                                <Collapsible open={module.isQuizExpanded} onOpenChange={() => toggleQuizExpansion(moduleIndex)}>
-                                  <CollapsibleContent>
-                                    <Card className="bg-muted/20">
-                                      <CardContent className="p-4 space-y-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                          <Input
-                                            value={module.quiz.title}
-                                            onChange={(e) => updateQuiz(moduleIndex, 'title', e.target.value)}
-                                            placeholder="Quiz title"
-                                          />
-                                          <Input
-                                            type="number"
-                                            value={module.quiz.passPercentage}
-                                            onChange={(e) => updateQuiz(moduleIndex, 'passPercentage', parseInt(e.target.value) || 70)}
-                                            placeholder="Pass percentage"
-                                            min="0"
-                                            max="100"
-                                          />
-                                        </div>
-
-                                        <Textarea
-                                          value={module.quiz.description}
-                                          onChange={(e) => updateQuiz(moduleIndex, 'description', e.target.value)}
-                                          placeholder="Quiz description"
-                                          rows={2}
-                                        />
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                          <Input
-                                            type="number"
-                                            value={module.quiz.timeLimit || ''}
-                                            onChange={(e) => updateQuiz(moduleIndex, 'timeLimit', parseInt(e.target.value) || undefined)}
-                                            placeholder="Time limit (minutes)"
-                                          />
-                                          <div className="flex items-center space-x-2">
-                                            <Switch
-                                              checked={module.quiz.allowRetakes}
-                                              onCheckedChange={(checked) => updateQuiz(moduleIndex, 'allowRetakes', checked)}
-                                            />
-                                            <Label>Allow Retakes</Label>
-                                          </div>
-                                        </div>
-
-                                        <div className="flex justify-between items-center">
-                                          <Label className="text-sm font-medium">Questions ({module.quiz.questions.length})</Label>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => addQuestionToQuiz(moduleIndex)}
-                                          >
-                                            <Plus className="h-3 w-3 mr-1" />
-                                            Add Question
-                                          </Button>
-                                        </div>
-
-                                        {module.quiz.questions.map((question, questionIndex) =>
-                                          renderQuestionEditor(moduleIndex, question, questionIndex)
-                                        )}
-
-                                        {module.quiz.questions.length === 0 && (
-                                          <div className="text-center py-4 text-muted-foreground border border-dashed border-border rounded-lg">
-                                            <HelpCircle className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                                            <p className="text-sm">No questions yet. Click "Add Question" to create your first quiz question.</p>
-                                          </div>
-                                        )}
-                                      </CardContent>
-                                    </Card>
-                                  </CollapsibleContent>
-                                </Collapsible>
+                                <div className="text-muted-foreground text-xs">
+                                  {module.quiz.questions.length} question(s) in this quiz.
+                                </div>
                               )}
-
-                              {!module.quiz && (
-                                <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-lg">
-                                  <Brain className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                                  <p className="text-sm">No quiz for this module. Add a quiz to test students' understanding.</p>
+                            </div>
+                            {/* Materials Section */}
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center">
+                                <h4 className="font-medium text-foreground flex items-center">
+                                  <BookOpen className="h-4 w-4 mr-2" />
+                                  Module Materials
+                                </h4>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setMaterialModal({ open: true, moduleIdx: moduleIndex })}
+                                >
+                                  Edit Materials
+                                </Button>
+                              </div>
+                              <ul className="mb-2 space-y-2">
+                                {(module.materials || []).map((mat, matIdx) => (
+                                  <li key={matIdx} className="flex items-center gap-2 text-xs">
+                                    <a href={mat.url} target="_blank" rel="noopener noreferrer" className="underline">{mat.name || mat.url}</a>
+                                  </li>
+                                ))}
+                              </ul>
+                              {(module.materials?.length ?? 0) === 0 && (
+                                <div className="text-muted-foreground text-xs">
+                                  No materials for this module.
                                 </div>
                               )}
                             </div>
@@ -803,8 +632,7 @@ const UploadCourse = () => {
                       </Collapsible>
                     </Card>
                   ))}
-
-                  {course.modules.length === 0 && course.courseType === 'online' && (
+                  {course.modules.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg">
                       <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <h3 className="text-lg font-medium mb-2">No modules yet</h3>
@@ -819,19 +647,43 @@ const UploadCourse = () => {
               </Card>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-between">
-              <Button variant="outline" asChild>
-                <Link to="/dashboard">Cancel</Link>
+            {/* Step 4: Materials */}
+          
+
+            {/* Step 5: Preview & Publish */}
+            {currentStep === 4 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Preview & Publish</CardTitle>
+                  <CardDescription>Review your course before publishing</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <h3 className="font-bold text-lg mb-2">Preview</h3>
+                    <div>Title: {course.title}</div>
+                    <div>Description: {course.description}</div>
+                    <div>Category: {course.category}</div>
+                    <div>Price: ${course.price}</div>
+                    <div>Type: {course.courseType}</div>
+                    <div>Materials: {course.materials.length} file(s)</div>
+                  </div>
+                  <Button onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                    Publish Course
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step Navigation */}
+            <div className="flex justify-between mt-6">
+              <Button variant="outline" onClick={goBack} disabled={currentStep === 0}>
+                Back
               </Button>
-              <div className="flex space-x-4">
-                <Button variant="outline" onClick={handleSubmit}>
-                  Save as Draft
+              {currentStep < steps.length - 1 && (
+                <Button onClick={goNext} disabled={!canGoNext()}>
+                  Next
                 </Button>
-                <Button onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                  Publish Course
-                </Button>
-              </div>
+              )}
             </div>
           </div>
 
@@ -853,7 +705,6 @@ const UploadCourse = () => {
                       className="w-full h-32 object-cover rounded-md"
                     />
                   )}
-                  
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h3 className="font-bold text-foreground text-lg">{course.title || 'Course Title'}</h3>
@@ -865,7 +716,6 @@ const UploadCourse = () => {
                       {course.courseType === 'physical' ? 'Physical' : 'Online'}
                     </Badge>
                   </div>
-
                   <div className="flex justify-between items-center">
                     {course.category && (
                       <Badge variant="outline">{course.category.replace('-', ' ')}</Badge>
@@ -874,12 +724,9 @@ const UploadCourse = () => {
                       <span className="text-lg font-bold text-blue-600">${course.price} CAD</span>
                     )}
                   </div>
-
                   <Separator />
-
                   <div>
                     <h4 className="font-semibold text-foreground mb-3">Course Content</h4>
-                    
                     {course.courseType === 'physical' ? (
                       <div className="space-y-3">
                         <div className="text-sm text-muted-foreground">
@@ -894,7 +741,6 @@ const UploadCourse = () => {
                             </div>
                           )}
                         </div>
-                        
                         {course.physicalCourseData?.includes && (
                           <div>
                             <h5 className="text-sm font-medium mb-2">What's Included:</h5>
@@ -916,21 +762,19 @@ const UploadCourse = () => {
                             <span className="font-medium">{course.modules.length}</span> modules
                           </div>
                           <div>
-                            <span className="font-medium">{getTotalSubsections()}</span> lessons
+                            <span className="font-medium">{course.modules.reduce((total, module) => total + module.subsections.length, 0)}</span> lessons
                           </div>
                         </div>
-                        
                         <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                           <div>
-                            <span className="font-medium">{getTotalQuizzes()}</span> quizzes
+                            <span className="font-medium">{course.modules.filter(module => module.quiz && module.quiz.questions.length > 0).length}</span> quizzes
                           </div>
-                          {getTotalSubsections() > 0 && (
+                          {course.modules.reduce((total, module) => total + module.subsections.length, 0) > 0 && (
                             <div>
-                              <span className="font-medium">{getEstimatedDuration()}</span>
+                              <span className="font-medium">{`${Math.ceil(course.modules.reduce((total, module) => total + module.subsections.length, 0) * 1.5)} hours`}</span>
                             </div>
                           )}
                         </div>
-
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                           {course.modules.map((module, index) => (
                             <div key={index} className="text-sm">
@@ -970,12 +814,42 @@ const UploadCourse = () => {
                       </div>
                     )}
                   </div>
+                  <Separator />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">Materials</h4>
+                    <ul>
+                      {course.materials.map((mat, idx) => (
+                        <li key={idx} className="text-xs text-muted-foreground flex items-center">
+                          <span className="mr-2">•</span>
+                          <a href={mat.url} target="_blank" rel="noopener noreferrer" className="underline">{mat.name || mat.url}</a>
+                        </li>
+                      ))}
+                    </ul>
+                    {course.materials.length === 0 && (
+                      <div className="text-muted-foreground text-sm">
+                        No materials added yet.
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
       </div>
+      {/* Modals */}
+      <QuizModal
+        open={quizModal.open}
+        onClose={() => setQuizModal({ open: false, moduleIdx: null })}
+        quiz={quizModal.moduleIdx !== null ? course.modules[quizModal.moduleIdx].quiz : undefined}
+        onSave={handleQuizSave}
+      />
+      <MaterialModal
+        open={materialModal.open}
+        onClose={() => setMaterialModal({ open: false, moduleIdx: null })}
+        materials={materialModal.moduleIdx !== null ? course.modules[materialModal.moduleIdx].materials || [] : []}
+        onSave={handleMaterialSave}
+      />
     </div>
   );
 };
