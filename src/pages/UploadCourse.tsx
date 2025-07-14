@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Eye, Play, ChevronDown, ChevronRight, BookOpen, Video, Brain, Car, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -91,25 +91,44 @@ const steps = [
   { key: 'preview', label: 'Preview & Publish' },
 ];
 
-const UploadCourse = () => {
-  const [course, setCourse] = useState<Course>({
+interface UploadCourseProps {
+  initialCourse?: Course;
+  mode?: 'add' | 'edit';
+}
+
+const defaultCourse: Course = {
+  title: '',
+  description: '',
+  category: '',
+  thumbnail: '',
+  price: 0,
+  courseType: 'online',
+  modules: [],
+  physicalCourseData: {
     title: '',
-    description: '',
-    category: '',
-    thumbnail: '',
     price: 0,
-    courseType: 'online',
-    modules: [],
-    physicalCourseData: {
-      title: '',
-      price: 0,
-      duration: '',
-      includes: '',
-      description: '',
-      location: ''
-    },
-    materials: [],
-  });
+    duration: '',
+    includes: '',
+    description: '',
+    location: ''
+  },
+  materials: [],
+};
+
+const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add' }) => {
+  const { id } = useParams(); // for /course/:id/edit route
+  const navigate = useNavigate();
+
+  // If editing, load course data (from prop or API)
+  const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
+
+  useEffect(() => {
+    if (mode === 'edit' && !initialCourse && id) {
+      // Fetch course by id from API here and setCourse
+      // Example:
+      // api.get(`/courses/${id}`).then(res => setCourse(res.data));
+    }
+  }, [mode, initialCourse, id]);
 
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -263,8 +282,15 @@ const UploadCourse = () => {
   };
 
   const handleSubmit = () => {
-    // Submit logic here
-    console.log('Course data:', course);
+    if (mode === 'edit') {
+      // Call update API
+      // api.put(`/courses/${id}`, course).then(() => navigate('/admin'));
+      console.log('Updating course:', course);
+    } else {
+      // Call add API
+      // api.post('/courses', course).then(() => navigate('/admin'));
+      console.log('Adding new course:', course);
+    }
   };
 
   // --- Stepper UI ---
@@ -668,7 +694,7 @@ const UploadCourse = () => {
                     <div>Materials: {course.materials.length} file(s)</div>
                   </div>
                   <Button onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                    Publish Course
+                    {mode === 'edit' ? 'Update Course' : 'Publish Course'}
                   </Button>
                 </CardContent>
               </Card>

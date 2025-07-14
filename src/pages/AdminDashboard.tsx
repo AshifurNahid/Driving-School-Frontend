@@ -20,7 +20,9 @@ import {
   FileText,
   Calendar,
   Plus,
-  Clock
+  Clock,
+  Video,
+  Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -141,7 +143,82 @@ const AdminDashboard = () => {
     instructors: 156,
     students: 52691
   };
-
+// Place this near the top of your AdminDashboard component
+const [courses, setCourses] = useState([
+  {
+    id: 1,
+    title: "Beginner Driving Course",
+    modules: [
+      {
+        id: 1,
+        title: "Introduction to Driving",
+        subsections: [
+          { id: 1, title: "Traffic Rules Overview", videoUrl: "https://example.com/video1" },
+          { id: 2, title: "Road Signs", videoUrl: "https://example.com/video2" }
+        ],
+        quiz: {
+          questions: [
+            { id: 1, question: "What is the speed limit in a school zone?" }
+          ]
+        }
+      },
+      {
+        id: 2,
+        title: "Basic Vehicle Control",
+        subsections: [
+          { id: 3, title: "Steering Techniques", videoUrl: "https://example.com/video3" }
+        ],
+        quiz: {
+          questions: []
+        }
+      }
+    ],
+    downloadableMaterials: [
+      "https://example.com/driving-guide.pdf",
+      "https://example.com/road-signs.pdf"
+    ]
+  },
+  {
+    id: 2,
+    title: "Defensive Driving Course",
+    modules: [
+      {
+        id: 3,
+        title: "Defensive Techniques",
+        subsections: [
+          { id: 4, title: "Safe Following Distance", videoUrl: "https://example.com/video4" }
+        ],
+        quiz: {
+          questions: [
+            { id: 2, question: "What is defensive driving?" }
+          ]
+        }
+      }
+    ],
+    downloadableMaterials: [
+      "https://example.com/defensive-driving.pdf"
+    ]
+  },
+  {
+    id: 3,
+    title: "Advanced Parking Skills",
+    modules: [
+      {
+        id: 4,
+        title: "Parallel Parking",
+        subsections: [
+          { id: 5, title: "Step-by-Step Parallel Parking", videoUrl: "https://example.com/video5" }
+        ],
+        quiz: {
+          questions: [
+            { id: 3, question: "List the steps for parallel parking." }
+          ]
+        }
+      }
+    ],
+    downloadableMaterials: []
+  }
+]);
   const [pendingCourses, setPendingCourses] = useState([
     {
       id: 1,
@@ -200,6 +277,7 @@ const AdminDashboard = () => {
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'users', label: 'User Management', icon: Users },
     { id: 'courses', label: 'Course Moderation', icon: BookOpen },
+    {id:'course-list', label: 'Course List', icon: BookOpen },
     { id: 'appointments', label: 'Appointment Management', icon: Calendar },
     { id: 'quizzes', label: 'Quiz Management', icon: FileText },
     { id: 'analytics', label: 'User Analytics', icon: BarChart3 },
@@ -736,6 +814,97 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          {/* Course List Tab */}
+           {activeTab === "course-list" && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-foreground">Course Management</h2>
+            <Button
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+              onClick={() => navigate("/upload-course")}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Course
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                {usersLoading ? (
+                  <div className="p-6 text-center text-muted-foreground">Loading courses...</div>
+                ) : usersError ? (
+                  <div className="p-6 text-center text-red-600">{usersError}</div>
+                ) : (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left p-4 font-medium text-foreground">Title</th>
+                        <th className="text-left p-4 font-medium text-foreground">Contents</th>
+                       
+                        <th className="text-left p-4 font-medium text-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {courses && courses.length > 0 ? (
+                        courses.map((course) => {
+                          const totalModules = course.modules?.length || 0;
+                          const totalLessons = course.modules
+                            ? course.modules.reduce((sum: number,m) => sum + (m.subsections?.length || 0), 0)
+                            : 0;
+                          const totalQuizzes = course.modules
+                            ? course.modules.filter((m) => m.quiz && m.quiz.questions.length > 0).length
+                            : 0;
+                          const totalMaterials = course.downloadableMaterials?.length || 0;
+                          return (
+                            <tr key={course.id} className="border-b border-border">
+                              <td className="p-4 font-medium">{course.title}</td>
+                              <td className="p-4 flex items-center gap-1">
+                                <BookOpen className="h-4 w-4" /> {totalModules}
+                        
+                                <Video className="h-4 w-4" /> {totalLessons}
+                             
+                                <Brain className="h-4 w-4" /> {totalQuizzes}
+                  
+                                <FileText className="h-4 w-4" /> {totalMaterials}
+                              </td>
+                              <td className="p-4">
+                                <div className="flex space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                   onClick={() => navigate(`/course/${course.id}/edit`)}
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-red-600 hover:text-red-700"
+                                    // onClick={() => handleDeleteCourse(course.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                            No courses found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
           {/* Appointment Management Tab */}
           {activeTab === 'appointments' && (
