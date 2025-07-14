@@ -60,3 +60,5 @@ export const logout = () => (dispatch: any) => {
   localStorage.removeItem("refresh_token");
   dispatch({ type: USER_LOGOUT });
 };
+
+
