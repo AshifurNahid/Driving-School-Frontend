@@ -160,6 +160,7 @@ const AdminAppointmentManagement = () => {
       startTime: data.startTime,
       endTime: data.endTime,
       location: data.location || undefined,
+      // Note: We don't set status here as it's now handled in the action creators
     };
 
     if (editingAppointment) {
@@ -179,7 +180,7 @@ const AdminAppointmentManagement = () => {
   };
 
   const handleDelete = (appointmentId: number) => {
-    if (window.confirm('Are you sure you want to delete this appointment slot?')) {
+    if (window.confirm('Are you sure you want to delete this appointment slot? This will set it as inactive.')) {
       dispatch(deleteAppointmentSlot(appointmentId));
     }
   };
@@ -198,15 +199,20 @@ const AdminAppointmentManagement = () => {
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 0:
-        return <Badge variant="outline" className="text-green-600 border-green-600 text-xs">Available</Badge>;
+        return <Badge variant="destructive" className="text-xs">Deleted</Badge>;
       case 1:
-        return <Badge variant="default" className="bg-blue-600 text-xs">Booked</Badge>;
+        return <Badge variant="outline" className="text-green-600 border-green-600 text-xs">Available</Badge>;
       case 2:
-        return <Badge variant="destructive" className="text-xs">Unavailable</Badge>;
+        return <Badge variant="default" className="bg-blue-600 text-xs">Booked</Badge>;
       default:
         return <Badge variant="outline" className="text-xs">Unknown</Badge>;
     }
   };
+
+  // Filter out soft-deleted appointments (status=0) from the display
+  const visibleAppointments = Array.isArray(appointmentSlots) 
+    ? appointmentSlots.filter(slot => slot.status !== 0) 
+    : [];
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-0">
@@ -300,13 +306,13 @@ const AdminAppointmentManagement = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {!appointmentSlots || appointmentSlots.length === 0 ? (
+                {!visibleAppointments || visibleAppointments.length === 0 ? (
                   <div className="text-center py-6 sm:py-8 text-muted-foreground">
                     <p className="text-lg sm:text-xl">--:-- --</p>
                     <p className="text-xs sm:text-sm mt-2">No time slots set for this date</p>
                   </div>
                 ) : (
-                  appointmentSlots.map((appointment) => (
+                  visibleAppointments.map((appointment) => (
                     <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-border rounded-lg gap-3 sm:gap-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                         <span className="font-medium text-sm sm:text-base">

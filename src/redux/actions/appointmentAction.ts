@@ -52,7 +52,13 @@ export const createAppointmentSlot = (appointmentData: {
   try {
     dispatch({ type: APPOINTMENT_SLOT_CREATE_REQUEST });
     
-    const { data } = await api.post('/appointment-slots', appointmentData);
+    // Always set status to 1 for new appointments
+    const dataWithStatus = {
+      ...appointmentData,
+      status: 1 // Ensure status is 1 for create
+    };
+    
+    const { data } = await api.post('/appointment-slots', dataWithStatus);
     
     dispatch({
       type: APPOINTMENT_SLOT_CREATE_SUCCESS,
@@ -84,7 +90,13 @@ export const updateAppointmentSlot = (
   try {
     dispatch({ type: APPOINTMENT_SLOT_UPDATE_REQUEST });
     
-    const { data } = await api.put(`/appointment-slots/${id}`, appointmentData);
+    // Always set status to 1 for updates
+    const dataWithStatus = {
+      ...appointmentData,
+      status: 1 // Ensure status is 1 for update
+    };
+    
+    const { data } = await api.put(`/appointment-slots/${id}`, dataWithStatus);
     
     dispatch({
       type: APPOINTMENT_SLOT_UPDATE_SUCCESS,
@@ -101,12 +113,13 @@ export const updateAppointmentSlot = (
   }
 };
 
-// Delete appointment slot
+// Soft Delete appointment slot by setting status to 0
 export const deleteAppointmentSlot = (id: number) => async (dispatch: any) => {
   try {
     dispatch({ type: APPOINTMENT_SLOT_DELETE_REQUEST });
     
-    await api.delete(`/appointment-slots/${id}`);
+    // Instead of DELETE, perform a PUT to update status to 0 (soft delete)
+    const { data } = await api.put(`/appointment-slots/${id}`, { status: 0 });
     
     dispatch({
       type: APPOINTMENT_SLOT_DELETE_SUCCESS,
