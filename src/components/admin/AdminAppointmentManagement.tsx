@@ -180,8 +180,8 @@ const AdminAppointmentManagement = () => {
   };
 
   const handleDelete = (appointmentId: number) => {
-    if (window.confirm('Are you sure you want to delete this appointment slot? This will set it as inactive.')) {
-      dispatch(deleteAppointmentSlot(appointmentId));
+    if (window.confirm('Are you sure you want to delete this appointment slot?')) {
+      dispatch(deleteAppointmentSlot(Number(appointmentId)));
     }
   };
 
@@ -338,7 +338,7 @@ const AdminAppointmentManagement = () => {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDelete(appointment.id)}
-                          disabled={appointment.status === 1 || deleteLoading}
+                          disabled={deleteLoading}
                           className="text-destructive hover:text-destructive h-8 w-8 p-0"
                         >
                           <Trash2 className="w-3 h-3" />

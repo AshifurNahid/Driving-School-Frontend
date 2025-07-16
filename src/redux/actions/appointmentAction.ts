@@ -113,14 +113,13 @@ export const updateAppointmentSlot = (
   }
 };
 
-// Soft Delete appointment slot by setting status to 0
+// Delete appointment slot using DELETE API
 export const deleteAppointmentSlot = (id: number) => async (dispatch: any) => {
   try {
     dispatch({ type: APPOINTMENT_SLOT_DELETE_REQUEST });
-    
-    // Instead of DELETE, perform a PUT to update status to 0 (soft delete)
-    const { data } = await api.put(`/appointment-slots/${id}`, { status: 0 });
-    
+
+    await api.delete(`/appointment-slots/${id}`);
+
     dispatch({
       type: APPOINTMENT_SLOT_DELETE_SUCCESS,
       payload: id,
@@ -135,3 +134,4 @@ export const deleteAppointmentSlot = (id: number) => async (dispatch: any) => {
     });
   }
 };
+
