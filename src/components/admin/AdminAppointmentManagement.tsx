@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Calendar, Clock, Plus, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Plus, Edit, Trash2, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -30,13 +30,32 @@ import {
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 
 const appointmentSchema = z.object({
+  instructorId: z.string().min(1, 'Instructor is required'),
   courseId: z.string().min(1, 'Course is required'),
   startTime: z.string().min(1, 'Start time is required'),
   endTime: z.string().min(1, 'End time is required'),
   location: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    // Compare times as "HH:MM"
+    return data.startTime < data.endTime;
+  },
+  {
+    message: "End time must be greater than start time",
+    path: ["endTime"],
+  }
+);
 
 type AppointmentFormData = z.infer<typeof appointmentSchema>;
+
+// Dummy instructor data
+const DUMMY_INSTRUCTORS = [
+  { id: 1, name: 'Dr. John Smith', department: 'Computer Science' },
+  { id: 2, name: 'Prof. Sarah Johnson', department: 'Mathematics' },
+  { id: 3, name: 'Dr. Michael Brown', department: 'Physics' },
+  { id: 4, name: 'Prof. Emily Davis', department: 'Chemistry' },
+  { id: 5, name: 'Dr. Robert Wilson', department: 'Biology' },
+];
 
 const AdminAppointmentManagement = () => {
   const { toast } = useToast();
@@ -69,12 +88,10 @@ const AdminAppointmentManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState<any>(null);
 
-  // Dummy instructor ID as requested in requirements
-  const DUMMY_INSTRUCTOR_ID = 1;
-
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
+      instructorId: '',
       courseId: '',
       startTime: '',
       endTime: '',
@@ -100,6 +117,29 @@ const AdminAppointmentManagement = () => {
     }
   }, [selectedDate, dispatch]);
 
+  // Handle dialog open/close to ensure form is properly reset
+  useEffect(() => {
+    if (isDialogOpen && editingAppointment) {
+      // Reset form with appointment data when dialog opens for editing
+      form.reset({
+        instructorId: editingAppointment.instructorId ? editingAppointment.instructorId.toString() : '1',
+        courseId: editingAppointment.courseId ? editingAppointment.courseId.toString() : '',
+        startTime: editingAppointment.startTime || '',
+        endTime: editingAppointment.endTime || '',
+        location: editingAppointment.location || '',
+      });
+    } else if (isDialogOpen && !editingAppointment) {
+      // Reset form to empty when dialog opens for new appointment
+      form.reset({
+        instructorId: '',
+        courseId: '',
+        startTime: '',
+        endTime: '',
+        location: '',
+      });
+    }
+  }, [isDialogOpen, editingAppointment, form]);
+
   // Refetch appointments after CRUD
   const reloadAppointments = () => {
     if (selectedDate) {
@@ -117,7 +157,7 @@ const AdminAppointmentManagement = () => {
       setIsDialogOpen(false);
       form.reset();
       dispatch({ type: APPOINTMENT_SLOT_CREATE_RESET });
-      reloadAppointments(); // <-- reload after create
+      reloadAppointments();
     }
     if (createError) {
       toast({
@@ -139,7 +179,7 @@ const AdminAppointmentManagement = () => {
       setEditingAppointment(null);
       form.reset();
       dispatch({ type: APPOINTMENT_SLOT_UPDATE_RESET });
-      reloadAppointments(); // <-- reload after update
+      reloadAppointments();
     }
     if (updateError) {
       toast({
@@ -158,7 +198,7 @@ const AdminAppointmentManagement = () => {
         description: "Appointment slot deleted successfully",
       });
       dispatch({ type: APPOINTMENT_SLOT_DELETE_RESET });
-      reloadAppointments(); // <-- reload after delete
+      reloadAppointments();
     }
     if (deleteError) {
       toast({
@@ -173,13 +213,12 @@ const AdminAppointmentManagement = () => {
     if (!selectedDate) return;
 
     const appointmentData = {
-      instructorId: DUMMY_INSTRUCTOR_ID,
-      courseId: parseInt(data.courseId),
+      instructorId: parseInt(data.instructorId),
+      courseId: parseInt(data.courseId), // Will be 0 if "All" is selected
       date: format(selectedDate, 'yyyy-MM-dd'),
       startTime: data.startTime,
       endTime: data.endTime,
       location: data.location || undefined,
-      // Note: We don't set status here as it's now handled in the action creators
     };
 
     if (editingAppointment) {
@@ -191,10 +230,16 @@ const AdminAppointmentManagement = () => {
 
   const handleEdit = (appointment: any) => {
     setEditingAppointment(appointment);
-    form.setValue('startTime', appointment.startTime);
-    form.setValue('endTime', appointment.endTime);
-    form.setValue('location', appointment.location || '');
-    form.setValue('courseId', appointment.courseId ? appointment.courseId.toString() : '');
+    // Use setTimeout to ensure form reset happens after state update
+    setTimeout(() => {
+      form.reset({
+        instructorId: appointment.instructorId ? appointment.instructorId.toString() : '1',
+        courseId: appointment.courseId ? appointment.courseId.toString() : '',
+        startTime: appointment.startTime || '',
+        endTime: appointment.endTime || '',
+        location: appointment.location || '',
+      });
+    }, 0);
     setIsDialogOpen(true);
   };
 
@@ -214,11 +259,12 @@ const AdminAppointmentManagement = () => {
   const handleAddNewSlot = () => {
     setEditingAppointment(null);
     form.reset({
+      instructorId: '',
       courseId: '',
       startTime: '',
       endTime: '',
       location: '',
-    });
+    }, { keepValues: false });
     setIsDialogOpen(true);
   };
 
@@ -400,138 +446,200 @@ const AdminAppointmentManagement = () => {
         </Card>
       </div>
 
-      {/* Add/Edit Dialog */}
+      {/* Add/Edit Dialog - Modern and Larger */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-md mx-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">
-              {editingAppointment ? 'Edit Time Slot' : 'Add New Time Slot'}
+        <DialogContent className="w-[95vw] max-w-3xl mx-auto max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              {editingAppointment ? (
+                <>
+                  <Edit className="w-6 h-6" />
+                  Edit Time Slot
+                </>
+              ) : (
+                <>
+                  <Plus className="w-6 h-6" />
+                  Add New Time Slot
+                </>
+              )}
             </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base">
-              {editingAppointment ? 'Update the time slot details' : `Create a new time slot for ${selectedDate ? format(selectedDate, 'MMM dd, yyyy') : 'selected date'}`}
+            <DialogDescription className="text-base">
+              {editingAppointment ? 'Update the time slot details below' : `Create a new time slot for ${selectedDate ? format(selectedDate, 'MMM dd, yyyy') : 'selected date'}`}
             </DialogDescription>
           </DialogHeader>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="courseId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Course</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="text-sm">
-                          <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {courses.map((course) => (
-                          <SelectItem key={course.id} value={course.id.toString()}>
-                            {course.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm">Start Time</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="text-sm">
-                            <SelectValue placeholder="Select start time" />
-                          </SelectTrigger>
+          <div className="bg-muted/50 p-4 rounded-lg">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Instructor and Course Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="instructorId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          Instructor
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 text-base">
+                              <SelectValue placeholder="Select an instructor" />
+                            </SelectTrigger>
+                          </FormControl>
                           <SelectContent>
-                            {TIME_OPTIONS.slice(0, TIME_OPTIONS.length - 1).map((time) => (
-                              <SelectItem key={time} value={time}>
-                                {time}
+                            {DUMMY_INSTRUCTORS.map((instructor) => (
+                              <SelectItem key={instructor.id} value={instructor.id.toString()}>
+                                <div className="flex flex-col items-start">
+                                  <span className="font-medium">{instructor.name}</span>
+                                  <span className="text-xs text-muted-foreground">{instructor.department}</span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="courseId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          Course
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 text-base">
+                              <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="0">All</SelectItem>
+                            {courses.map((course) => (
+                              <SelectItem key={course.id} value={course.id.toString()}>
+                                {course.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Time Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          Start Time
+                        </FormLabel>
+                        <FormControl>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger className="h-12 text-base">
+                              <SelectValue placeholder="Select start time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TIME_OPTIONS.slice(0, TIME_OPTIONS.length - 1).map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {time}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          End Time
+                        </FormLabel>
+                        <FormControl>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger className="h-12 text-base">
+                              <SelectValue placeholder="Select end time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TIME_OPTIONS.slice(1).map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {time}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Location */}
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base font-medium">Location (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter location (e.g., Room 101, Building A)" 
+                          {...field} 
+                          className="h-12 text-base" 
+                        />
                       </FormControl>
-                      <FormMessage className="text-xs" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm">End Time</FormLabel>
-                      <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger className="text-sm">
-                            <SelectValue placeholder="Select end time" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIME_OPTIONS.slice(1).map((time) => (
-                              <SelectItem key={time} value={time}>
-                                {time}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm">Location (Optional)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Enter location" 
-                        {...field} 
-                        className="text-sm" 
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              {/* Hidden instructor info for reference */}
-              <div className="text-xs text-muted-foreground">
-                Instructor: Dummy Instructor (ID: {DUMMY_INSTRUCTOR_ID})
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1 text-sm"
-                  disabled={createLoading || updateLoading}
-                >
-                  {createLoading || updateLoading ? (
-                    <span>Loading...</span>
-                  ) : (
-                    <span>{editingAppointment ? 'Update' : 'Create'} Time Slot</span>
-                  )}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="text-sm">
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Form>
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
+                  <Button 
+                    type="submit" 
+                    className="flex-1 h-12 text-base font-medium"
+                    disabled={createLoading || updateLoading}
+                  >
+                    {createLoading || updateLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      <span>{editingAppointment ? 'Update' : 'Create'} Time Slot</span>
+                    )}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsDialogOpen(false)} 
+                    className="h-12 text-base"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
