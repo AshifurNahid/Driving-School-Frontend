@@ -27,6 +27,7 @@ import {
   APPOINTMENT_SLOT_UPDATE_RESET,
   APPOINTMENT_SLOT_DELETE_RESET
 } from '@/redux/constants/appointmentConstants';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 
 const appointmentSchema = z.object({
   courseId: z.string().min(1, 'Course is required'),
@@ -65,6 +66,8 @@ const AdminAppointmentManagement = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<any>(null);
 
   // Dummy instructor ID as requested in requirements
   const DUMMY_INSTRUCTOR_ID = 1;
@@ -79,6 +82,12 @@ const AdminAppointmentManagement = () => {
     },
   });
 
+  const TIME_OPTIONS = Array.from({ length: 24 * 2 }, (_, i) => {
+    const hour = Math.floor(i / 2);
+    const minute = i % 2 === 0 ? '00' : '30';
+    return `${hour.toString().padStart(2, '0')}:${minute}`;
+  });
+
   // Fetch courses on component mount
   useEffect(() => {
     dispatch(getCourses());
@@ -91,6 +100,13 @@ const AdminAppointmentManagement = () => {
     }
   }, [selectedDate, dispatch]);
 
+  // Refetch appointments after CRUD
+  const reloadAppointments = () => {
+    if (selectedDate) {
+      dispatch(getAppointmentSlotsByDate(format(selectedDate, 'yyyy-MM-dd')));
+    }
+  };
+
   // Handle create success
   useEffect(() => {
     if (createSuccess) {
@@ -101,6 +117,7 @@ const AdminAppointmentManagement = () => {
       setIsDialogOpen(false);
       form.reset();
       dispatch({ type: APPOINTMENT_SLOT_CREATE_RESET });
+      reloadAppointments(); // <-- reload after create
     }
     if (createError) {
       toast({
@@ -109,7 +126,7 @@ const AdminAppointmentManagement = () => {
         variant: "destructive",
       });
     }
-  }, [createSuccess, createError, toast, dispatch, form]);
+  }, [createSuccess, createError, toast, dispatch, form, selectedDate]);
 
   // Handle update success
   useEffect(() => {
@@ -122,6 +139,7 @@ const AdminAppointmentManagement = () => {
       setEditingAppointment(null);
       form.reset();
       dispatch({ type: APPOINTMENT_SLOT_UPDATE_RESET });
+      reloadAppointments(); // <-- reload after update
     }
     if (updateError) {
       toast({
@@ -130,7 +148,7 @@ const AdminAppointmentManagement = () => {
         variant: "destructive",
       });
     }
-  }, [updateSuccess, updateError, toast, dispatch, form]);
+  }, [updateSuccess, updateError, toast, dispatch, form, selectedDate]);
 
   // Handle delete success
   useEffect(() => {
@@ -140,6 +158,7 @@ const AdminAppointmentManagement = () => {
         description: "Appointment slot deleted successfully",
       });
       dispatch({ type: APPOINTMENT_SLOT_DELETE_RESET });
+      reloadAppointments(); // <-- reload after delete
     }
     if (deleteError) {
       toast({
@@ -148,7 +167,7 @@ const AdminAppointmentManagement = () => {
         variant: "destructive",
       });
     }
-  }, [deleteSuccess, deleteError, toast, dispatch]);
+  }, [deleteSuccess, deleteError, toast, dispatch, selectedDate]);
 
   const onSubmit = (data: AppointmentFormData) => {
     if (!selectedDate) return;
@@ -179,9 +198,16 @@ const AdminAppointmentManagement = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (appointmentId: number) => {
-    if (window.confirm('Are you sure you want to delete this appointment slot?')) {
-      dispatch(deleteAppointmentSlot(Number(appointmentId)));
+  const handleDeleteClick = (appointment: any) => {
+    setAppointmentToDelete(appointment);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (appointmentToDelete) {
+      dispatch(deleteAppointmentSlot(Number(appointmentToDelete.id)));
+      setDeleteDialogOpen(false);
+      setAppointmentToDelete(null);
     }
   };
 
@@ -334,15 +360,36 @@ const AdminAppointmentManagement = () => {
                         >
                           <Edit className="w-3 h-3" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDelete(appointment.id)}
-                          disabled={deleteLoading}
-                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                        <AlertDialog open={deleteDialogOpen && appointmentToDelete?.id === appointment.id} onOpenChange={setDeleteDialogOpen}>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteClick(appointment)}
+                              disabled={deleteLoading}
+                              className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Appointment Slot</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this appointment slot?<br />
+                                <span className="text-xs text-muted-foreground">
+                                  This action cannot be undone.
+                                </span>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={confirmDelete} disabled={deleteLoading}>
+                                {deleteLoading ? "Deleting..." : "Delete"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   ))
@@ -400,7 +447,18 @@ const AdminAppointmentManagement = () => {
                     <FormItem>
                       <FormLabel className="text-sm">Start Time</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field} className="text-sm" />
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue placeholder="Select start time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TIME_OPTIONS.slice(0, TIME_OPTIONS.length - 1).map((time) => (
+                              <SelectItem key={time} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
@@ -414,7 +472,18 @@ const AdminAppointmentManagement = () => {
                     <FormItem>
                       <FormLabel className="text-sm">End Time</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field} className="text-sm" />
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue placeholder="Select end time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TIME_OPTIONS.slice(1).map((time) => (
+                              <SelectItem key={time} value={time}>
+                                {time}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage className="text-xs" />
                     </FormItem>
