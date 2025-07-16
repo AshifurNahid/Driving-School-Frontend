@@ -66,9 +66,14 @@ const AdminDashboard = () => {
   const pageSize = 10; // or whatever you want
 
   const dispatch = useDispatch<AppDispatch>();
-  const { users, loading: usersLoading, error: usersError, page } = useSelector(
+  const { users, totalUsers, totalPages, hasNextPage, hasPreviousPage,loading: usersLoading,  error: usersError, page } = useSelector(
     (state: RootState) => state.adminUserList
   );
+  
+  //  const { courses, totalCourses, loading: coursesLoading,  error: coursesError } = useSelector(
+  //   (state: RootState) => state.courseList
+  // );
+
   const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);
   const { loading: deleteLoading, success: deleteSuccess, message: deleteMessage } = useSelector((state: RootState) => state.adminUserDelete);
   const { roles, loading: rolesLoading } = useSelector((state: RootState) => state.adminRoleList);
@@ -135,8 +140,8 @@ const AdminDashboard = () => {
 
   // Mock data
   const stats = {
-    totalUsers: 52847,
-    totalCourses: 1284,
+    totalUsers,
+    totalCourses: 12,
     totalRevenue: 2847592,
     activeUsers: 18493,
     pendingCourses: 23,
@@ -276,13 +281,13 @@ const [courses, setCourses] = useState([
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'users', label: 'User Management', icon: Users },
-    { id: 'courses', label: 'Course Moderation', icon: BookOpen },
+    // { id: 'courses', label: 'Course Moderation', icon: BookOpen },
     {id:'course-list', label: 'Course List', icon: BookOpen },
-    { id: 'appointments', label: 'Appointment Management', icon: Calendar },
-    { id: 'quizzes', label: 'Quiz Management', icon: FileText },
-    { id: 'analytics', label: 'User Analytics', icon: BarChart3 },
-    { id: 'reports', label: 'Reports & Analytics', icon: TrendingUp },
-    { id: 'settings', label: 'Site Settings', icon: Settings }
+    { id: 'appointments', label: 'Appointment Management', icon: Calendar }//,
+    //{ id: 'quizzes', label: 'Quiz Management', icon: FileText },
+    //{ id: 'analytics', label: 'User Analytics', icon: BarChart3 },
+    //{ id: 'reports', label: 'Reports & Analytics', icon: TrendingUp },
+    //{ id: 'settings', label: 'Site Settings', icon: Settings }
   ];
 
   const handleEditCourse = (course) => {
@@ -412,7 +417,7 @@ const [courses, setCourses] = useState([
             <ThemeToggle />
             {sidebarOpen && (
               <Button variant="outline" size="sm" asChild>
-                <Link to="/dashboard">Main Dashboard</Link>
+                <Link to="/dashboard">Go to Home</Link>
               </Button>
             )}
           </div>
@@ -454,9 +459,9 @@ const [courses, setCourses] = useState([
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-foreground">{stats.totalUsers.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="text-green-600">+12.5%</span> from last month
-                    </p>
+                    {/* <p className="text-xs text-muted-foreground">
+                     <span className="text-green-600">+12.5%</span> from last month
+                    </p> */}
                   </CardContent>
                 </Card>
 
@@ -467,13 +472,13 @@ const [courses, setCourses] = useState([
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-foreground">{stats.totalCourses.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="text-green-600">+8.2%</span> from last month
-                    </p>
+                    {/* <p className="text-xs text-muted-foreground">
+                    //  <span className="text-green-600">+8.2%</span> from last month
+                    </p> */}
                   </CardContent>
                 </Card>
 
-                <Card>
+                {/* <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -497,11 +502,11 @@ const [courses, setCourses] = useState([
                       <span className="text-green-600">+5.7%</span> from last week
                     </p>
                   </CardContent>
-                </Card>
+                </Card> */}
               </div>
 
               {/* Recent Activity */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Pending Course Approvals</CardTitle>
@@ -555,7 +560,7 @@ const [courses, setCourses] = useState([
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </div> */}
             </div>
           )}
 
@@ -684,19 +689,19 @@ const [courses, setCourses] = useState([
               {/* Pagination */}
               <div className="mt-4">
                 <ReactPaginate
-                  previousLabel={"← Previous"}
-                  nextLabel={"Next →"}
-                  breakLabel={"..."}
-                  pageCount={5} // Replace with total pages if you have it from backend
-                  marginPagesDisplayed={2}
-                  pageRangeDisplayed={3}
-                  onPageChange={handlePageClick}
-                  containerClassName={"pagination flex justify-center mt-4"}
-                  pageClassName={"mx-1"}
-                  activeClassName={"font-bold text-blue-600"}
-                  previousClassName={"mx-2"}
-                  nextClassName={"mx-2"}
-                  forcePage={currentPage - 1}
+                    previousLabel={"← Previous"}
+                    nextLabel={"Next →"}
+                    breakLabel={"..."}
+                    pageCount={totalPages}
+                    marginPagesDisplayed={2}
+                    pageRangeDisplayed={3}
+                    onPageChange={(data) => dispatch(getAdminUsers(data.selected + 1, pageSize))}
+                    containerClassName={"pagination flex justify-center mt-4"}
+                    pageClassName={"mx-1"}
+                    activeClassName={"font-bold text-blue-600"}
+                    previousClassName={"mx-2"}
+                    nextClassName={"mx-2"}
+                    forcePage={page - 1}
                 />
               </div>
             </div>

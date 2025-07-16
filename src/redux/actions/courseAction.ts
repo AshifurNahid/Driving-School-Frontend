@@ -5,21 +5,37 @@ import {
   COURSE_LIST_FAIL,
 } from "../constants/courseConstants";
 
-// Fetch courses with pagination
 export const getCourses = (page = 1, pageSize = 10) => async (dispatch: any) => {
   try {
     dispatch({ type: COURSE_LIST_REQUEST });
-    const { data } = await api.get(
+
+    const response = await api.get(
       `/courses?PageNumber=${page}&PageSize=${pageSize}`
     );
-    dispatch({ type: COURSE_LIST_SUCCESS, payload: data.data });
+    const data = response.data;
+
+    const totalCourses = Number(response.headers['x-total-count']);
+    const totalPages = Number(response.headers['x-total-pages']);
+    const hasNextPage = response.headers['x-has-next-page'] === 'True';
+    const hasPreviousPage = response.headers['x-has-previous-page'] === 'True';
+
+    dispatch({
+      type: COURSE_LIST_SUCCESS,
+      payload: {
+        courses: data.data,
+        page,
+        pageSize,
+        totalCourses,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      },
+    });
   } catch (error: any) {
     dispatch({
       type: COURSE_LIST_FAIL,
       payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+        error.response?.data?.message || error.message,
     });
   }
 };

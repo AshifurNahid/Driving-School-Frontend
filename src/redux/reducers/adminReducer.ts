@@ -21,7 +21,10 @@ interface AdminUserListState {
   error: string | null;
   page: number;
   pageSize: number;
-  // totalUsers?: number;
+  totalUsers: number;       // <-- Add this
+  totalPages: number;        // <-- Optional
+  hasNextPage: boolean;      // <-- Optional
+  hasPreviousPage: boolean;  // <-- Optional
 }
 
 const initialUserListState: AdminUserListState = {
@@ -30,7 +33,10 @@ const initialUserListState: AdminUserListState = {
   error: null,
   page: 1,
   pageSize: 10,
-  // totalUsers: 0,
+  totalUsers: 0,
+  totalPages: 0,
+  hasNextPage: false,
+  hasPreviousPage: false
 };
 
 export const adminUserListReducer = (
@@ -47,7 +53,10 @@ export const adminUserListReducer = (
         users: action.payload.users,
         page: action.payload.page,
         pageSize: action.payload.pageSize,
-        // totalUsers: action.payload.totalUsers,
+        totalUsers: action.payload.totalUsers, // <-- store totalUsers from headers
+        totalPages: action.payload.totalPages,  // <-- optional but recommended
+        hasNextPage: action.payload.hasNextPage, // <-- optional for navigation
+        hasPreviousPage: action.payload.hasPreviousPage, // <-- optional
         error: null,
       };
     case ADMIN_USER_LIST_FAIL:

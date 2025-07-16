@@ -6,6 +6,7 @@ export type Course = {
   price: number;
   duration: number;
   thumbnail_photo_path: string;
-  rating?:number | 5
+  rating?:number | 5;
+  status: number | 0;
 };
 
