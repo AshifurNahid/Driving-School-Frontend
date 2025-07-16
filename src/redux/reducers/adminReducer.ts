@@ -172,6 +172,7 @@ interface AdminCourseListState {
   loading: boolean;
   courses: Course[]; // Adjust type as necessary
   error: string | null;
+  courseDetails?: Course | null; // Optional for details view
   
 }
 
@@ -179,6 +180,7 @@ const initialCourseListState: AdminCourseListState = {
   loading: false,
   courses: [],
   error: null,
+  courseDetails: null,
   
 };
 
@@ -194,11 +196,17 @@ export const adminCourseListReducer = (
     case "ADMIN_COURSE_DELETE_REQUEST":
       return { ...state, loading: true, error: null };
     case "ADMIN_COURSE_LIST_SUCCESS":
-    case "ADMIN_COURSE_DETAILS_SUCCESS":
       return {
         ...state,
         loading: false,
         courses: action.payload.courses,
+        error: "No error",
+      };
+    case "ADMIN_COURSE_DETAILS_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        courseDetails: action.payload,
         error: "No error",
       };
     case "ADMIN_COURSE_CREATE_SUCCESS":

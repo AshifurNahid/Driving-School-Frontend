@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 
 export function QuizModal({ open, onClose, quiz, onSave }) {
+  console.log("QuizModal rendered with quiz:", quiz);
+  
   const [localQuiz, setLocalQuiz] = useState(quiz || {
     title: "",
     description: "",

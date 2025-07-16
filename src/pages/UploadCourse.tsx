@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ArrowLeft, Plus, Trash2, Eye, Play, ChevronDown, ChevronRight, BookOpen, Video, Brain, Car, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +15,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PhysicalCourseForm from '@/components/course/PhysicalCourseForm';
 import { QuizModal } from '@/components/course/QuizModal';
-import { MaterialModal } from '@/components/course/MaterialModal';
-import { createAdminCourse } from '@/redux/actions/adminAction';
-import { InputOTP } from '@/components/ui/input-otp';
+import { createAdminCourse, getAdminCourseDetails, updateAdminCourse } from '@/redux/actions/adminAction';
 import { toast } from '@/components/ui/use-toast';
+import { RootState } from '@/redux/store';
 
 type CourseType = 'online' | 'physical';
 
@@ -78,6 +77,7 @@ interface CourseMaterial {
 }
 
 interface Course {
+  id?: string;
   title: string;
   description: string;
   content: string;
@@ -105,6 +105,7 @@ interface UploadCourseProps {
   initialCourse?: Course;
   mode?: 'add' | 'edit';
 }
+
 const defaultCourse: Course = {
   title: '',
   description: '',
@@ -129,20 +130,112 @@ const defaultCourse: Course = {
   materials: [],
 };
 
+// Helper function to transform API response to component format
+const transformApiResponseToCourse = (apiResponse: any): Course => {
+  const courseType = apiResponse.course_type === 0 ? 'online' : 'physical';
+  
+  const modules = apiResponse.course_modules?.map((module: any, index: number) => ({
+    title: module.module_title || '',
+    description: module.module_description || '',
+    subsections: module.course_module_lesones?.map((lesson: any) => ({
+      title: lesson.lesson_title || '',
+      description: lesson.lesson_description || '',
+      duration: lesson.duration || 0,
+      videoUrl: lesson.lesson_attachment_path || '',
+    })) || [],
+    quiz: module.quizzes && module.quizzes.length > 0 ? {
+      title: module.quizzes[0].title || '',
+      description: module.quizzes[0].description || '',
+      questions: module.quizzes[0].questions?.map((question: any) => ({
+        id: question.id?.toString(),
+        type: question.type === 0 ? 'mcq' : question.type === 1 ? 'true-false' : 'short-answer',
+        question: question.question || '',
+        options: question.options ? question.options.split(',') : [],
+        correctAnswer: question.type === 1 ? question.correct_answers === 'true' : question.correct_answers,
+        explanation: question.explanation || '',
+        points: question.points || 1,
+      })) || [],
+      passPercentage: module.quizzes[0].passing_score || 60,
+      timeLimit: module.quizzes[0].time_limit,
+      allowRetakes: module.quizzes[0].max_attempts > 1,
+    } : undefined,
+    isExpanded: false,
+    isQuizExpanded: false,
+    materials: [],
+  })) || [];
+
+  return {
+    id: apiResponse.id?.toString(),
+    title: apiResponse.title || '',
+    description: apiResponse.description || '',
+    content: apiResponse.content || '',
+    category: apiResponse.category || '',
+    price: apiResponse.price || 0,
+    duration: apiResponse.duration || 0,
+    level: apiResponse.level || '',
+    language: apiResponse.language || '',
+    prerequisites: apiResponse.prerequisites || '',
+    thumbnail: apiResponse.thumbnail_photo || '',
+    courseType,
+    modules,
+    physicalCourseData: courseType === 'physical' ? {
+      title: apiResponse.title || '',
+      price: apiResponse.price || 0,
+      duration: apiResponse.duration?.toString() || '',
+      includes: apiResponse.includes || '',
+      description: apiResponse.description || '',
+      location: apiResponse.location || ''
+    } : undefined,
+    materials: apiResponse.materials || [],
+  };
+};
+
 const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add' }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  
+  // Get course details from Redux store for edit mode
+  const{ loading, courseDetails, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
 
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Effect to handle edit mode data loading
   useEffect(() => {
-    if (mode === 'edit' && !initialCourse && id) {
-      // Fetch course by id from API here and setCourse
-      // Example:
-      // api.get(`/courses/${id}`).then(res => setCourse(res.data));
+    if (mode === 'edit' && id && !initialCourse) {
+      setIsLoading(true);
+      dispatch(getAdminCourseDetails(id) as any);
     }
-  }, [mode, initialCourse, id]);
+  }, [mode, id, initialCourse, dispatch]);
+
+  // Effect to set course data when course details are loaded
+  useEffect(() => {
+    if (mode === 'edit' && courseDetails && !initialCourse) {
+      try {
+        const transformedCourse = transformApiResponseToCourse(courseDetails);
+        setCourse(transformedCourse);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error transforming course data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load course details.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+      }
+    }
+    console.log(courseDetails);
+    
+  }, [courseDetails, mode, initialCourse]);
+
+  // Effect to handle initial course prop
+  useEffect(() => {
+    if (initialCourse) {
+      setCourse(initialCourse);
+    }
+  }, [initialCourse]);
 
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -168,7 +261,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     (course.modules.length > 0 &&
       course.modules.every((m) => m.title.trim() && m.subsections.length > 0));
 
-
   // --- Navigation logic ---
   const canGoNext = () => {
     if (currentStep === 0) return isTypeStepValid;
@@ -192,6 +284,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       setCourse({ ...course, modules: newModules });
     }
   };
+
   const handleMaterialSave = (materials: ModuleMaterial[]) => {
     if (materialModal.moduleIdx !== null) {
       const newModules = [...course.modules];
@@ -207,11 +300,13 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       materials: [...prev.materials, { name: '', url: '' }]
     }));
   };
+
   const updateCourseMaterial = (idx: number, field: keyof CourseMaterial, value: string) => {
     const newMaterials = [...course.materials];
     newMaterials[idx][field] = value;
     setCourse(prev => ({ ...prev, materials: newMaterials }));
   };
+
   const removeCourseMaterial = (idx: number) => {
     setCourse(prev => ({
       ...prev,
@@ -294,73 +389,97 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   };
 
   // --- Submit Handler with dispatch ---
-const handleSubmit = () => {
-  let base64 = course.thumbnail;
-  if (base64 && base64.startsWith('data:image')) {
-    base64 = base64.split(',')[1];
-  }
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true);
+      
+      let base64 = course.thumbnail;
+      if (base64 && base64.startsWith('data:image')) {
+        base64 = base64.split(',')[1];
+      }
 
-  console.log('Base64:', base64);
-  const payload = {
-    title: course.title,
-    description: course.description,
-    content: course.content,
-    category: course.category,
-    price: Number(course.price),
-    duration: Number(course.duration),
-    level: course.level,
-    language: course.language,
-    prerequisites: course.prerequisites,
-    thumbnail_photo_base64_code: base64,
-    course_type: course.courseType === 'online' ? 0 : 1,
-    course_modules: course.modules.map((mod, idx) => ({
-      module_title: mod.title,
-      module_description: mod.description,
-      sequence: idx,
-      course_module_lessons: mod.subsections.map((sub, subIdx) => ({
-        lesson_title: sub.title,
-        lesson_description: sub.description,
-        lesson_attachment_path: sub.videoUrl,
-        duration: Number(sub.duration) || 0,
-        sequence: subIdx,
-      })),
-      quizzes: mod.quiz
-        ? [
-            {
-              title: mod.quiz.title,
-              description: mod.quiz.description,
-              passing_score: mod.quiz.passPercentage,
-              max_attempts: mod.quiz.allowRetakes ? 99 : 1,
-              quiz_questions: mod.quiz.questions.map((q, qIdx) => ({
-                question: q.question,
-                type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
-                options: q.options ? q.options : '',
-                correct_answers: typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer ? 'true' : 'false',
-                points: q.points,
-                order_index: qIdx,
-              })),
-            },
-          ]
-        : [],
-    })),
+      const payload = {
+        title: course.title,
+        description: course.description,
+        content: course.content,
+        category: course.category,
+        price: Number(course.price),
+        duration: Number(course.duration),
+        level: course.level,
+        language: course.language,
+        prerequisites: course.prerequisites,
+        thumbnail_photo_base64_code: base64,
+        course_type: course.courseType === 'online' ? 0 : 1,
+        course_modules: course.modules.map((mod, idx) => ({
+          module_title: mod.title,
+          module_description: mod.description,
+          sequence: idx,
+          course_module_lessons: mod.subsections.map((sub, subIdx) => ({
+            lesson_title: sub.title,
+            lesson_description: sub.description,
+            lesson_attachment_path: sub.videoUrl,
+            duration: Number(sub.duration) || 0,
+            sequence: subIdx,
+          })),
+          quizzes: mod.quiz
+            ? [
+                {
+                  title: mod.quiz.title,
+                  description: mod.quiz.description,
+                  passing_score: mod.quiz.passPercentage,
+                  max_attempts: mod.quiz.allowRetakes ? 99 : 1,
+                  quiz_questions: mod.quiz.questions.map((q, qIdx) => ({
+                    question: q.question,
+                    type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
+                    options: q.options ? q.options.join(',') : '',
+                    correct_answers: typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer ? 'true' : 'false',
+                    points: q.points,
+                    order_index: qIdx,
+                  })),
+                },
+              ]
+            : [],
+        })),
+      };
+
+      if (mode === 'edit' && course.id) {
+        await dispatch(updateAdminCourse(course.id, payload) as any);
+        toast({
+          title: "Course updated!",
+          description: "Your course has been successfully updated.",
+        });
+      } else {
+        await dispatch(createAdminCourse(payload) as any);
+        toast({
+          title: "Course published!",
+          description: "Your course has been successfully uploaded.",
+        });
+      }
+
+      navigate("/admin", { state: { activeTab: "course-list" } });
+    } catch (err) {
+      console.error('Error submitting course:', err);
+      toast({
+        title: "Error",
+        description: mode === 'edit' ? "Failed to update course." : "Failed to publish course.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-  try {
-    console.log(payload);
-    
-    dispatch(createAdminCourse(payload) as any);
-    
-    toast({
-      title: "Course published!",
-      description: "Your course has been successfully uploaded.",
-    });
-    navigate("/admin", { state: { activeTab: "course-list" } });
-  } catch (err) {
-    toast({
-      title: "Error",
-      description: "Failed to publish course.",
-    });
+
+  // Show loading state
+  if (isLoading || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading course details...</p>
+        </div>
+      </div>
+    );
   }
-};
 
   // --- Stepper UI ---
   return (
@@ -371,7 +490,7 @@ const handleSubmit = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard">
+                <Link to="/admin">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
                 </Link>
@@ -393,6 +512,19 @@ const handleSubmit = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">
+            {mode === 'edit' ? 'Edit Course' : 'Create New Course'}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {mode === 'edit' 
+              ? 'Update your course details and content' 
+              : 'Build and publish your driving education course'
+            }
+          </p>
+        </div>
+
         {/* Stepper */}
         <div className="flex items-center mb-8">
           {steps.map((step, idx) => (
@@ -452,139 +584,148 @@ const handleSubmit = () => {
             )}
 
             {/* Step 2: Course Info */}
-          {currentStep === 1 && (
-  <Card>
-    <CardHeader>
-      <CardTitle>Course Information</CardTitle>
-      <CardDescription>Basic details about your course</CardDescription>
-    </CardHeader>
-    <CardContent className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="title">Course Title</Label>
-        <Input
-          id="title"
-          value={course.title}
-          onChange={(e) => setCourse({ ...course, title: e.target.value })}
-          placeholder={course.courseType === 'physical' ? "e.g., Test Prep Package" : "e.g., Complete Online Driver's Ed"}
-          className="text-lg"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">Course Description</Label>
-        <Textarea
-          id="description"
-          value={course.description}
-          onChange={(e) => setCourse({ ...course, description: e.target.value })}
-          placeholder={course.courseType === 'physical' 
-            ? "Describe the benefits and preparation this physical course provides..."
-            : "Describe what students will learn in this online course..."
-          }
-          rows={4}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="content">Course Content Summary</Label>
-        <Textarea
-          id="content"
-          value={course.content}
-          onChange={(e) => setCourse({ ...course, content: e.target.value })}
-          placeholder="Brief summary of the course content"
-          rows={2}
-        />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select value={course.category} onValueChange={(value) => setCourse({ ...course, category: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="beginner-driver-ed">Beginner Driver Education</SelectItem>
-              <SelectItem value="defensive-driving">Defensive Driving</SelectItem>
-              <SelectItem value="test-preparation">Test Preparation</SelectItem>
-              <SelectItem value="refresher-course">Refresher Course</SelectItem>
-              <SelectItem value="advanced-driving">Advanced Driving Skills</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="price">Price (CAD)</Label>
-          <Input
-            id="price"
-            type="number"
-            value={course.price}
-            onChange={(e) => setCourse({ ...course, price: Number(e.target.value) || 0 })}
-            placeholder={course.courseType === 'physical' ? "550" : "99.99"}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="duration">Duration (hours)</Label>
-          <Input
-            id="duration"
-            type="number"
-            value={course.duration}
-            onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
-            placeholder="e.g. 20"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="level">Level</Label>
-          <Input
-            id="level"
-            value={course.level}
-            onChange={(e) => setCourse({ ...course, level: e.target.value })}
-            placeholder="e.g. Beginner, Intermediate, Advanced"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="language">Language</Label>
-          <Input
-            id="language"
-            value={course.language}
-            onChange={(e) => setCourse({ ...course, language: e.target.value })}
-            placeholder="e.g. English"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="prerequisites">Prerequisites</Label>
-          <Input
-            id="prerequisites"
-            value={course.prerequisites}
-            onChange={(e) => setCourse({ ...course, prerequisites: e.target.value })}
-            placeholder="e.g. None, Basic driving knowledge"
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="thumbnail">Thumbnail Image</Label>
-        <Input
-          id="thumbnail"
-          type="file"
-          accept="image/*"
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                setCourse({ ...course, thumbnail: reader.result as string });
-              };
-              reader.readAsDataURL(file);
-            }
-          }}
-        />
-      </div>
-      {course.courseType === 'physical' && (
-        <PhysicalCourseForm 
-          data={course.physicalCourseData!}
-          onChange={handlePhysicalCourseDataChange}
-        />
-      )}
-    </CardContent>
-  </Card>
-)}
+            {currentStep === 1 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Course Information</CardTitle>
+                  <CardDescription>Basic details about your course</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Course Title</Label>
+                    <Input
+                      id="title"
+                      value={course.title}
+                      onChange={(e) => setCourse({ ...course, title: e.target.value })}
+                      placeholder={course.courseType === 'physical' ? "e.g., Test Prep Package" : "e.g., Complete Online Driver's Ed"}
+                      className="text-lg"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Course Description</Label>
+                    <Textarea
+                      id="description"
+                      value={course.description}
+                      onChange={(e) => setCourse({ ...course, description: e.target.value })}
+                      placeholder={course.courseType === 'physical' 
+                        ? "Describe the benefits and preparation this physical course provides..."
+                        : "Describe what students will learn in this online course..."
+                      }
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="content">Course Content Summary</Label>
+                    <Textarea
+                      id="content"
+                      value={course.content}
+                      onChange={(e) => setCourse({ ...course, content: e.target.value })}
+                      placeholder="Brief summary of the course content"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Select value={course.category} onValueChange={(value) => setCourse({ ...course, category: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner-driver-ed">Beginner Driver Education</SelectItem>
+                          <SelectItem value="defensive-driving">Defensive Driving</SelectItem>
+                          <SelectItem value="test-preparation">Test Preparation</SelectItem>
+                          <SelectItem value="refresher-course">Refresher Course</SelectItem>
+                          <SelectItem value="advanced-driving">Advanced Driving Skills</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price (CAD)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={course.price}
+                        onChange={(e) => setCourse({ ...course, price: Number(e.target.value) || 0 })}
+                        placeholder={course.courseType === 'physical' ? "550" : "99.99"}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="duration">Duration (hours)</Label>
+                      <Input
+                        id="duration"
+                        type="number"
+                        value={course.duration}
+                        onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
+                        placeholder="e.g. 20"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="level">Level</Label>
+                      <Input
+                        id="level"
+                        value={course.level}
+                        onChange={(e) => setCourse({ ...course, level: e.target.value })}
+                        placeholder="e.g. Beginner, Intermediate, Advanced"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="language">Language</Label>
+                      <Input
+                        id="language"
+                        value={course.language}
+                        onChange={(e) => setCourse({ ...course, language: e.target.value })}
+                        placeholder="e.g. English"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="prerequisites">Prerequisites</Label>
+                      <Input
+                        id="prerequisites"
+                        value={course.prerequisites}
+                        onChange={(e) => setCourse({ ...course, prerequisites: e.target.value })}
+                        placeholder="e.g. None, Basic driving knowledge"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="thumbnail">Thumbnail Image</Label>
+                    <Input
+                      id="thumbnail"
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setCourse({ ...course, thumbnail: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    {course.thumbnail && (
+                      <div className="mt-2">
+                        <img 
+                          src={course.thumbnail} 
+                          alt="Course thumbnail preview" 
+                          className="w-32 h-20 object-cover rounded border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {course.courseType === 'physical' && (
+                    <PhysicalCourseForm 
+                      data={course.physicalCourseData!}
+                      onChange={handlePhysicalCourseDataChange}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Step 3: Content */}
             {currentStep === 2 && course.courseType === 'online' && (
@@ -1003,6 +1144,7 @@ const handleSubmit = () => {
       </div>
       {/* Modals */}
       <QuizModal
+
         open={quizModal.open}
         onClose={() => setQuizModal({ open: false, moduleIdx: null })}
         quiz={quizModal.moduleIdx !== null ? course.modules[quizModal.moduleIdx].quiz : undefined}
