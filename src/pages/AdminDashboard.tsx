@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate,useLocation } from 'react-router-dom';
 import { 
   Users, 
   BookOpen, 
@@ -41,10 +41,9 @@ import AdminAppointmentManagement from '@/components/admin/AdminAppointmentManag
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
-import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers } from "@/redux/actions/adminAction";
+import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, getAdminCourses } from "@/redux/actions/adminAction";
 import { RootState, AppDispatch } from "@/redux/store";
 import { User } from "@/types/user";
-import { useAdminUsers } from '@/hooks/useAdminUsers';
 import UserDetailsModal from "@/components/admin/UserDetailsModal";
 import UserRoleEditModal from "@/components/admin/UserRoleEditModal";
 import ReactPaginate from "react-paginate";
@@ -53,9 +52,12 @@ import ReactPaginate from "react-paginate";
 const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
- 
+ const location = useLocation();
+  const [activeTab, setActiveTab] = useState(
+    location.state?.activeTab || 'overview'
+  );
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  // const [activeTab, setActiveTab] = useState('overview');
   const [editingCourse, setEditingCourse] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
@@ -72,7 +74,8 @@ const AdminDashboard = () => {
   const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);
   const { loading: deleteLoading, success: deleteSuccess, message: deleteMessage } = useSelector((state: RootState) => state.adminUserDelete);
   const { roles, loading: rolesLoading } = useSelector((state: RootState) => state.adminRoleList);
-  const { loading: roleUpdateLoading, user:userDetail, error: roleUpdateError } = useSelector((state: RootState) => state.adminUserDetails); // adjust if you have a dedicated slice
+  const { loading: roleUpdateLoading, user:userDetail, error: roleUpdateError } = useSelector((state: RootState) => state.adminUserDetails); 
+  const{ loading: courseListLoading, courses, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
 
   // Handle viewing user details
   const handleViewUser = (userId: number) => {
@@ -87,6 +90,9 @@ const AdminDashboard = () => {
 
   // Show toast and refetch users after successful delete
   useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
     if (deleteSuccess) {
       toast({
         title: "User Deleted",
@@ -94,7 +100,7 @@ const AdminDashboard = () => {
       });
       dispatch(getAdminUsers());
     }
-  }, [deleteSuccess, deleteMessage, dispatch, toast]);
+  }, [deleteSuccess, deleteMessage, dispatch, toast,location.state]);
 
   // Handle editing user role
   const handleEditUser = (user: User) => {
@@ -119,19 +125,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Show toast and close modal on role update
-  // useEffect(() => {
-    
-  //     dispatch(getAdminUsers());
-  //   }
-  //   if (roleUpdateError) {
-  //     toast({
-  //       title: "Error",
-  //       description: roleUpdateError,
-  //       variant: "destructive",
-  //     });
-  //   }
-  // }, [roleUpdateLoading, roleUpdateError, toast, dispatch]);
 
   // Mock data
   const stats = {
@@ -144,81 +137,7 @@ const AdminDashboard = () => {
     students: 52691
   };
 // Place this near the top of your AdminDashboard component
-const [courses, setCourses] = useState([
-  {
-    id: 1,
-    title: "Beginner Driving Course",
-    modules: [
-      {
-        id: 1,
-        title: "Introduction to Driving",
-        subsections: [
-          { id: 1, title: "Traffic Rules Overview", videoUrl: "https://example.com/video1" },
-          { id: 2, title: "Road Signs", videoUrl: "https://example.com/video2" }
-        ],
-        quiz: {
-          questions: [
-            { id: 1, question: "What is the speed limit in a school zone?" }
-          ]
-        }
-      },
-      {
-        id: 2,
-        title: "Basic Vehicle Control",
-        subsections: [
-          { id: 3, title: "Steering Techniques", videoUrl: "https://example.com/video3" }
-        ],
-        quiz: {
-          questions: []
-        }
-      }
-    ],
-    downloadableMaterials: [
-      "https://example.com/driving-guide.pdf",
-      "https://example.com/road-signs.pdf"
-    ]
-  },
-  {
-    id: 2,
-    title: "Defensive Driving Course",
-    modules: [
-      {
-        id: 3,
-        title: "Defensive Techniques",
-        subsections: [
-          { id: 4, title: "Safe Following Distance", videoUrl: "https://example.com/video4" }
-        ],
-        quiz: {
-          questions: [
-            { id: 2, question: "What is defensive driving?" }
-          ]
-        }
-      }
-    ],
-    downloadableMaterials: [
-      "https://example.com/defensive-driving.pdf"
-    ]
-  },
-  {
-    id: 3,
-    title: "Advanced Parking Skills",
-    modules: [
-      {
-        id: 4,
-        title: "Parallel Parking",
-        subsections: [
-          { id: 5, title: "Step-by-Step Parallel Parking", videoUrl: "https://example.com/video5" }
-        ],
-        quiz: {
-          questions: [
-            { id: 3, question: "List the steps for parallel parking." }
-          ]
-        }
-      }
-    ],
-    downloadableMaterials: []
-  }
-]);
+// 
   const [pendingCourses, setPendingCourses] = useState([
     {
       id: 1,
@@ -276,10 +195,10 @@ const [courses, setCourses] = useState([
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'users', label: 'User Management', icon: Users },
-    { id: 'courses', label: 'Course Moderation', icon: BookOpen },
+    // { id: 'courses', label: 'Course Moderation', icon: BookOpen },
     {id:'course-list', label: 'Course List', icon: BookOpen },
     { id: 'appointments', label: 'Appointment Management', icon: Calendar },
-    { id: 'quizzes', label: 'Quiz Management', icon: FileText },
+    // { id: 'quizzes', label: 'Quiz Management', icon: FileText },
     { id: 'analytics', label: 'User Analytics', icon: BarChart3 },
     { id: 'reports', label: 'Reports & Analytics', icon: TrendingUp },
     { id: 'settings', label: 'Site Settings', icon: Settings }
@@ -301,30 +220,30 @@ const [courses, setCourses] = useState([
     setEditingCourse(null);
   };
 
-  const handleApproveCourse = (courseId) => {
-    setPendingCourses(prev => 
-      prev.map(course => 
-        course.id === courseId ? { ...course, status: 'approved' } : course
-      )
-    );
-    toast({
-      title: "Course approved",
-      description: "Course has been approved and is now live.",
-    });
-  };
+  // const handleApproveCourse = (courseId) => {
+  //   setPendingCourses(prev => 
+  //     prev.map(course => 
+  //       course.id === courseId ? { ...course, status: 'approved' } : course
+  //     )
+  //   );
+  //   toast({
+  //     title: "Course approved",
+  //     description: "Course has been approved and is now live.",
+  //   });
+  // };
 
-  const handleRejectCourse = (courseId) => {
-    setPendingCourses(prev => 
-      prev.map(course => 
-        course.id === courseId ? { ...course, status: 'rejected' } : course
-      )
-    );
-    toast({
-      title: "Course rejected",
-      description: "Course has been rejected.",
-      variant: "destructive"
-    });
-  };
+  // const handleRejectCourse = (courseId) => {
+  //   setPendingCourses(prev => 
+  //     prev.map(course => 
+  //       course.id === courseId ? { ...course, status: 'rejected' } : course
+  //     )
+  //   );
+  //   toast({
+  //     title: "Course rejected",
+  //     description: "Course has been rejected.",
+  //     variant: "destructive"
+  //   });
+  // };
 
   // Mock courses data for quiz management
   const coursesForQuizzes = [
@@ -363,6 +282,7 @@ const [courses, setCourses] = useState([
   // Fetch users on mount
   useEffect(() => {
     dispatch(getAdminUsers(currentPage, pageSize));
+    dispatch(getAdminCourses(currentPage, pageSize));
   }, [dispatch, currentPage]);
 
   const handlePageClick = (selectedItem: { selected: number }) => {
@@ -515,14 +435,7 @@ const [courses, setCourses] = useState([
                             <div className="font-medium text-foreground">{course.title}</div>
                             <div className="text-sm text-muted-foreground">by {course.instructor}</div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleApproveCourse(course.id)}>
-                              <CheckCircle className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleRejectCourse(course.id)}>
-                              <XCircle className="h-3 w-3" />
-                            </Button>
-                          </div>
+                          
                         </div>
                       ))}
                     </div>
@@ -702,118 +615,7 @@ const [courses, setCourses] = useState([
             </div>
           )}
 
-          {/* Course Moderation Tab */}
-          {activeTab === 'courses' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-foreground">Course Moderation</h2>
-                <div className="flex items-center gap-4">
-                  <Badge variant="outline" className="text-orange-600 border-orange-600">
-                    {pendingCourses.length} Pending
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="grid gap-6">
-                {pendingCourses.map((course) => (
-                  <Card key={course.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div className="flex gap-4">
-                          {course.thumbnail && (
-                            <img 
-                              src={course.thumbnail} 
-                              alt={course.title}
-                              className="w-24 h-16 object-cover rounded"
-                            />
-                          )}
-                          <div>
-                            <CardTitle className="flex items-center gap-2">
-                              {course.title}
-                              {course.featured && (
-                                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                  Featured
-                                </Badge>
-                              )}
-                              {course.published && (
-                                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                                  Published
-                                </Badge>
-                              )}
-                            </CardTitle>
-                            <CardDescription>
-                              by {course.instructor} • {course.category} • Submitted {course.submittedAt}
-                            </CardDescription>
-                            <div className="flex gap-2 mt-2">
-                              {course.tags?.map((tag) => (
-                                <Badge key={tag} variant="outline" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={
-                            course.status === 'approved' ? 'text-green-600 border-green-600' :
-                            course.status === 'rejected' ? 'text-red-600 border-red-600' :
-                            'text-orange-600 border-orange-600'
-                          }
-                        >
-                          {course.status === 'pending' ? 'Pending Review' : course.status}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-2">
-                          <Button variant="outline">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Preview
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => handleEditCourse(course)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Course
-                          </Button>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button 
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleApproveCourse(course.id)}
-                            disabled={course.status === 'approved'}
-                          >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Approve
-                          </Button>
-                          <Button 
-                            variant="destructive"
-                            onClick={() => handleRejectCourse(course.id)}
-                            disabled={course.status === 'rejected'}
-                          >
-                            <XCircle className="h-4 w-4 mr-2" />
-                            Reject
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      {course.modules && course.modules.length > 0 && (
-                        <div className="mt-4 pt-4 border-t">
-                          <div className="text-sm text-muted-foreground">
-                            <strong>Modules:</strong> {course.modules.length} modules, {' '}
-                            {course.modules.reduce((total, module) => total + module.subsections.length, 0)} lessons
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
+         
 
           {/* Course List Tab */}
            {activeTab === "course-list" && (
@@ -848,14 +650,13 @@ const [courses, setCourses] = useState([
                     <tbody>
                       {courses && courses.length > 0 ? (
                         courses.map((course) => {
-                          const totalModules = course.modules?.length || 0;
-                          const totalLessons = course.modules
-                            ? course.modules.reduce((sum: number,m) => sum + (m.subsections?.length || 0), 0)
+                          const totalModules = course.course_modules?.length || 0;
+                          const totalLessons = course.course_modules
+                            ? course.course_modules.reduce((sum: number,m) => sum + (m.course_module_lesones?.length || 0), 0)
                             : 0;
-                          const totalQuizzes = course.modules
-                            ? course.modules.filter((m) => m.quiz && m.quiz.questions.length > 0).length
+                          const totalQuizzes = course.course_modules
+                            ? course.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
                             : 0;
-                          const totalMaterials = course.downloadableMaterials?.length || 0;
                           return (
                             <tr key={course.id} className="border-b border-border">
                               <td className="p-4 font-medium">{course.title}</td>
@@ -866,7 +667,6 @@ const [courses, setCourses] = useState([
                              
                                 <Brain className="h-4 w-4" /> {totalQuizzes}
                   
-                                <FileText className="h-4 w-4" /> {totalMaterials}
                               </td>
                               <td className="p-4">
                                 <div className="flex space-x-2">
