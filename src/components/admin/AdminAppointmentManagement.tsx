@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Calendar, Clock, Plus, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,95 +12,199 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAppointment } from '@/contexts/AppointmentContext';
-import { useUser } from '@/contexts/UserContext';
-import { FixedAppointment } from '@/types/appointment';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '@/redux/store';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  getAppointmentSlotsByDate, 
+  createAppointmentSlot, 
+  updateAppointmentSlot,
+  deleteAppointmentSlot
+} from '@/redux/actions/appointmentAction';
+import { getCourses } from '@/redux/actions/courseAction';
+import { 
+  APPOINTMENT_SLOT_CREATE_RESET,
+  APPOINTMENT_SLOT_UPDATE_RESET,
+  APPOINTMENT_SLOT_DELETE_RESET
+} from '@/redux/constants/appointmentConstants';
 
 const appointmentSchema = z.object({
+  courseId: z.string().min(1, 'Course is required'),
   startTime: z.string().min(1, 'Start time is required'),
   endTime: z.string().min(1, 'End time is required'),
-  status: z.enum(['available', 'unavailable']),
+  location: z.string().optional(),
 });
 
 type AppointmentFormData = z.infer<typeof appointmentSchema>;
 
 const AdminAppointmentManagement = () => {
-  const { user } = useUser();
-  const { 
-    createFixedAppointment, 
-    updateFixedAppointment, 
-    deleteFixedAppointment,
-    getAdminFixedAppointments 
-  } = useAppointment();
+  const { toast } = useToast();
+  const dispatch = useDispatch<AppDispatch>();
+  
+  // Redux state selectors
+  const { appointmentSlots: slotsData, loading: slotsLoading, error: slotsError } = useSelector(
+    (state: RootState) => state.appointmentSlots
+  );
+  // Ensure appointmentSlots is always an array
+  const appointmentSlots = Array.isArray(slotsData) ? slotsData : [];
 
+  const { courses = [], loading: coursesLoading } = useSelector(
+    (state: RootState) => state.courseList
+  );
+  const { success: createSuccess, error: createError, loading: createLoading } = useSelector(
+    (state: RootState) => state.appointmentSlotCreate
+  );
+  const { success: updateSuccess, error: updateError, loading: updateLoading } = useSelector(
+    (state: RootState) => state.appointmentSlotUpdate
+  );
+  const { success: deleteSuccess, error: deleteError, loading: deleteLoading } = useSelector(
+    (state: RootState) => state.appointmentSlotDelete
+  );
+  
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingAppointment, setEditingAppointment] = useState<FixedAppointment | null>(null);
+  const [editingAppointment, setEditingAppointment] = useState<any>(null);
+
+  // Dummy instructor ID as requested in requirements
+  const DUMMY_INSTRUCTOR_ID = 1;
 
   const form = useForm<AppointmentFormData>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
-      status: 'available',
+      courseId: '',
+      startTime: '',
+      endTime: '',
+      location: '',
     },
   });
 
-  const adminAppointments = user ? getAdminFixedAppointments(user.id) : [];
-  const selectedDateAppointments = selectedDate 
-    ? adminAppointments.filter(app => app.date === format(selectedDate, 'yyyy-MM-dd'))
-    : [];
+  // Fetch courses on component mount
+  useEffect(() => {
+    dispatch(getCourses());
+  }, [dispatch]);
+
+  // Fetch appointment slots when date changes
+  useEffect(() => {
+    if (selectedDate) {
+      dispatch(getAppointmentSlotsByDate(format(selectedDate, 'yyyy-MM-dd')));
+    }
+  }, [selectedDate, dispatch]);
+
+  // Handle create success
+  useEffect(() => {
+    if (createSuccess) {
+      toast({
+        title: "Success",
+        description: "Appointment slot created successfully",
+      });
+      setIsDialogOpen(false);
+      form.reset();
+      dispatch({ type: APPOINTMENT_SLOT_CREATE_RESET });
+    }
+    if (createError) {
+      toast({
+        title: "Error",
+        description: createError,
+        variant: "destructive",
+      });
+    }
+  }, [createSuccess, createError, toast, dispatch, form]);
+
+  // Handle update success
+  useEffect(() => {
+    if (updateSuccess) {
+      toast({
+        title: "Success",
+        description: "Appointment slot updated successfully",
+      });
+      setIsDialogOpen(false);
+      setEditingAppointment(null);
+      form.reset();
+      dispatch({ type: APPOINTMENT_SLOT_UPDATE_RESET });
+    }
+    if (updateError) {
+      toast({
+        title: "Error",
+        description: updateError,
+        variant: "destructive",
+      });
+    }
+  }, [updateSuccess, updateError, toast, dispatch, form]);
+
+  // Handle delete success
+  useEffect(() => {
+    if (deleteSuccess) {
+      toast({
+        title: "Success",
+        description: "Appointment slot deleted successfully",
+      });
+      dispatch({ type: APPOINTMENT_SLOT_DELETE_RESET });
+    }
+    if (deleteError) {
+      toast({
+        title: "Error",
+        description: deleteError,
+        variant: "destructive",
+      });
+    }
+  }, [deleteSuccess, deleteError, toast, dispatch]);
 
   const onSubmit = (data: AppointmentFormData) => {
-    if (!user || !selectedDate) return;
+    if (!selectedDate) return;
 
     const appointmentData = {
-      adminId: user.id,
-      adminName: user.name,
+      instructorId: DUMMY_INSTRUCTOR_ID,
+      courseId: parseInt(data.courseId),
       date: format(selectedDate, 'yyyy-MM-dd'),
       startTime: data.startTime,
       endTime: data.endTime,
-      status: data.status as 'available' | 'unavailable',
+      location: data.location || undefined,
     };
 
     if (editingAppointment) {
-      updateFixedAppointment(editingAppointment.id, appointmentData);
+      dispatch(updateAppointmentSlot(editingAppointment.id, appointmentData));
     } else {
-      createFixedAppointment(appointmentData);
+      dispatch(createAppointmentSlot(appointmentData));
     }
-
-    setIsDialogOpen(false);
-    setEditingAppointment(null);
-    form.reset();
   };
 
-  const handleEdit = (appointment: FixedAppointment) => {
+  const handleEdit = (appointment: any) => {
     setEditingAppointment(appointment);
     form.setValue('startTime', appointment.startTime);
     form.setValue('endTime', appointment.endTime);
-    form.setValue('status', appointment.status === 'available' ? 'available' : 'unavailable');
+    form.setValue('location', appointment.location || '');
+    form.setValue('courseId', appointment.courseId ? appointment.courseId.toString() : '');
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (appointmentId: string) => {
-    deleteFixedAppointment(appointmentId);
+  const handleDelete = (appointmentId: number) => {
+    if (window.confirm('Are you sure you want to delete this appointment slot?')) {
+      dispatch(deleteAppointmentSlot(appointmentId));
+    }
   };
 
   const handleAddNewSlot = () => {
     setEditingAppointment(null);
-    form.reset({ status: 'available' });
+    form.reset({
+      courseId: '',
+      startTime: '',
+      endTime: '',
+      location: '',
+    });
     setIsDialogOpen(true);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: number) => {
     switch (status) {
-      case 'available':
+      case 0:
         return <Badge variant="outline" className="text-green-600 border-green-600 text-xs">Available</Badge>;
-      case 'booked':
+      case 1:
         return <Badge variant="default" className="bg-blue-600 text-xs">Booked</Badge>;
-      case 'unavailable':
+      case 2:
         return <Badge variant="destructive" className="text-xs">Unavailable</Badge>;
       default:
-        return <Badge variant="outline" className="text-xs">{status}</Badge>;
+        return <Badge variant="outline" className="text-xs">Unknown</Badge>;
     }
   };
 
@@ -157,7 +260,7 @@ const AdminAppointmentManagement = () => {
               onMonthChange={setCurrentMonth}
               className="bg-background text-foreground border-border [&_.rdp-day_selected]:bg-primary [&_.rdp-day_selected]:text-primary-foreground [&_.rdp-table]:w-full [&_.rdp-cell]:text-center [&_.rdp-day]:h-8 [&_.rdp-day]:w-8 [&_.rdp-day]:text-sm sm:[&_.rdp-day]:h-9 sm:[&_.rdp-day]:w-9 [&_.rdp-day:hover]:bg-accent [&_.rdp-day:hover]:text-accent-foreground pointer-events-auto"
               modifiers={{
-                hasAppointment: adminAppointments.map(app => parseISO(app.date)),
+                hasAppointment: Array.isArray(appointmentSlots) ? appointmentSlots.map(app => parseISO(app.date)) : [],
               }}
               modifiersStyles={{
                 hasAppointment: { backgroundColor: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))' },
@@ -187,44 +290,59 @@ const AdminAppointmentManagement = () => {
             </div>
           </CardHeader>
           <CardContent className="p-3 sm:p-6">
-            <div className="space-y-3">
-              {selectedDateAppointments.length === 0 ? (
-                <div className="text-center py-6 sm:py-8 text-muted-foreground">
-                  <p className="text-lg sm:text-xl">--:-- --</p>
-                  <p className="text-xs sm:text-sm mt-2">No time slots set for this date</p>
-                </div>
-              ) : (
-                selectedDateAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-border rounded-lg gap-3 sm:gap-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                      <span className="font-medium text-sm sm:text-base">
-                        {appointment.startTime} - {appointment.endTime}
-                      </span>
-                      {getStatusBadge(appointment.status)}
-                    </div>
-                    <div className="flex gap-2 self-end sm:self-auto">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(appointment)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(appointment.id)}
-                        disabled={appointment.status === 'booked'}
-                        className="text-destructive hover:text-destructive h-8 w-8 p-0"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+            {slotsLoading ? (
+              <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                <p className="text-sm">Loading appointment slots...</p>
+              </div>
+            ) : slotsError ? (
+              <div className="text-center py-6 sm:py-8 text-red-500">
+                <p className="text-sm">Error: {slotsError}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {!appointmentSlots || appointmentSlots.length === 0 ? (
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                    <p className="text-lg sm:text-xl">--:-- --</p>
+                    <p className="text-xs sm:text-sm mt-2">No time slots set for this date</p>
                   </div>
-                ))
-              )}
-            </div>
+                ) : (
+                  appointmentSlots.map((appointment) => (
+                    <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-border rounded-lg gap-3 sm:gap-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <span className="font-medium text-sm sm:text-base">
+                          {appointment.startTime} - {appointment.endTime}
+                        </span>
+                        {appointment.location && (
+                          <span className="text-xs text-muted-foreground">
+                            📍 {appointment.location}
+                          </span>
+                        )}
+                        {getStatusBadge(appointment.status)}
+                      </div>
+                      <div className="flex gap-2 self-end sm:self-auto">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEdit(appointment)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDelete(appointment.id)}
+                          disabled={appointment.status === 1 || deleteLoading}
+                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -243,6 +361,31 @@ const AdminAppointmentManagement = () => {
           
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="courseId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Course</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id.toString()}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -272,32 +415,41 @@ const AdminAppointmentManagement = () => {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
-                name="status"
+                name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm">Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="text-sm">
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="unavailable">Unavailable</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel className="text-sm">Location (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter location" 
+                        {...field} 
+                        className="text-sm" 
+                      />
+                    </FormControl>
                     <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
+
+              {/* Hidden instructor info for reference */}
+              <div className="text-xs text-muted-foreground">
+                Instructor: Dummy Instructor (ID: {DUMMY_INSTRUCTOR_ID})
+              </div>
               
               <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                <Button type="submit" className="flex-1 text-sm">
-                  {editingAppointment ? 'Update' : 'Create'} Time Slot
+                <Button 
+                  type="submit" 
+                  className="flex-1 text-sm"
+                  disabled={createLoading || updateLoading}
+                >
+                  {createLoading || updateLoading ? (
+                    <span>Loading...</span>
+                  ) : (
+                    <span>{editingAppointment ? 'Update' : 'Create'} Time Slot</span>
+                  )}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="text-sm">
                   Cancel
