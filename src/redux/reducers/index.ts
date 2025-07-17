@@ -7,6 +7,12 @@ import {
   adminRoleListReducer,
 } from "./adminReducer";
 import { courseListReducer } from "./courseReducer";
+import {
+  appointmentSlotsReducer,
+  appointmentSlotCreateReducer,
+  appointmentSlotUpdateReducer,
+  appointmentSlotDeleteReducer,
+} from "./appointmentReducer";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -14,7 +20,11 @@ const rootReducer = combineReducers({
   adminUserDetails: adminUserDetailsReducer,
   adminUserDelete: adminUserDeleteReducer,
   adminRoleList: adminRoleListReducer,
-  courseList: courseListReducer
+  courseList: courseListReducer,
+  appointmentSlots: appointmentSlotsReducer,
+  appointmentSlotCreate: appointmentSlotCreateReducer,
+  appointmentSlotUpdate: appointmentSlotUpdateReducer,
+  appointmentSlotDelete: appointmentSlotDeleteReducer,
   // add other reducers here
 });
 
