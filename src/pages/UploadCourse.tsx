@@ -129,7 +129,44 @@ const defaultCourse: Course = {
   },
   materials: [],
 };
+function quizToModalFormat(quiz: Quiz | undefined): any {
+  if (!quiz) return undefined;
+  return {
+    title: quiz.title,
+    description: quiz.description,
+    passing_score: quiz.passPercentage,
+    max_attempts: quiz.allowRetakes ? 99 : 1,
+    questions: (quiz.questions || []).map(q => ({
+      question: q.question,
+      type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
+      options: (q.options || []).join(','),
+      correct_answers: typeof q.correctAnswer === 'boolean'
+        ? (q.correctAnswer ? 'true' : 'false')
+        : (q.correctAnswer || ''),
+      points: q.points,
+    })),
+  };
+}
 
+function modalToQuizFormat(modalQuiz: any): Quiz {
+  return {
+    title: modalQuiz.title,
+    description: modalQuiz.description,
+    passPercentage: modalQuiz.passing_score,
+    allowRetakes: modalQuiz.max_attempts > 1,
+    questions: (modalQuiz.questions || []).map((q: any) => ({
+      question: q.question,
+      type: q.type === 0 ? 'mcq' : q.type === 1 ? 'true-false' : 'short-answer',
+      options: typeof q.options === 'string' && q.options.length > 0
+        ? q.options.split(',').map((s: string) => s.trim())
+        : [],
+      correctAnswer: q.type === 1
+        ? (q.correct_answers === 'true')
+        : q.correct_answers,
+      points: q.points,
+    })),
+  };
+}
 // Helper function to transform API response to component format
 const transformApiResponseToCourse = (apiResponse: any): Course => {
   const courseType = apiResponse.course_type === 0 ? 'online' : 'physical';
@@ -1144,12 +1181,21 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       </div>
       {/* Modals */}
       <QuizModal
-
-        open={quizModal.open}
-        onClose={() => setQuizModal({ open: false, moduleIdx: null })}
-        quiz={quizModal.moduleIdx !== null ? course.modules[quizModal.moduleIdx].quiz : undefined}
-        onSave={handleQuizSave}
-      />
+  open={quizModal.open}
+  onClose={() => setQuizModal({ open: false, moduleIdx: null })}
+  quiz={
+    quizModal.moduleIdx !== null
+      ? quizToModalFormat(course.modules[quizModal.moduleIdx].quiz)
+      : undefined
+  }
+  onSave={(modalQuiz: any) => {
+    if (quizModal.moduleIdx !== null) {
+      const newModules = [...course.modules];
+      newModules[quizModal.moduleIdx].quiz = modalToQuizFormat(modalQuiz);
+      setCourse({ ...course, modules: newModules });
+    }
+  }}
+/>
       {/* <MaterialModal
         open={materialModal.open}
         onClose={() => setMaterialModal({ open: false, moduleIdx: null })}
