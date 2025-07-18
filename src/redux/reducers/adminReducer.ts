@@ -1,3 +1,4 @@
+import { Course } from "@/types/courses";
 import {
   ADMIN_USER_LIST_REQUEST,
   ADMIN_USER_LIST_SUCCESS,
@@ -166,9 +167,69 @@ export const adminRoleListReducer = (
   }
 };
 
-// Update Role State
-interface AdminRoleUpdateState {
+// Course Management State
+interface AdminCourseListState {
   loading: boolean;
-  success: boolean;
+  courses: Course[]; // Adjust type as necessary
   error: string | null;
+  courseDetails?: Course | null; // Optional for details view
+  
 }
+
+const initialCourseListState: AdminCourseListState = {
+  loading: false,
+  courses: [],
+  error: null,
+  courseDetails: null,
+  
+};
+
+export const adminCourseListReducer = (
+  state = initialCourseListState,
+  action: any
+): AdminCourseListState => {
+  switch (action.type) {
+    case "ADMIN_COURSE_LIST_REQUEST":
+    case "ADMIN_COURSE_DETAILS_REQUEST":
+    case "ADMIN_COURSE_CREATE_REQUEST":
+    case "ADMIN_COURSE_UPDATE_REQUEST":
+    case "ADMIN_COURSE_DELETE_REQUEST":
+      return { ...state, loading: true, error: null };
+    case "ADMIN_COURSE_LIST_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        courses: action.payload.courses,
+        error: "No error",
+      };
+    case "ADMIN_COURSE_DETAILS_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        courseDetails: action.payload,
+        error: "No error",
+      };
+    case "ADMIN_COURSE_CREATE_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        courses: [action.payload, ...state.courses], // add new course to list
+        error: "No error",
+      };
+    case "ADMIN_COURSE_DELETE_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        courses: state.courses.filter(course => course.id !== action.payload.courseId),
+        error: "No error",
+      };
+    case "ADMIN_COURSE_LIST_FAIL":
+    case "ADMIN_COURSE_DETAILS_FAIL":
+    case "ADMIN_COURSE_CREATE_FAIL":
+    case "ADMIN_COURSE_UPDATE_FAIL":
+    case "ADMIN_COURSE_DELETE_FAIL":
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};

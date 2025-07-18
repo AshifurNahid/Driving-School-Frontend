@@ -89,3 +89,86 @@ export const updateAdminRole = (userID: number | string, roleID: number)=> async
     });
   }
 };
+
+
+// Create Course (Admin)
+export const createAdminCourse = (courseData: any) => async (dispatch: any)=> {
+  try {
+    dispatch({ type: "ADMIN_COURSE_CREATE_REQUEST" });
+    const { data } = await api.post("/courses", courseData);
+    dispatch({ type: "ADMIN_COURSE_CREATE_SUCCESS", payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_COURSE_CREATE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+}
+
+// Get Courses (Admin)
+export const getAdminCourses = (page = 1, pageSize = 10) =>
+  async (dispatch: any) => {
+  try {
+    dispatch({ type: "ADMIN_COURSE_LIST_REQUEST" });
+    const { data } = await api.get(`/courses?PageNumber=${page}&PageSize=${pageSize}`);
+    dispatch({
+      type: "ADMIN_COURSE_LIST_SUCCESS",
+      payload: {
+        courses: data.data,
+       
+      },
+    });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_COURSE_LIST_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Get Course Details (Admin)
+export const getAdminCourseDetails = (courseId: number | string) => async (dispatch
+: any) => {
+  try {
+    dispatch({ type: "ADMIN_COURSE_DETAILS_REQUEST" });
+    const { data } = await api.get(`/courses/${courseId}`);
+    dispatch({ type: "ADMIN_COURSE_DETAILS_SUCCESS", payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_COURSE_DETAILS_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+}
+
+// Update Course (Admin)
+export const updateAdminCourse = (courseId: number | string, courseData: any)=> async (dispatch: any) => {
+  try {
+    dispatch({ type: "ADMIN_COURSE_UPDATE_REQUEST" });
+    const { data } = await api.put(`/courses/${courseId}`, courseData);
+    dispatch({ type: "ADMIN_COURSE_UPDATE_SUCCESS", payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_COURSE_UPDATE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+}
+
+// Delete Course (Admin)
+export const deleteAdminCourse = (courseId: number | string) => async (dispatch:
+  any) => {
+    try {
+      dispatch({ type: "ADMIN_COURSE_DELETE_REQUEST" });
+      const { data } = await api.delete(`/courses/${courseId}`);
+      dispatch({
+        type: "ADMIN_COURSE_DELETE_SUCCESS",
+        payload: { courseId, message: data.data || "Course Successfully Deleted" },
+      });
+    } catch (error: any) {
+      dispatch({
+        type: "ADMIN_COURSE_DELETE_FAIL",
+        payload: error.response?.data?.message || error.message,
+      });
+    }
+  }

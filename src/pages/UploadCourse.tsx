@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { ArrowLeft, Plus, Trash2, Eye, Play, ChevronDown, ChevronRight, BookOpen, Video, Brain, Car, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,12 +15,16 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PhysicalCourseForm from '@/components/course/PhysicalCourseForm';
 import { QuizModal } from '@/components/course/QuizModal';
-import { MaterialModal } from '@/components/course/MaterialModal';
+import { createAdminCourse, getAdminCourseDetails, updateAdminCourse } from '@/redux/actions/adminAction';
+import { toast } from '@/components/ui/use-toast';
+import { RootState } from '@/redux/store';
 
 type CourseType = 'online' | 'physical';
 
 interface Subsection {
   title: string;
+  description?: string;
+  duration?: number;
   videoUrl: string;
 }
 
@@ -72,11 +77,17 @@ interface CourseMaterial {
 }
 
 interface Course {
+  id?: string;
   title: string;
   description: string;
+  content: string;
   category: string;
-  thumbnail: string;
   price: number;
+  duration: number; // in hours
+  level: string;
+  language: string;
+  prerequisites: string;
+  thumbnail: string;
   courseType: CourseType;
   modules: Module[];
   physicalCourseData?: PhysicalCourseData;
@@ -87,7 +98,6 @@ const steps = [
   { key: 'type', label: 'Course Type' },
   { key: 'info', label: 'Course Info' },
   { key: 'content', label: 'Content' },
-  // { key: 'materials', label: 'Materials' },
   { key: 'preview', label: 'Preview & Publish' },
 ];
 
@@ -99,9 +109,14 @@ interface UploadCourseProps {
 const defaultCourse: Course = {
   title: '',
   description: '',
+  content: '',
   category: '',
-  thumbnail: '',
   price: 0,
+  duration: 0,
+  level: '',
+  language: '',
+  prerequisites: '',
+  thumbnail: '',
   courseType: 'online',
   modules: [],
   physicalCourseData: {
@@ -114,21 +129,150 @@ const defaultCourse: Course = {
   },
   materials: [],
 };
+function quizToModalFormat(quiz: Quiz | undefined): any {
+  if (!quiz) return undefined;
+  return {
+    title: quiz.title,
+    description: quiz.description,
+    passing_score: quiz.passPercentage,
+    max_attempts: quiz.allowRetakes ? 99 : 1,
+    questions: (quiz.questions || []).map(q => ({
+      question: q.question,
+      type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
+      options: (q.options || []).join(','),
+      correct_answers: typeof q.correctAnswer === 'boolean'
+        ? (q.correctAnswer ? 'true' : 'false')
+        : (q.correctAnswer || ''),
+      points: q.points,
+    })),
+  };
+}
+
+function modalToQuizFormat(modalQuiz: any): Quiz {
+  return {
+    title: modalQuiz.title,
+    description: modalQuiz.description,
+    passPercentage: modalQuiz.passing_score,
+    allowRetakes: modalQuiz.max_attempts > 1,
+    questions: (modalQuiz.questions || []).map((q: any) => ({
+      question: q.question,
+      type: q.type === 0 ? 'mcq' : q.type === 1 ? 'true-false' : 'short-answer',
+      options: typeof q.options === 'string' && q.options.length > 0
+        ? q.options.split(',').map((s: string) => s.trim())
+        : [],
+      correctAnswer: q.type === 1
+        ? (q.correct_answers === 'true')
+        : q.correct_answers,
+      points: q.points,
+    })),
+  };
+}
+// Helper function to transform API response to component format
+const transformApiResponseToCourse = (apiResponse: any): Course => {
+  const courseType = apiResponse.course_type === 0 ? 'online' : 'physical';
+  
+  const modules = apiResponse.course_modules?.map((module: any, index: number) => ({
+    title: module.module_title || '',
+    description: module.module_description || '',
+    subsections: module.course_module_lesones?.map((lesson: any) => ({
+      title: lesson.lesson_title || '',
+      description: lesson.lesson_description || '',
+      duration: lesson.duration || 0,
+      videoUrl: lesson.lesson_attachment_path || '',
+    })) || [],
+    quiz: module.quizzes && module.quizzes.length > 0 ? {
+      title: module.quizzes[0].title || '',
+      description: module.quizzes[0].description || '',
+      questions: module.quizzes[0].questions?.map((question: any) => ({
+        id: question.id?.toString(),
+        type: question.type === 0 ? 'mcq' : question.type === 1 ? 'true-false' : 'short-answer',
+        question: question.question || '',
+        options: question.options ? question.options.split(',') : [],
+        correctAnswer: question.type === 1 ? question.correct_answers === 'true' : question.correct_answers,
+        explanation: question.explanation || '',
+        points: question.points || 1,
+      })) || [],
+      passPercentage: module.quizzes[0].passing_score || 60,
+      timeLimit: module.quizzes[0].time_limit,
+      allowRetakes: module.quizzes[0].max_attempts > 1,
+    } : undefined,
+    isExpanded: false,
+    isQuizExpanded: false,
+    materials: [],
+  })) || [];
+
+  return {
+    id: apiResponse.id?.toString(),
+    title: apiResponse.title || '',
+    description: apiResponse.description || '',
+    content: apiResponse.content || '',
+    category: apiResponse.category || '',
+    price: apiResponse.price || 0,
+    duration: apiResponse.duration || 0,
+    level: apiResponse.level || '',
+    language: apiResponse.language || '',
+    prerequisites: apiResponse.prerequisites || '',
+    thumbnail: apiResponse.thumbnail_photo || '',
+    courseType,
+    modules,
+    physicalCourseData: courseType === 'physical' ? {
+      title: apiResponse.title || '',
+      price: apiResponse.price || 0,
+      duration: apiResponse.duration?.toString() || '',
+      includes: apiResponse.includes || '',
+      description: apiResponse.description || '',
+      location: apiResponse.location || ''
+    } : undefined,
+    materials: apiResponse.materials || [],
+  };
+};
 
 const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add' }) => {
-  const { id } = useParams(); // for /course/:id/edit route
+  const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  // Get course details from Redux store for edit mode
+  const{ loading, courseDetails, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
 
-  // If editing, load course data (from prop or API)
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Effect to handle edit mode data loading
   useEffect(() => {
-    if (mode === 'edit' && !initialCourse && id) {
-      // Fetch course by id from API here and setCourse
-      // Example:
-      // api.get(`/courses/${id}`).then(res => setCourse(res.data));
+    if (mode === 'edit' && id && !initialCourse) {
+      setIsLoading(true);
+      dispatch(getAdminCourseDetails(id) as any);
     }
-  }, [mode, initialCourse, id]);
+  }, [mode, id, initialCourse, dispatch]);
+
+  // Effect to set course data when course details are loaded
+  useEffect(() => {
+    if (mode === 'edit' && courseDetails && !initialCourse) {
+      try {
+        const transformedCourse = transformApiResponseToCourse(courseDetails);
+        setCourse(transformedCourse);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error transforming course data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load course details.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+      }
+    }
+    console.log(courseDetails);
+    
+  }, [courseDetails, mode, initialCourse]);
+
+  // Effect to handle initial course prop
+  useEffect(() => {
+    if (initialCourse) {
+      setCourse(initialCourse);
+    }
+  }, [initialCourse]);
 
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -154,14 +298,11 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     (course.modules.length > 0 &&
       course.modules.every((m) => m.title.trim() && m.subsections.length > 0));
 
-  const isMaterialsStepValid = course.materials.length > 0;
-
   // --- Navigation logic ---
   const canGoNext = () => {
     if (currentStep === 0) return isTypeStepValid;
     if (currentStep === 1) return isInfoStepValid;
     if (currentStep === 2) return isContentStepValid;
-    // if (currentStep === 3) return isMaterialsStepValid;
     return true;
   };
 
@@ -180,6 +321,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       setCourse({ ...course, modules: newModules });
     }
   };
+
   const handleMaterialSave = (materials: ModuleMaterial[]) => {
     if (materialModal.moduleIdx !== null) {
       const newModules = [...course.modules];
@@ -195,11 +337,13 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       materials: [...prev.materials, { name: '', url: '' }]
     }));
   };
+
   const updateCourseMaterial = (idx: number, field: keyof CourseMaterial, value: string) => {
     const newMaterials = [...course.materials];
     newMaterials[idx][field] = value;
     setCourse(prev => ({ ...prev, materials: newMaterials }));
   };
+
   const removeCourseMaterial = (idx: number) => {
     setCourse(prev => ({
       ...prev,
@@ -281,17 +425,98 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     setCourse({ ...course, modules: newModules });
   };
 
-  const handleSubmit = () => {
-    if (mode === 'edit') {
-      // Call update API
-      // api.put(`/courses/${id}`, course).then(() => navigate('/admin'));
-      console.log('Updating course:', course);
-    } else {
-      // Call add API
-      // api.post('/courses', course).then(() => navigate('/admin'));
-      console.log('Adding new course:', course);
+  // --- Submit Handler with dispatch ---
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true);
+      
+      let base64 = course.thumbnail;
+      if (base64 && base64.startsWith('data:image')) {
+        base64 = base64.split(',')[1];
+      }
+
+      const payload = {
+        title: course.title,
+        description: course.description,
+        content: course.content,
+        category: course.category,
+        price: Number(course.price),
+        duration: Number(course.duration),
+        level: course.level,
+        language: course.language,
+        prerequisites: course.prerequisites,
+        thumbnail_photo_base64_code: base64,
+        course_type: course.courseType === 'online' ? 0 : 1,
+        course_modules: course.modules.map((mod, idx) => ({
+          module_title: mod.title,
+          module_description: mod.description,
+          sequence: idx,
+          course_module_lessons: mod.subsections.map((sub, subIdx) => ({
+            lesson_title: sub.title,
+            lesson_description: sub.description,
+            lesson_attachment_path: sub.videoUrl,
+            duration: Number(sub.duration) || 0,
+            sequence: subIdx,
+          })),
+          quizzes: mod.quiz
+            ? [
+                {
+                  title: mod.quiz.title,
+                  description: mod.quiz.description,
+                  passing_score: mod.quiz.passPercentage,
+                  max_attempts: mod.quiz.allowRetakes ? 99 : 1,
+                  quiz_questions: mod.quiz.questions.map((q, qIdx) => ({
+                    question: q.question,
+                    type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
+                    options: q.options ? q.options.join(',') : '',
+                    correct_answers: typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer ? 'true' : 'false',
+                    points: q.points,
+                    order_index: qIdx,
+                  })),
+                },
+              ]
+            : [],
+        })),
+      };
+
+      if (mode === 'edit' && course.id) {
+        await dispatch(updateAdminCourse(course.id, payload) as any);
+        toast({
+          title: "Course updated!",
+          description: "Your course has been successfully updated.",
+        });
+      } else {
+        await dispatch(createAdminCourse(payload) as any);
+        toast({
+          title: "Course published!",
+          description: "Your course has been successfully uploaded.",
+        });
+      }
+
+      navigate("/admin", { state: { activeTab: "course-list" } });
+    } catch (err) {
+      console.error('Error submitting course:', err);
+      toast({
+        title: "Error",
+        description: mode === 'edit' ? "Failed to update course." : "Failed to publish course.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Show loading state
+  if (isLoading || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading course details...</p>
+        </div>
+      </div>
+    );
+  }
 
   // --- Stepper UI ---
   return (
@@ -302,7 +527,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/dashboard">
+                <Link to="/admin">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
                 </Link>
@@ -324,6 +549,19 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">
+            {mode === 'edit' ? 'Edit Course' : 'Create New Course'}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            {mode === 'edit' 
+              ? 'Update your course details and content' 
+              : 'Build and publish your driving education course'
+            }
+          </p>
+        </div>
+
         {/* Stepper */}
         <div className="flex items-center mb-8">
           {steps.map((step, idx) => (
@@ -413,6 +651,16 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                       rows={4}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="content">Course Content Summary</Label>
+                    <Textarea
+                      id="content"
+                      value={course.content}
+                      onChange={(e) => setCourse({ ...course, content: e.target.value })}
+                      placeholder="Brief summary of the course content"
+                      rows={2}
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
@@ -435,34 +683,89 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                         id="price"
                         type="number"
                         value={course.price}
-                        onChange={(e) => setCourse({ ...course, price: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => setCourse({ ...course, price: Number(e.target.value) || 0 })}
                         placeholder={course.courseType === 'physical' ? "550" : "99.99"}
-                        min="0"
-                        step="0.01"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="thumbnail">Thumbnail Image URL</Label>
+                      <Label htmlFor="duration">Duration (hours)</Label>
                       <Input
-                        id="thumbnail"
-                        value={course.thumbnail}
-                        onChange={(e) => setCourse({ ...course, thumbnail: e.target.value })}
-                        placeholder="https://example.com/image.jpg"
+                        id="duration"
+                        type="number"
+                        value={course.duration}
+                        onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
+                        placeholder="e.g. 20"
                       />
                     </div>
                   </div>
-                  {course.courseType === 'physical' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="level">Level</Label>
+                      <Input
+                        id="level"
+                        value={course.level}
+                        onChange={(e) => setCourse({ ...course, level: e.target.value })}
+                        placeholder="e.g. Beginner, Intermediate, Advanced"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="language">Language</Label>
+                      <Input
+                        id="language"
+                        value={course.language}
+                        onChange={(e) => setCourse({ ...course, language: e.target.value })}
+                        placeholder="e.g. English"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="prerequisites">Prerequisites</Label>
+                      <Input
+                        id="prerequisites"
+                        value={course.prerequisites}
+                        onChange={(e) => setCourse({ ...course, prerequisites: e.target.value })}
+                        placeholder="e.g. None, Basic driving knowledge"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="thumbnail">Thumbnail Image</Label>
+                    <Input
+                      id="thumbnail"
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setCourse({ ...course, thumbnail: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    {course.thumbnail && (
+                      <div className="mt-2">
+                        <img 
+                          src={course.thumbnail} 
+                          alt="Course thumbnail preview" 
+                          className="w-32 h-20 object-cover rounded border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {/* {course.courseType === 'physical' && (
                     <PhysicalCourseForm 
                       data={course.physicalCourseData!}
                       onChange={handlePhysicalCourseDataChange}
                     />
-                  )}
+                  )} */}
                 </CardContent>
               </Card>
             )}
 
             {/* Step 3: Content */}
-            {currentStep === 2 && course.courseType === 'online' && (
+            {currentStep === 2  && (
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -587,6 +890,20 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                                         className="bg-background"
                                       />
                                       <Input
+                                      value={subsection.description}
+                                        onChange={(e) => updateSubsection(moduleIndex, subsectionIndex, 'description', e.target.value)}
+                                        placeholder="Brief description of this lesson"
+                                        className="bg-background"
+                                      />
+                                       
+                                      <Input
+                                        type="number"
+                                        value={subsection.duration || 0}
+                                        onChange={(e) => updateSubsection(moduleIndex, subsectionIndex, 'duration', e.target.value)}
+                                        placeholder="Duration (in minutes)"
+                                        className="bg-background"
+                                      />
+                                      <Input
                                         value={subsection.videoUrl}
                                         onChange={(e) => updateSubsection(moduleIndex, subsectionIndex, 'videoUrl', e.target.value)}
                                         placeholder="Video URL (YouTube, Vimeo, or direct link)"
@@ -626,7 +943,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                               )}
                             </div>
                             {/* Materials Section */}
-                            <div className="space-y-3">
+                            {/* <div className="space-y-3">
                               <div className="flex justify-between items-center">
                                 <h4 className="font-medium text-foreground flex items-center">
                                   <BookOpen className="h-4 w-4 mr-2" />
@@ -652,7 +969,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                                   No materials for this module.
                                 </div>
                               )}
-                            </div>
+                            </div> */}
                           </CardContent>
                         </CollapsibleContent>
                       </Collapsible>
@@ -663,11 +980,10 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                       <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <h3 className="text-lg font-medium mb-2">No modules yet</h3>
                       <p className="mb-4">Start building your online course by adding your first module.</p>
-                      <Button onClick={addModule} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                      <Button onClick={addModule} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"/>
                         <Plus className="h-4 w-4 mr-2" />
                         Create First Module
-                      </Button>
-                    </div>
+                      </div>
                   )}
                 </CardContent>
               </Card>
@@ -677,7 +993,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
           
 
             {/* Step 5: Preview & Publish */}
-            {currentStep === 4 && (
+            {currentStep === 3 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Preview & Publish</CardTitle>
@@ -865,19 +1181,28 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       </div>
       {/* Modals */}
       <QuizModal
-        open={quizModal.open}
-        onClose={() => setQuizModal({ open: false, moduleIdx: null })}
-        quiz={quizModal.moduleIdx !== null ? course.modules[quizModal.moduleIdx].quiz : undefined}
-        onSave={handleQuizSave}
-      />
-      <MaterialModal
+  open={quizModal.open}
+  onClose={() => setQuizModal({ open: false, moduleIdx: null })}
+  quiz={
+    quizModal.moduleIdx !== null
+      ? quizToModalFormat(course.modules[quizModal.moduleIdx].quiz)
+      : undefined
+  }
+  onSave={(modalQuiz: any) => {
+    if (quizModal.moduleIdx !== null) {
+      const newModules = [...course.modules];
+      newModules[quizModal.moduleIdx].quiz = modalToQuizFormat(modalQuiz);
+      setCourse({ ...course, modules: newModules });
+    }
+  }}
+/>
+      {/* <MaterialModal
         open={materialModal.open}
         onClose={() => setMaterialModal({ open: false, moduleIdx: null })}
         materials={materialModal.moduleIdx !== null ? course.modules[materialModal.moduleIdx].materials || [] : []}
         onSave={handleMaterialSave}
-      />
+      /> */}
     </div>
-  );
-};
-
+                  );
+                };
 export default UploadCourse;
