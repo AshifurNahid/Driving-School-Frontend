@@ -754,18 +754,18 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                       </div>
                     )}
                   </div>
-                  {course.courseType === 'physical' && (
+                  {/* {course.courseType === 'physical' && (
                     <PhysicalCourseForm 
                       data={course.physicalCourseData!}
                       onChange={handlePhysicalCourseDataChange}
                     />
-                  )}
+                  )} */}
                 </CardContent>
               </Card>
             )}
 
             {/* Step 3: Content */}
-            {currentStep === 2 && course.courseType === 'online' && (
+            {currentStep === 2  && (
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">

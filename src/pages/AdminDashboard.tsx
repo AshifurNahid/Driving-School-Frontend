@@ -41,7 +41,7 @@ import AdminAppointmentManagement from '@/components/admin/AdminAppointmentManag
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
-import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, getAdminCourses } from "@/redux/actions/adminAction";
+import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, getAdminCourses, deleteAdminCourse } from "@/redux/actions/adminAction";
 import { RootState, AppDispatch } from "@/redux/store";
 import { User } from "@/types/user";
 import UserDetailsModal from "@/components/admin/UserDetailsModal";
@@ -86,6 +86,10 @@ const AdminDashboard = () => {
   // Handle deleting a user
   const handleDeleteUser = (userId: number) => {
     dispatch(deleteAdminUser(userId));
+  };
+
+  const handleDeleteCourse = (courseId: number) => {
+    dispatch(deleteAdminCourse(courseId));
   };
 
   // Show toast and refetch users after successful delete
@@ -681,7 +685,7 @@ const AdminDashboard = () => {
                                     size="sm"
                                     variant="outline"
                                     className="text-red-600 hover:text-red-700"
-                                    // onClick={() => handleDeleteCourse(course.id)}
+                                    onClick={() => handleDeleteCourse(course.id)}
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>

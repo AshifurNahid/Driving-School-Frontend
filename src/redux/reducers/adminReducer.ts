@@ -216,6 +216,13 @@ export const adminCourseListReducer = (
         courses: [action.payload, ...state.courses], // add new course to list
         error: "No error",
       };
+    case "ADMIN_COURSE_DELETE_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        courses: state.courses.filter(course => course.id !== action.payload.courseId),
+        error: "No error",
+      };
     case "ADMIN_COURSE_LIST_FAIL":
     case "ADMIN_COURSE_DETAILS_FAIL":
     case "ADMIN_COURSE_CREATE_FAIL":
