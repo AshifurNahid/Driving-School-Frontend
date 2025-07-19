@@ -12,6 +12,9 @@ interface CourseListState {
   page: number;
   pageSize: number;
   totalCourses: number;
+  totalPages: number;        // <-- Optional
+  hasNextPage: boolean;      // <-- Optional
+  hasPreviousPage: boolean;  // <-- Optional
 }
 
 const initialState: CourseListState = {
@@ -21,6 +24,9 @@ const initialState: CourseListState = {
   page: 1,
   pageSize: 10,
   totalCourses: 0,
+  totalPages: 0,
+  hasNextPage: false,
+  hasPreviousPage: false
 };
 
 export const courseListReducer = (
@@ -38,6 +44,9 @@ export const courseListReducer = (
         page: action.payload.page ?? state.page,
         pageSize: action.payload.pageSize ?? state.pageSize,
         totalCourses: action.payload.totalCourses ?? state.totalCourses,
+        totalPages: action.payload.totalPages,  // <-- optional but recommended
+        hasNextPage: action.payload.hasNextPage, // <-- optional for navigation
+        hasPreviousPage: action.payload.hasPreviousPage, // <-- optional
         error: null,
       };
     case COURSE_LIST_FAIL:

@@ -12,7 +12,14 @@ import {
 export const getAdminUsers = (page = 1, pageSize = 10) => async (dispatch: any) => {
   try {
     dispatch({ type: ADMIN_USER_LIST_REQUEST });
-    const { data } = await api.get(`/users?PageNumber=${page}&PageSize=${pageSize}`);
+    const response = await api.get(`/users?PageNumber=${page}&PageSize=${pageSize}`);
+    const data = response.data;
+
+    const totalUsers = Number(response.headers['x-total-count']);
+    const totalPages = Number(response.headers['x-total-pages']);
+    const hasNextPage = response.headers['x-has-next-page'] === 'True';
+    const hasPreviousPage = response.headers['x-has-previous-page'] === 'True';
+    
     // You may need to get total count from headers or a separate API if your backend supports it
     dispatch({
       type: ADMIN_USER_LIST_SUCCESS,
@@ -20,7 +27,10 @@ export const getAdminUsers = (page = 1, pageSize = 10) => async (dispatch: any) 
         users: data.data,
         page,
         pageSize,
-        // totalUsers: data.totalUsers, // If your backend provides this
+        totalUsers,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
       },
     });
   } catch (error: any) {

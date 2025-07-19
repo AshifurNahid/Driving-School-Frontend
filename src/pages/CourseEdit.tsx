@@ -227,7 +227,7 @@ const CourseEdit = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-2">Course Not Found</h1>
           <p className="text-muted-foreground mb-4">The course you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/dashboard')}>
+          <Button onClick={() => navigate('/admin')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -242,7 +242,7 @@ const CourseEdit = () => {
       <header className="bg-card shadow-sm border-b border-border p-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
+            <Button variant="outline" onClick={() => navigate('/admin')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Button>
