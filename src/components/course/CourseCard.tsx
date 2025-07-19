@@ -26,9 +26,11 @@ export const CourseCard = ({ course }: { course: Course }) => (
     <CardHeader className="pb-2">
       <div className="flex items-center justify-between mb-2">
         <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 capitalize">{course.category}</Badge>
+        <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 capitalize">Total reviews: {course.course_reviews.length}</Badge>
+
         <div className="flex items-center">
           <Star className="h-4 w-4 text-yellow-400 fill-current" />
-          <span className="text-sm font-medium ml-1 text-foreground">{course.rating}</span>
+          <span className="text-sm font-medium ml-1 text-foreground">{}</span>
         </div>
       </div>
       <CardTitle className="text-lg leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-semibold line-clamp-2">
