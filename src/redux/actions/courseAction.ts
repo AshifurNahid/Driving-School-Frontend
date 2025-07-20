@@ -1,16 +1,19 @@
 import api from "@/utils/axios";
 import {
-  COURSE_LIST_REQUEST,
-  COURSE_LIST_SUCCESS,
-  COURSE_LIST_FAIL,
-} from "../constants/courseConstants";
+      GUEST_COURSE_LIST_REQUEST,
+      GUEST_COURSE_LIST_SUCCESS,
+      GUEST_COURSE_LIST_FAIL,
+      GUEST_COURSE_DETAIL_REQUEST,
+      GUEST_COURSE_DETAIL_SUCCESS,
+      GUEST_COURSE_DETAIL_FAIL,
+  } from "../constants/courseConstants";
 
 export const getCourses = (page = 1, pageSize = 10) => async (dispatch: any) => {
   try {
-    dispatch({ type: COURSE_LIST_REQUEST });
+    dispatch({ type: GUEST_COURSE_LIST_REQUEST });
 
     const response = await api.get(
-      `/courses?PageNumber=${page}&PageSize=${pageSize}`
+      `/guest-courses?PageNumber=${page}&PageSize=${pageSize}`
     );
     const data = response.data;
 
@@ -20,7 +23,7 @@ export const getCourses = (page = 1, pageSize = 10) => async (dispatch: any) => 
     const hasPreviousPage = response.headers['x-has-previous-page'] === 'True';
 
     dispatch({
-      type: COURSE_LIST_SUCCESS,
+      type: GUEST_COURSE_LIST_SUCCESS,
       payload: {
         courses: data.data,
         page,
@@ -33,9 +36,28 @@ export const getCourses = (page = 1, pageSize = 10) => async (dispatch: any) => 
     });
   } catch (error: any) {
     dispatch({
-      type: COURSE_LIST_FAIL,
+      type: GUEST_COURSE_LIST_FAIL,
       payload:
         error.response?.data?.message || error.message,
     });
+  }
+};
+
+
+export const getCourseDetail = (courseId: number) => async (dispatch: any) => {
+  try {
+
+    
+    dispatch({ type: GUEST_COURSE_DETAIL_REQUEST });
+
+    const response = await api.get(`/guest-courses/${courseId}`);
+    const data = response.data;
+
+    dispatch({
+      type: GUEST_COURSE_DETAIL_SUCCESS,
+      payload: data,
+    });
+  } catch (error: any) {
+    dispatch({ type: GUEST_COURSE_DETAIL_FAIL, payload: error.message });
   }
 };

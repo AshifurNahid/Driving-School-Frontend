@@ -22,7 +22,7 @@ const rootReducer = combineReducers({
   adminUserDelete: adminUserDeleteReducer,
   adminRoleList: adminRoleListReducer,
   adminCourseList:adminCourseListReducer,
-  courseList: courseListReducer,
+  guest_course: courseListReducer,
   
   appointmentSlots: appointmentSlotsReducer,
   appointmentSlotCreate: appointmentSlotCreateReducer,

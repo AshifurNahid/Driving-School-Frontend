@@ -10,7 +10,7 @@ export const CourseCard = ({ course }: { course: Course }) => (
   <Card className="group overflow-hidden flex flex-col h-full transition-all duration-300 hover:shadow-lg bg-card">
     <div className="relative overflow-hidden">
       <img
-        src={course.thumbnail_photo_path}
+        src={import.meta.env.VITE_API_BASE_URL+"/" + course.thumbnail_photo_path}
         alt={course.title}
         className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
       />
