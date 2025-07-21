@@ -1,7 +1,6 @@
-
 import { useState,useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getCourseDetail } from '@/redux/actions/courseAction';
 import { useCourseDetails } from '@/hooks/useCourseDetail';
 import { RootState } from '@/redux/store';
-import { createCourseReview } from '@/redux/actions/reviewAction';
+import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/redux/actions/reviewAction';
 import { useAuth } from '@/hooks/useAuth';
 
 const CourseDetail = () => {
@@ -34,21 +33,9 @@ const CourseDetail = () => {
 //   }, [dispatch, courseId]);
 
   // Find if user already posted a review
-  // const userReview = reviews?.find((r: any) => r.user_id === user?.id);
+  const userReview = course?.course_reviews?.find((r: any) => r.review_from_id === userInfo?.id);
 
-  // useEffect(() => {
-  //   if (userReview) {
-  //     setRating(userReview.rating);
-  //     setReview(userReview.review);
-  //     setEditing(true);
-  //     setEditId(userReview.id);
-  //   } else {
-  //     setRating(0);
-  //     setReview("");
-  //     setEditing(false);
-  //     setEditId(null);
-  //   }
-  // }, [userReview]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,21 +46,51 @@ const CourseDetail = () => {
         is_verified_purchase: true,
 
     }
+
+    const updatedBody={
+      course_id: course?.id,
+      rating,
+      review,
+      isVerifiedPurchase:true}
+
     if (editing && editId) {
-    //   dispatch(updateCourseReview(editId, { course_id: courseId, rating, review }) as any);
+ dispatch(updateCourseReview(updatedBody,editId) as any);
     } else {
       dispatch(createCourseReview(requestBody) as any);
     }
+
+    setRating(0);
+    setReview("");
+    setEditing(false);
+    setEditId(null);
   };
 
   const handleDelete = () => {
+    console.log(editId);
+    
     if (editId) {
-    //   dispatch(deleteReview(editId) as any);
+  dispatch(deleteCourseReview(editId) as any);
+
+    setRating(0);
+    setReview("");
+    setEditing(false);
+    setEditId(null);
     }
   };
 
+  const handleCancelEdit = () => {
+    setRating(0);
+    setReview("");
+    setEditing(false);
+    setEditId(null);
+  };
 
-  
+  const handleEditReview = (reviewData: any) => {
+    setRating(reviewData.rating);
+    setReview(reviewData.review);
+    setEditing(true);
+    setEditId(reviewData.id);
+  };
 
   const handleEnroll = () => {
     setIsEnrolled(true);
@@ -269,6 +286,7 @@ const CourseDetail = () => {
 
               <TabsContent value="reviews" className="p-6">
                 <div className="space-y-6">
+                  {/* Reviews Header */}
                   <div className="flex items-center space-x-4">
                     <div className="text-center">
                       <div className="text-4xl font-bold">{course?.rating}</div>
@@ -283,63 +301,146 @@ const CourseDetail = () => {
 
                   <Separator />
 
-                  <div className="space-y-6">
-                    {course?.course_reviews?.map((review) => (
-                      <div key={review?.id} className="flex space-x-4">
-                        {/* <Avatar>
-                          <AvatarImage src={review.avatar} alt={review.user} />
-                          <AvatarFallback>{review.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar> */}
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            {/* <span className="font-medium">{review.user}</span> */}
-                            <div className="flex">
-                              {[...Array(review.rating)].map((_, i) => (
-                                <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                              ))}
-                            </div>
-                            <span className="text-sm text-muted-foreground">{review?.created_at}</span>
-                          </div>
-                          <p className="text-foreground">{review?.review}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Review Form - Always visible at the top */}
                   {userInfo ? (
-        <form onSubmit={handleSubmit} className="mb-6">
-          <div className="flex items-center mb-2">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                type="button"
-                key={star}
-                onClick={() => setRating(star)}
-                className={star <= rating ? "text-yellow-400" : "text-gray-300"}
-              >
-                <Star className="h-6 w-6" fill={star <= rating ? "#facc15" : "none"} />
-              </button>
-            ))}
-          </div>
-          <textarea
-            className="w-full border rounded p-2 mb-2"
-            value={review}
-            onChange={(e) => setReview(e.target.value)}
-            placeholder="Write your review..."
-            required
-          />
-          <div className="flex gap-2">
-            <Button type="submit" disabled={loading}>
-              {editing ? "Update Review" : "Post Review"}
-            </Button>
-            {editing && (
-              <Button type="button" variant="outline" onClick={handleDelete} disabled={loading}>
-                Delete Review
-              </Button>
-            )}
-          </div>
-        </form>
-      ) : (
-        <div className="mb-4 text-muted-foreground">Log in to post a review.</div>
-      )}
+                    <Card className="bg-muted/30 sticky top-4 z-10">
+                      <CardContent className="p-4">
+                        <h4 className="text-lg font-semibold mb-4">
+                          {editing ? "Update Your Review" : "Write a Review"}
+                        </h4>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm text-muted-foreground mr-2">Rating:</span>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                type="button"
+                                key={star}
+                                onClick={() => setRating(star)}
+                                className={`transition-colors ${star <= rating ? "text-yellow-400" : "text-gray-300 hover:text-yellow-200"}`}
+                              >
+                                <Star className="h-5 w-5" fill={star <= rating ? "#facc15" : "none"} />
+                              </button>
+                            ))}
+                          </div>
+                          <textarea
+                            className="w-full border rounded-md p-3 min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                            value={review}
+                            onChange={(e) => setReview(e.target.value)}
+                            placeholder="Share your experience with this course..."
+                            required
+                          />
+                          <div className="flex gap-2">
+                            <Button type="submit" disabled={loading || rating === 0}>
+                              {editing ? "Update Review" : "Post Review"}
+                            </Button>
+                            {editing && (
+                              <>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  onClick={handleCancelEdit}
+                                  disabled={loading}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button 
+                                  type="button" 
+                                  variant="destructive" 
+                                  onClick={handleDelete} 
+                                  disabled={loading}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="bg-muted/30">
+                      <CardContent className="p-4 text-center">
+                        <p className="text-muted-foreground mb-2">Want to share your experience?</p>
+                        <Button variant="outline" asChild>
+                          <Link to="/login">Log in to post a review</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Reviews List */}
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                    <h4 className="text-lg font-semibold sticky top-0 bg-background py-2">
+                      Student Reviews ({course?.course_reviews?.length || 0})
+                    </h4>
+                    
+                    {course?.course_reviews?.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No reviews yet. Be the first to share your experience!</p>
+                      </div>
+                    ) : (
+                      course?.course_reviews?.map((reviewData) => (
+                        <Card key={reviewData?.id} className="relative">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback className="text-xs">
+                                      {/* {reviewData?.reviewer_name?.charAt(0) || 'U'} */}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    {/* <span className="font-medium text-sm">{reviewData?.reviewer_name || 'Anonymous'}</span> */}
+                                    <div className="flex items-center space-x-2">
+                                      <div className="flex">
+                                        {[...Array(reviewData.rating)].map((_, i) => (
+                                          <Star key={i} className="h-3 w-3 text-yellow-400 fill-current" />
+                                        ))}
+                                        {[...Array(5 - reviewData.rating)].map((_, i) => (
+                                          <Star key={i} className="h-3 w-3 text-gray-300" />
+                                        ))}
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">
+                                        {new Date(reviewData?.created_at).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p className="text-foreground text-sm leading-relaxed">{reviewData?.review}</p>
+                              </div>
+                              
+                              {/* Edit/Delete buttons for user's own review */}
+                              {userInfo?.id === reviewData?.review_from_id && (
+                                <div className="flex space-x-1 ml-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditReview(reviewData)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditId(reviewData.id);
+                                      handleDelete();
+                                    }}
+                                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
@@ -370,9 +471,9 @@ const CourseDetail = () => {
                   </Button>
                 )}
 
-                <Button variant="outline" className="w-full mb-6">
+                {/* <Button variant="outline" className="w-full mb-6">
                   Add to Wishlist
-                </Button>
+                </Button> */}
 
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
@@ -452,4 +553,3 @@ const CourseDetail = () => {
 };
 
 export default CourseDetail;
-

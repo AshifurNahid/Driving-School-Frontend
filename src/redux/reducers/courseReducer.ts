@@ -7,7 +7,7 @@ import {
   GUEST_COURSE_DETAIL_FAIL,
 } from "../constants/courseConstants";
 import { Course } from "@/types/courses";
-import { COURSE_REVIEW_CREATE_SUCCESS } from "../constants/reviewConstants";
+import { COURSE_REVIEW_CREATE_SUCCESS, COURSE_REVIEW_DELETE_SUCCESS, COURSE_REVIEW_UPDATE_SUCCESS } from "../constants/reviewConstants";
 
 
 
@@ -76,6 +76,21 @@ export const courseListReducer = (
         course: { ...state.course, course_reviews: [...state.course?.course_reviews, action.payload] },
         error: null,
       };
+      case COURSE_REVIEW_UPDATE_SUCCESS:
+        return {
+          ...state,
+          loading: false,
+          course: { ...state.course, course_reviews: state.course?.course_reviews.map((review: any) => review.id === action.payload.id ? action.payload : review) },
+          error: null,
+        };
+    
+      case COURSE_REVIEW_DELETE_SUCCESS:
+        return {
+          ...state,
+          loading: false,
+          course: { ...state.course, course_reviews: state.course?.course_reviews.filter((review: any) => review.id !== action.payload) },
+          error: null,
+        };
       
     case GUEST_COURSE_LIST_FAIL:
     case GUEST_COURSE_DETAIL_FAIL:

@@ -26,21 +26,34 @@ export const createCourseReview = (courseReview) => async (dispatch: any) => {
     }
 }
 
-export const updateCourseReview = (courseReview: CourseReview) => async (dispatch: any) => {
+export const updateCourseReview = (courseReview,id:number) => async (dispatch: any) => {
     try {
         dispatch({ type: COURSE_REVIEW_UPDATE_REQUEST });
-        const { data } = await api.put(`/api/course-reviews/${courseReview.id}`, courseReview);
-        dispatch({ type: COURSE_REVIEW_UPDATE_SUCCESS, payload: data.data });
+        const { data } = await api.put(`/course-reviews/${id}`, courseReview);
+        const apiReview=data.data;
+        const review = {
+            id: apiReview.id,
+            course_id: apiReview.courseId,
+            review_from_id: apiReview.reviewFromId,
+            rating: apiReview.rating,
+            review: apiReview.review,
+            is_verified_purchase: apiReview.isVerifiedPurchase,
+            status: apiReview.status,
+    
+            created_at: apiReview.createdAt,
+            updated_at: apiReview.updatedAt,
+          };
+        dispatch({ type: COURSE_REVIEW_UPDATE_SUCCESS, payload: review });
     } catch (error) {
         dispatch({ type: COURSE_REVIEW_UPDATE_FAIL, payload: error.message });
     }
 }
 
-export const deleteCourseReview = (courseReview: CourseReview) => async (dispatch: AppDispatch) => {
+export const deleteCourseReview = (id:number) => async (dispatch: any) => {
     try {
         dispatch({ type: COURSE_REVIEW_DELETE_REQUEST });
-        const { data } = await api.delete(`/api/course-reviews/${courseReview.id}`);
-        dispatch({ type: COURSE_REVIEW_DELETE_SUCCESS, payload: data.data });
+         await api.delete(`/course-reviews/${id}`);
+        dispatch({ type: COURSE_REVIEW_DELETE_SUCCESS, payload: id });
     } catch (error) {
         dispatch({ type: COURSE_REVIEW_DELETE_FAIL, payload: error.message });
     }
