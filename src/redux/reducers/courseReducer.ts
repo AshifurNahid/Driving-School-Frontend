@@ -7,6 +7,7 @@ import {
   GUEST_COURSE_DETAIL_FAIL,
 } from "../constants/courseConstants";
 import { Course } from "@/types/courses";
+import { COURSE_REVIEW_CREATE_SUCCESS } from "../constants/reviewConstants";
 
 
 
@@ -68,6 +69,14 @@ export const courseListReducer = (
         hasPreviousPage: action.payload.hasPreviousPage, // <-- optional
         error: null,
       };
+    case COURSE_REVIEW_CREATE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        course: { ...state.course, course_reviews: [...state.course?.course_reviews, action.payload] },
+        error: null,
+      };
+      
     case GUEST_COURSE_LIST_FAIL:
     case GUEST_COURSE_DETAIL_FAIL:
       return { ...state, loading: false, error: action.payload };

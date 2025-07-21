@@ -51,7 +51,7 @@ export const getCourseDetail = (courseId: number) => async (dispatch: any) => {
     dispatch({ type: GUEST_COURSE_DETAIL_REQUEST });
 
     const response = await api.get(`/guest-courses/${courseId}`);
-    const data = response.data;
+    const data = response.data.data;
 
     dispatch({
       type: GUEST_COURSE_DETAIL_SUCCESS,
