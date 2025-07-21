@@ -1,59 +1,54 @@
 
-import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
-import { Play, BookOpen } from 'lucide-react';
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserCourses } from "@/redux/actions/userCourseAction";
+import { RootState } from "@/redux/store";
+import { useAuth } from "@/hooks/useAuth";
 import LearnerCourseList from "@/components/course/LearnerCourseList";
+import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 
 const LearnerCourses = () => {
-  // Mock data for enrolled courses
-  const enrolledCourses = [
-    {
-      id: 1,
-      title: "Complete Web Development Bootcamp",
-      instructor: "Sarah Johnson",
-      thumbnail: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=300&h=200&fit=crop",
-      progress: 65,
-      totalLessons: 120,
-      completedLessons: 78,
-      lastAccessed: "2024-01-20"
-    },
-    {
-      id: 2,
-      title: "JavaScript Fundamentals",
-      instructor: "Michael Chen",
-      thumbnail: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=300&h=200&fit=crop",
-      progress: 100,
-      totalLessons: 45,
-      completedLessons: 45,
-      lastAccessed: "2024-01-18",
-      completed: true
-    },
-    {
-      id: 3,
-      title: "Advanced React Patterns",
-      instructor: "John Doe",
-      thumbnail: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop",
-      progress: 25,
-      totalLessons: 80,
-      completedLessons: 20,
-      lastAccessed: "2024-01-19"
+  const dispatch = useDispatch();
+  const { userInfo } = useAuth();
+  const userId = userInfo?.id;
+  const { courses, loading, error } = useSelector((state: RootState) => state.userCourseList);
+
+  useEffect(() => {
+    if (userId) {
+      dispatch(getUserCourses(userId) as any);
     }
-  ];
+  }, [dispatch, userId]);
+
+  // Map API data to LearnerCourseList props
+  const mappedCourses = courses.map((uc: any) => ({
+    id: uc.course.id,
+    title: uc.course.title,
+    instructor: uc.course.instructor || "Instructor", // fallback if not present
+    thumbnail: uc.course.thumbnail_photo_path,
+    progress: uc.progress_percentage,
+    totalLessons: uc.course.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0,
+    completedLessons: Math.round((uc.progress_percentage / 100) * (
+      uc.course.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0
+    )),
+    lastAccessed: uc.updated_at,
+    completed: uc.progress_percentage === 100,
+  }));
 
   return (
     <div className="min-h-screen bg-background">
       <RoleBasedNavigation />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">My Courses</h1>
           <p className="text-muted-foreground mt-2">Continue your learning journey</p>
         </div>
-        <LearnerCourseList courses={enrolledCourses} />
+        {loading ? (
+          <div>Loading...</div>
+        ) : error ? (
+          <div className="text-red-500">{error}</div>
+        ) : (
+          <LearnerCourseList courses={mappedCourses} />
+        )}
       </div>
     </div>
   );

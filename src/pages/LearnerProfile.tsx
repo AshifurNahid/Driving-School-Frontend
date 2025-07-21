@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { useSelector } from "react-redux";
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from "react-redux";
+import { getUserCourses } from "@/redux/actions/userCourseAction";
 import { RootState } from "@/redux/store";
+import { useAuth } from "@/hooks/useAuth";
 import PublicHeader from '@/components/PublicHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,54 +19,32 @@ const DrivingSchoolLearnerProfile = () => {
 
   // Get actual logged-in user info from Redux store
   const { userInfo } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch();
+  const userId = userInfo?.id;
+  const { courses, loading, error } = useSelector((state: RootState) => state.userCourseList);
 
-  const user = {
-    name: "Alex Johnson",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    joinDate: "2024-01-10",
-    studentId: "DS2024001"
-  };
-
-  // Mock data for driving courses
-  const enrolledCourses = [
-    {
-      id: 1,
-      title: "Beginner Driving Course",
-      instructor: "Sarah Johnson",
-      thumbnail: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=300&h=200&fit=crop",
-      progress: 75,
-      totalLessons: 20,
-      completedLessons: 15,
-      lastAccessed: "2024-01-20",
-      enrolledDate: "2024-01-10",
-      type: "Theory + Practical"
-    },
-    {
-      id: 2,
-      title: "Defensive Driving",
-      instructor: "Michael Chen",
-      thumbnail: "https://images.unsplash.com/photo-1485463611174-f302f6a5c1c9?w=300&h=200&fit=crop",
-      progress: 100,
-      totalLessons: 12,
-      completedLessons: 12,
-      lastAccessed: "2024-01-18",
-      enrolledDate: "2024-01-05",
-      completed: true,
-      type: "Theory"
-    },
-    {
-      id: 3,
-      title: "Highway Driving Mastery",
-      instructor: "John Doe",
-      thumbnail: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=300&h=200&fit=crop",
-      progress: 40,
-      totalLessons: 15,
-      completedLessons: 6,
-      lastAccessed: "2024-01-19",
-      enrolledDate: "2024-01-15",
-      type: "Practical"
+  useEffect(() => {
+    if (userId) {
+      dispatch(getUserCourses(userId) as any);
     }
-  ];
+  }, [dispatch, userId]);
+
+  const mappedCourses = courses.map((uc: any) => ({
+    id: uc.course.id,
+    title: uc.course.title,
+    instructor: uc.course.instructor || "Instructor",
+    thumbnail: uc.course.thumbnail_photo_path,
+    progress: uc.progress_percentage,
+    totalLessons: uc.course.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0,
+    completedLessons: Math.round((uc.progress_percentage / 100) * (
+      uc.course.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0
+    )),
+    lastAccessed: uc.updated_at,
+    completed: uc.progress_percentage === 100,
+  }));
+
+  const activeCourses = mappedCourses.filter(course => !course.completed);
+  const completedCourses = mappedCourses.filter(course => course.completed);
 
   // Mock data for appointments
   const appointments = [
@@ -143,9 +123,6 @@ const DrivingSchoolLearnerProfile = () => {
     }
   ];
 
-  const activeCourses = enrolledCourses.filter(course => !course.completed);
-  const completedCourses = enrolledCourses.filter(course => course.completed);
-
   const getStatusIcon = (status) => {
     switch (status) {
       case 'confirmed':
@@ -196,7 +173,7 @@ const DrivingSchoolLearnerProfile = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{enrolledCourses.length}</div>
+                    <div className="text-2xl font-bold text-blue-600">{mappedCourses.length}</div>
                     <div className="text-sm text-muted-foreground">Total Courses</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -336,13 +313,25 @@ const DrivingSchoolLearnerProfile = () => {
             {/* Active Courses */}
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-4">Continue Learning</h2>
-              <LearnerCourseList courses={activeCourses} />
+              {loading ? (
+                <div className="text-center py-8">Loading courses...</div>
+              ) : error ? (
+                <div className="text-center py-8 text-red-500">{error}</div>
+              ) : (
+                <LearnerCourseList courses={activeCourses} />
+              )}
             </div>
             {/* Completed Courses */}
             {completedCourses.length > 0 && (
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">Completed Courses</h2>
-                <LearnerCourseList courses={completedCourses} />
+                {loading ? (
+                  <div className="text-center py-8">Loading completed courses...</div>
+                ) : error ? (
+                  <div className="text-center py-8 text-red-500">{error}</div>
+                ) : (
+                  <LearnerCourseList courses={completedCourses} />
+                )}
               </div>
             )}
           </div>
@@ -428,12 +417,12 @@ const DrivingSchoolLearnerProfile = () => {
             <div className="mb-8">
               <div className="text-center">
                 <Avatar className="h-20 w-20 mx-auto mb-4">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="text-lg">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  <AvatarImage src={userInfo?.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo?.full_name || "User")} alt={userInfo?.full_name || "User"} />
+                  <AvatarFallback className="text-lg">{(userInfo?.full_name || "User").split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
-                <h2 className="font-bold text-foreground">{userInfo.full_name}</h2>
-                <p className="text-sm text-muted-foreground">{userInfo.role.title}</p>
-                <p className="text-xs text-muted-foreground mt-1">ID: {user.studentId}</p>
+                <h2 className="font-bold text-foreground">{userInfo?.full_name || "User"}</h2>
+                <p className="text-sm text-muted-foreground">{userInfo?.role?.title || "Learner"}</p>
+                <p className="text-xs text-muted-foreground mt-1">ID: {userInfo?.id || "N/A"}</p>
               </div>
             </div>
 
@@ -472,14 +461,15 @@ const DrivingSchoolLearnerProfile = () => {
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Phone className="h-4 w-4 mr-1" />
-                        {userInfo.phone}
+                        {userInfo?.phone}
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4 mr-1" />
-                        Joined {new Date(user.joinDate).toLocaleDateString()}
+                        {/* Joined date fallback to '-' since no created_at property exists */}
+                        Joined -
                       </div>
                       {/* Replace license_type with a placeholder or remove if not needed */}
-                      <Badge variant="outline">{userInfo.role?.title || "Learner"}</Badge>
+                      <Badge variant="outline">{userInfo?.role?.title || "Learner"}</Badge>
                     </div>
                   </div>
                 </div>
