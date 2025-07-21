@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Download, Play, Calendar, Award, Car, Clock, MapPin, User, Phone, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import LearnerCourseList from "@/components/course/LearnerCourseList";
 // Removed react-router-dom import as it's not available
 
 const DrivingSchoolLearnerProfile = () => {
@@ -335,83 +336,13 @@ const DrivingSchoolLearnerProfile = () => {
             {/* Active Courses */}
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-4">Continue Learning</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {activeCourses.map((course) => (
-                  <Card key={course.id} className="overflow-hidden">
-                    <div className="relative">
-                      <img
-                        src={course.thumbnail}
-                        alt={course.title}
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="absolute top-2 right-2">
-                        <Badge variant="secondary">{course.progress}% Complete</Badge>
-                      </div>
-                      <div className="absolute top-2 left-2">
-                        <Badge className="bg-blue-500">{course.type}</Badge>
-                      </div>
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="line-clamp-2 text-foreground">{course.title}</CardTitle>
-                      <CardDescription>Instructor: {course.instructor}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                            <span>{course.completedLessons} of {course.totalLessons} lessons</span>
-                            <span>{course.progress}%</span>
-                          </div>
-                          <Progress value={course.progress} className="w-full" />
-                        </div>
-                        
-                        <Button className="w-full">
-                          <Play className="h-4 w-4 mr-2" />
-                          Continue Learning
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <LearnerCourseList courses={activeCourses} />
             </div>
-
             {/* Completed Courses */}
             {completedCourses.length > 0 && (
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4">Completed Courses</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {completedCourses.map((course) => (
-                    <Card key={course.id} className="overflow-hidden">
-                      <div className="relative">
-                        <img
-                          src={course.thumbnail}
-                          alt={course.title}
-                          className="w-full h-48 object-cover"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <Badge className="bg-green-500">Completed</Badge>
-                        </div>
-                        <div className="absolute top-2 left-2">
-                          <Badge className="bg-blue-500">{course.type}</Badge>
-                        </div>
-                      </div>
-                      <CardHeader>
-                        <CardTitle className="line-clamp-2 text-foreground">{course.title}</CardTitle>
-                        <CardDescription>Instructor: {course.instructor}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <Progress value={100} className="w-full" />
-                          <Button variant="outline" className="w-full">
-                            <Award className="h-4 w-4 mr-2" />
-                            View Certificate
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <LearnerCourseList courses={completedCourses} />
               </div>
             )}
           </div>
