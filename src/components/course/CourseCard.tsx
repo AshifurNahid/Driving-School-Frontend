@@ -10,7 +10,7 @@ export const CourseCard = ({ course }: { course: Course }) => (
   <Card className="group overflow-hidden flex flex-col h-full transition-all duration-300 hover:shadow-lg bg-card">
     <div className="relative overflow-hidden">
       <img
-        src={course.thumbnail_photo_path}
+        src={import.meta.env.VITE_API_BASE_URL+"/" + course.thumbnail_photo_path}
         alt={course.title}
         className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
       />
@@ -30,7 +30,7 @@ export const CourseCard = ({ course }: { course: Course }) => (
 
         <div className="flex items-center">
           <Star className="h-4 w-4 text-yellow-400 fill-current" />
-          <span className="text-sm font-medium ml-1 text-foreground">{}</span>
+          <span className="text-sm font-medium ml-1 text-foreground">{course.rating}</span>
         </div>
       </div>
       <CardTitle className="text-lg leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-semibold line-clamp-2">

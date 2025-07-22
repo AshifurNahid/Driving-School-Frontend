@@ -1,13 +1,21 @@
 import {
-  COURSE_LIST_REQUEST,
-  COURSE_LIST_SUCCESS,
-  COURSE_LIST_FAIL,
+  GUEST_COURSE_LIST_REQUEST,
+  GUEST_COURSE_LIST_SUCCESS,
+  GUEST_COURSE_LIST_FAIL,
+  GUEST_COURSE_DETAIL_REQUEST,
+  GUEST_COURSE_DETAIL_SUCCESS,
+  GUEST_COURSE_DETAIL_FAIL,
 } from "../constants/courseConstants";
 import { Course } from "@/types/courses";
+import { COURSE_REVIEW_CREATE_SUCCESS, COURSE_REVIEW_DELETE_SUCCESS, COURSE_REVIEW_UPDATE_SUCCESS } from "../constants/reviewConstants";
+
+
+
 
 interface CourseListState {
   loading: boolean;
   courses: Course[];
+  course: Course | null;
   error: string | null;
   page: number;
   pageSize: number;
@@ -20,6 +28,8 @@ interface CourseListState {
 const initialState: CourseListState = {
   loading: false,
   courses: [],
+  course: null,
+
   error: null,
   page: 1,
   pageSize: 10,
@@ -29,14 +39,24 @@ const initialState: CourseListState = {
   hasPreviousPage: false
 };
 
+
+
 export const courseListReducer = (
-  state = initialState,
+  state = initialState ,
   action: any
-): CourseListState => {
+): CourseListState  => {
   switch (action.type) {
-    case COURSE_LIST_REQUEST:
+    case GUEST_COURSE_LIST_REQUEST:
+    case GUEST_COURSE_DETAIL_REQUEST:
       return { ...state, loading: true, error: null };
-    case COURSE_LIST_SUCCESS:
+    case GUEST_COURSE_DETAIL_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        course: action.payload,
+        error: null
+      };
+    case GUEST_COURSE_LIST_SUCCESS:
       return {
         ...state,
         loading: false,
@@ -49,7 +69,31 @@ export const courseListReducer = (
         hasPreviousPage: action.payload.hasPreviousPage, // <-- optional
         error: null,
       };
-    case COURSE_LIST_FAIL:
+    case COURSE_REVIEW_CREATE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        course: { ...state.course, course_reviews: [...state.course?.course_reviews, action.payload] },
+        error: null,
+      };
+      case COURSE_REVIEW_UPDATE_SUCCESS:
+        return {
+          ...state,
+          loading: false,
+          course: { ...state.course, course_reviews: state.course?.course_reviews.map((review: any) => review.id === action.payload.id ? action.payload : review) },
+          error: null,
+        };
+    
+      case COURSE_REVIEW_DELETE_SUCCESS:
+        return {
+          ...state,
+          loading: false,
+          course: { ...state.course, course_reviews: state.course?.course_reviews.filter((review: any) => review.id !== action.payload) },
+          error: null,
+        };
+      
+    case GUEST_COURSE_LIST_FAIL:
+    case GUEST_COURSE_DETAIL_FAIL:
       return { ...state, loading: false, error: action.payload };
     default:
       return state;

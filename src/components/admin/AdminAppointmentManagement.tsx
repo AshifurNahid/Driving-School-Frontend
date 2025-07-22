@@ -69,7 +69,7 @@ const AdminAppointmentManagement = () => {
   const appointmentSlots = Array.isArray(slotsData) ? slotsData : [];
 
   const { courses = [], loading: coursesLoading } = useSelector(
-    (state: RootState) => state.courseList
+    (state: RootState) => state.guest_course
   );
   const { success: createSuccess, error: createError, loading: createLoading } = useSelector(
     (state: RootState) => state.appointmentSlotCreate
