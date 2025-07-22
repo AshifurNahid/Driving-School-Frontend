@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCourseDetail } from '@/redux/actions/courseAction';
+import { enrollCourse, getCourseDetail } from '@/redux/actions/courseAction';
 import { useCourseDetails } from '@/hooks/useCourseDetail';
 import { RootState } from '@/redux/store';
 import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/redux/actions/reviewAction';
@@ -22,7 +22,7 @@ const CourseDetail = () => {
 
   const dispatch = useDispatch();
   const { course, loading, error } = useCourseDetails(Number(id));
-  const { enrolledCourses, loading: enrolledCoursesLoading, error: enrolledCoursesError } = useSelector((state: RootState) => state.enrolled_course);
+  const {courses:userCourseList, loading: userCourseListLoading, error: userCourseListError } = useSelector((state: RootState) => state.userCourseList);
 
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
@@ -31,13 +31,11 @@ const CourseDetail = () => {
 
   // Fetch reviews on mount
   useEffect(() => {
-    if(enrolledCourses.length > 0){
-      setIsEnrolled(true);
-    }
-    else{
-      setIsEnrolled(false);
-    }
-  }, []);
+   if(userCourseList.length > 0 && userCourseList.some((course:any)=>course.id === Number(id))||isEnrolled){
+    setIsEnrolled(true);
+   }
+   
+  }, [isEnrolled]);
 
   // Find if user already posted a review
   const userReview = course?.course_reviews?.find((r: any) => r.review_from_id === userInfo?.id);
@@ -100,8 +98,8 @@ const CourseDetail = () => {
   };
 
   const handleEnroll = () => {
+    dispatch(enrollCourse(Number(id)) as any);
     setIsEnrolled(true);
-    console.log('Enrolling in course:', course.id);
   };
 
   return (
@@ -466,18 +464,21 @@ const CourseDetail = () => {
                   <Badge className="bg-red-500">50% OFF</Badge>
                 </div>
 
-                {isEnrolled ? (
-                  <Button className="w-full mb-4" asChild>
-                    <Link to={`/course/${course.id}/learn`}>
-                      Continue Learning
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button className="w-full mb-4" onClick={handleEnroll}>
-                    Enroll Now
-                  </Button>
-                )}
-
+                {userInfo ? (
+  isEnrolled ? (
+    <Button className="w-full mb-4" asChild>
+      <Link to={`/course/${course.id}/learn`}>Continue Learning</Link>
+    </Button>
+  ) : (
+    <Button className="w-full mb-4" onClick={handleEnroll}>
+      Enroll Now
+    </Button>
+  )
+) : (
+  <Button className="w-full mb-4" asChild>
+    <Link to="/login">Login to Enroll</Link>
+  </Button>
+)}
                 {/* <Button variant="outline" className="w-full mb-6">
                   Add to Wishlist
                 </Button> */}

@@ -71,7 +71,7 @@ export const enrollCourse = (courseId: number) => async (dispatch: any) => {
   try {
     dispatch({ type: ENROLL_COURSE_REQUEST });
 
-    const response = await api.post(`/enroll-user-courses`,courseId);
+    const response = await api.post(`/enroll-user-courses`,{course_id:courseId});
     dispatch({ type: ENROLL_COURSE_SUCCESS, payload: response.data.data });
   } catch (error: any) {
     dispatch({ type: ENROLL_COURSE_FAIL, payload: error.message });
