@@ -31,7 +31,7 @@ const CourseDetail = () => {
 
   // Fetch reviews on mount
   useEffect(() => {
-   if(userCourseList.length > 0 && userCourseList.some((course:any)=>course.id === Number(id))||isEnrolled){
+   if(userCourseList.length > 0 && userCourseList.some((course:any)=>course?.id === Number(id))||isEnrolled){
     setIsEnrolled(true);
    }
    
@@ -154,7 +154,7 @@ const CourseDetail = () => {
                   </div>
                   <div className="flex items-center">
                     <Users className="h-4 w-4 mr-1" />
-                    {/* <span>{course.students.toLocaleString()} students</span> */}
+                    {/* <span>{course?.students.toLocaleString()} students</span> */}
                   </div>
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-1" />
@@ -331,7 +331,7 @@ const CourseDetail = () => {
                             className="w-full border rounded-md p-3 min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                             value={review}
                             onChange={(e) => setReview(e.target.value)}
-                            placeholder="Share your experience with this course..."
+                            placeholder="Share your experience with this course?..."
                             required
                           />
                           <div className="flex gap-2">
@@ -467,7 +467,7 @@ const CourseDetail = () => {
                 {userInfo ? (
   isEnrolled ? (
     <Button className="w-full mb-4" asChild>
-      <Link to={`/course/${course.id}/learn`}>Continue Learning</Link>
+      <Link to={`/course/${course?.id}/learn`}>Continue Learning</Link>
     </Button>
   ) : (
     <Button className="w-full mb-4" onClick={handleEnroll}>

@@ -94,7 +94,7 @@ export const useCourseManager = (courseId?: string) => {
     ]
   };
 
-  const currentLessonData = course.modules[currentModule]?.lessons[currentLesson];
+  const currentLessonData = course?.modules[currentModule]?.lessons[currentLesson];
 
   const toggleModuleExpansion = (moduleIndex: number) => {
     setExpandedModules(prev => 
@@ -115,10 +115,10 @@ export const useCourseManager = (courseId?: string) => {
   };
 
   const goToNextLesson = () => {
-    const currentModuleLessons = course.modules[currentModule].lessons;
+    const currentModuleLessons = course?.modules[currentModule].lessons;
     if (currentLesson < currentModuleLessons.length - 1) {
       setCurrentLesson(currentLesson + 1);
-    } else if (currentModule < course.modules.length - 1) {
+    } else if (currentModule < course?.modules.length - 1) {
       setCurrentModule(currentModule + 1);
       setCurrentLesson(0);
     }
@@ -129,7 +129,7 @@ export const useCourseManager = (courseId?: string) => {
       setCurrentLesson(currentLesson - 1);
     } else if (currentModule > 0) {
       setCurrentModule(currentModule - 1);
-      setCurrentLesson(course.modules[currentModule - 1].lessons.length - 1);
+      setCurrentLesson(course?.modules[currentModule - 1].lessons.length - 1);
     }
   };
 

@@ -215,7 +215,7 @@ const CourseEdit = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading course...</p>
+          <p className="text-muted-foreground">Loading course?...</p>
         </div>
       </div>
     );
@@ -248,7 +248,7 @@ const CourseEdit = () => {
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-foreground">Edit Course</h1>
-              <p className="text-muted-foreground mt-1">{course.title}</p>
+              <p className="text-muted-foreground mt-1">{course?.title}</p>
             </div>
           </div>
           <Button onClick={handleSave} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">

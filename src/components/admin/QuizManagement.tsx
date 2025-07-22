@@ -99,9 +99,9 @@ const QuizManagement: React.FC<QuizManagementProps> = ({ courses }) => {
   const [showResults, setShowResults] = useState(false);
 
   const allModules = courses.flatMap(course => 
-    course.modules.map(module => ({
+    course?.modules.map(module => ({
       id: module.id,
-      title: `${course.title} - ${module.title}`
+      title: `${course?.title} - ${module.title}`
     }))
   );
 

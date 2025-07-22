@@ -80,13 +80,13 @@ const CourseNavigationSidebar = ({
         
         {!sidebarCollapsed && (
           <>
-            <h2 className="font-semibold text-lg mt-4 mb-2">{course.title}</h2>
+            <h2 className="font-semibold text-lg mt-4 mb-2">{course?.title}</h2>
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Progress</span>
-                <span>{course.totalProgress}%</span>
+                <span>{course?.totalProgress}%</span>
               </div>
-              <Progress value={course.totalProgress} className="h-2" />
+              <Progress value={course?.totalProgress} className="h-2" />
             </div>
           </>
         )}
@@ -94,7 +94,7 @@ const CourseNavigationSidebar = ({
 
       {/* Course Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        {course.modules.map((module, moduleIndex) => (
+        {course?.modules.map((module, moduleIndex) => (
           <Collapsible
             key={module.id}
             open={expandedModules.includes(moduleIndex)}

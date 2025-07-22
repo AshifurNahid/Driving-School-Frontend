@@ -215,15 +215,15 @@ const AdminDashboard = () => {
   ];
 
   const handleEditCourse = (course) => {
-    console.log('Edit button clicked for course:', course.title, 'ID:', course.id);
-    navigate(`/course/${course.id}/edit`);
+    console.log('Edit button clicked for course:', course?.title, 'ID:', course?.id);
+    navigate(`/course/${course?.id}/edit`);
   };
 
   const handleSaveCourse = (updatedCourse) => {
     console.log('handleSaveCourse called with:', updatedCourse);
     setPendingCourses(prev => 
       prev.map(course => 
-        course.id === updatedCourse.id ? updatedCourse : course
+        course?.id === updatedCourse.id ? updatedCourse : course
       )
     );
     setEditDialogOpen(false);
@@ -233,7 +233,7 @@ const AdminDashboard = () => {
   // const handleApproveCourse = (courseId) => {
   //   setPendingCourses(prev => 
   //     prev.map(course => 
-  //       course.id === courseId ? { ...course, status: 'approved' } : course
+  //       course?.id === courseId ? { ...course, status: 'approved' } : course
   //     )
   //   );
   //   toast({
@@ -245,7 +245,7 @@ const AdminDashboard = () => {
   // const handleRejectCourse = (courseId) => {
   //   setPendingCourses(prev => 
   //     prev.map(course => 
-  //       course.id === courseId ? { ...course, status: 'rejected' } : course
+  //       course?.id === courseId ? { ...course, status: 'rejected' } : course
   //     )
   //   );
   //   toast({
@@ -440,10 +440,10 @@ const AdminDashboard = () => {
                   <CardContent>
                     <div className="space-y-4">
                       {pendingCourses.slice(0, 3).map((course) => (
-                        <div key={course.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                        <div key={course?.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
                           <div>
-                            <div className="font-medium text-foreground">{course.title}</div>
-                            <div className="text-sm text-muted-foreground">by {course.instructor}</div>
+                            <div className="font-medium text-foreground">{course?.title}</div>
+                            <div className="text-sm text-muted-foreground">by {course?.instructor}</div>
                           </div>
                           
                         </div>
@@ -660,16 +660,16 @@ const AdminDashboard = () => {
                     <tbody>
                       {courses && courses.length > 0 ? (
                         courses.map((course) => {
-                          const totalModules = course.course_modules?.length || 0;
-                          const totalLessons = course.course_modules
-                            ? course.course_modules.reduce((sum: number,m) => sum + (m.course_module_lesones?.length || 0), 0)
+                          const totalModules = course?.course_modules?.length || 0;
+                          const totalLessons = course?.course_modules
+                            ? course?.course_modules.reduce((sum: number,m) => sum + (m.course_module_lesones?.length || 0), 0)
                             : 0;
-                          const totalQuizzes = course.course_modules
-                            ? course.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
+                          const totalQuizzes = course?.course_modules
+                            ? course?.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
                             : 0;
                           return (
-                            <tr key={course.id} className="border-b border-border">
-                              <td className="p-4 font-medium">{course.title}</td>
+                            <tr key={course?.id} className="border-b border-border">
+                              <td className="p-4 font-medium">{course?.title}</td>
                               <td className="p-4 flex items-center gap-1">
                                 <BookOpen className="h-4 w-4" /> {totalModules}
                         
@@ -683,7 +683,7 @@ const AdminDashboard = () => {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                   onClick={() => navigate(`/course/${course.id}/edit`)}
+                                   onClick={() => navigate(`/course/${course?.id}/edit`)}
                                   >
                                     <Edit className="h-3 w-3" />
                                   </Button>
@@ -691,7 +691,7 @@ const AdminDashboard = () => {
                                     size="sm"
                                     variant="outline"
                                     className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleDeleteCourse(course.id)}
+                                    onClick={() => handleDeleteCourse(course?.id)}
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
