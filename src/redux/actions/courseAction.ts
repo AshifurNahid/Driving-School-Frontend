@@ -6,6 +6,9 @@ import {
       GUEST_COURSE_DETAIL_REQUEST,
       GUEST_COURSE_DETAIL_SUCCESS,
       GUEST_COURSE_DETAIL_FAIL,
+      ENROLL_COURSE_REQUEST,
+      ENROLL_COURSE_SUCCESS,
+      ENROLL_COURSE_FAIL,
   } from "../constants/courseConstants";
 
 export const getCourses = (page = 1, pageSize = 10) => async (dispatch: any) => {
@@ -59,5 +62,18 @@ export const getCourseDetail = (courseId: number) => async (dispatch: any) => {
     });
   } catch (error: any) {
     dispatch({ type: GUEST_COURSE_DETAIL_FAIL, payload: error.message });
+  }
+};
+
+// enroll course
+
+export const enrollCourse = (courseId: number) => async (dispatch: any) => {
+  try {
+    dispatch({ type: ENROLL_COURSE_REQUEST });
+
+    const response = await api.post(`/enroll-user-courses`,courseId);
+    dispatch({ type: ENROLL_COURSE_SUCCESS, payload: response.data.data });
+  } catch (error: any) {
+    dispatch({ type: ENROLL_COURSE_FAIL, payload: error.message });
   }
 };

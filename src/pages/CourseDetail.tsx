@@ -22,15 +22,22 @@ const CourseDetail = () => {
 
   const dispatch = useDispatch();
   const { course, loading, error } = useCourseDetails(Number(id));
+  const { enrolledCourses, loading: enrolledCoursesLoading, error: enrolledCoursesError } = useSelector((state: RootState) => state.enrolled_course);
+
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [editing, setEditing] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
   // Fetch reviews on mount
-//   useEffect(() => {
-//     dispatch(fetchReviews(courseId) as any);
-//   }, [dispatch, courseId]);
+  useEffect(() => {
+    if(enrolledCourses.length > 0){
+      setIsEnrolled(true);
+    }
+    else{
+      setIsEnrolled(false);
+    }
+  }, []);
 
   // Find if user already posted a review
   const userReview = course?.course_reviews?.find((r: any) => r.review_from_id === userInfo?.id);

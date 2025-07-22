@@ -5,8 +5,11 @@ import {
   GUEST_COURSE_DETAIL_REQUEST,
   GUEST_COURSE_DETAIL_SUCCESS,
   GUEST_COURSE_DETAIL_FAIL,
+  ENROLL_COURSE_REQUEST,
+  ENROLL_COURSE_SUCCESS,
+  ENROLL_COURSE_FAIL,
 } from "../constants/courseConstants";
-import { Course } from "@/types/courses";
+import { Course, EnrolledCourses } from "@/types/courses";
 import { COURSE_REVIEW_CREATE_SUCCESS, COURSE_REVIEW_DELETE_SUCCESS, COURSE_REVIEW_UPDATE_SUCCESS } from "../constants/reviewConstants";
 
 
@@ -94,6 +97,35 @@ export const courseListReducer = (
       
     case GUEST_COURSE_LIST_FAIL:
     case GUEST_COURSE_DETAIL_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+
+interface EnrolledCoursesState {
+  loading: boolean;
+  enrolledCourses: EnrolledCourses[];
+  error: string | null;
+}
+
+const initialEnrolledCoursesState: EnrolledCoursesState = {
+  loading: false,
+  enrolledCourses: [],
+  error: null
+};
+
+export const enrolledCoursesReducer = (
+  state = initialEnrolledCoursesState,
+  action: any
+): EnrolledCoursesState => {
+  switch (action.type) {
+    case ENROLL_COURSE_REQUEST:
+      return { ...state, loading: true, error: null };
+    case ENROLL_COURSE_SUCCESS:
+      return { ...state, loading: false, enrolledCourses: [...state.enrolledCourses, action.payload], error: null };
+    case ENROLL_COURSE_FAIL:
       return { ...state, loading: false, error: action.payload };
     default:
       return state;
