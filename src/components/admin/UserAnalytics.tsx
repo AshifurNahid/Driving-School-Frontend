@@ -215,7 +215,7 @@ const UserAnalytics: React.FC = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{courseStats.reduce((sum, course) => sum + course.totalEnrolled, 0)}</div>
+            <div className="text-2xl font-bold">{courseStats.reduce((sum, course) => sum + course?.totalEnrolled, 0)}</div>
             <p className="text-xs text-muted-foreground">
               Across all courses
             </p>
@@ -229,7 +229,7 @@ const UserAnalytics: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(courseStats.reduce((sum, course) => sum + course.completionRate, 0) / courseStats.length)}%
+              {Math.round(courseStats.reduce((sum, course) => sum + course?.completionRate, 0) / courseStats.length)}%
             </div>
             <p className="text-xs text-muted-foreground">
               Platform-wide completion rate
@@ -244,7 +244,7 @@ const UserAnalytics: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(courseStats.reduce((sum, course) => sum + course.averageTimeSpent, 0) / courseStats.length)} min
+              {Math.round(courseStats.reduce((sum, course) => sum + course?.averageTimeSpent, 0) / courseStats.length)} min
             </div>
             <p className="text-xs text-muted-foreground">
               Per course completion
@@ -281,8 +281,8 @@ const UserAnalytics: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">All Courses</SelectItem>
                   {courseStats.map(course => (
-                    <SelectItem key={course.courseId} value={course.courseId}>
-                      {course.courseName}
+                    <SelectItem key={course?.courseId} value={course?.courseId}>
+                      {course?.courseName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -316,45 +316,45 @@ const UserAnalytics: React.FC = () => {
         <TabsContent value="course-stats" className="space-y-4">
           <div className="grid gap-4">
             {courseStats.map((course) => (
-              <Card key={course.courseId}>
+              <Card key={course?.courseId}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle>{course.courseName}</CardTitle>
+                      <CardTitle>{course?.courseName}</CardTitle>
                       <CardDescription>
-                        {course.totalEnrolled} total enrollments
+                        {course?.totalEnrolled} total enrollments
                       </CardDescription>
                     </div>
                     <Badge variant="outline">
-                      {course.completionRate}% completion rate
+                      {course?.completionRate}% completion rate
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{course.completed}</div>
+                      <div className="text-2xl font-bold text-green-600">{course?.completed}</div>
                       <div className="text-sm text-muted-foreground">Completed</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{course.inProgress}</div>
+                      <div className="text-2xl font-bold text-blue-600">{course?.inProgress}</div>
                       <div className="text-sm text-muted-foreground">In Progress</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-600">{course.notStarted}</div>
+                      <div className="text-2xl font-bold text-gray-600">{course?.notStarted}</div>
                       <div className="text-sm text-muted-foreground">Not Started</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold">{course.averageTimeSpent} min</div>
+                      <div className="text-2xl font-bold">{course?.averageTimeSpent} min</div>
                       <div className="text-sm text-muted-foreground">Avg. Time</div>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Average Progress</span>
-                      <span>{course.averageProgress}%</span>
+                      <span>{course?.averageProgress}%</span>
                     </div>
-                    <Progress value={course.averageProgress} className="h-2" />
+                    <Progress value={course?.averageProgress} className="h-2" />
                   </div>
                 </CardContent>
               </Card>

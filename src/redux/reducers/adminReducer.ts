@@ -229,7 +229,7 @@ export const adminCourseListReducer = (
       return {
         ...state,
         loading: false,
-        courses: state.courses.filter(course => course.id !== action.payload.courseId),
+        courses: state.courses.filter(course => course?.id !== action.payload.courseId),
         error: "No error",
       };
     case "ADMIN_COURSE_LIST_FAIL":

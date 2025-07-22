@@ -78,21 +78,21 @@ const EnhancedCourseEditDialog = ({ course, open, onOpenChange, onSave }: Enhanc
   useEffect(() => {
     if (course) {
       const newFormData = {
-        title: course.title || '',
-        instructor: course.instructor || '',
-        category: course.category || '',
-        description: course.description || '',
-        price: course.price || 0,
-        duration: course.duration || '',
-        status: course.status || 'pending',
-        thumbnail: course.thumbnail || '',
-        featured: course.featured || false,
-        published: course.published || false,
-        tags: course.tags || [],
-        downloadableMaterials: course.downloadableMaterials || []
+        title: course?.title || '',
+        instructor: course?.instructor || '',
+        category: course?.category || '',
+        description: course?.description || '',
+        price: course?.price || 0,
+        duration: course?.duration || '',
+        status: course?.status || 'pending',
+        thumbnail: course?.thumbnail || '',
+        featured: course?.featured || false,
+        published: course?.published || false,
+        tags: course?.tags || [],
+        downloadableMaterials: course?.downloadableMaterials || []
       };
       setFormData(newFormData);
-      setModules(course.modules || []);
+      setModules(course?.modules || []);
     }
   }, [course]);
 
@@ -189,7 +189,7 @@ const EnhancedCourseEditDialog = ({ course, open, onOpenChange, onSave }: Enhanc
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
-            Edit Course: {course.title}
+            Edit Course: {course?.title}
           </DialogTitle>
           <DialogDescription>
             Manage all aspects of your course including content, modules, and settings.

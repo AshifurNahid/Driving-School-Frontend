@@ -21,14 +21,14 @@ const LearnerCourses = () => {
 
   // Map API data to LearnerCourseList props
   const mappedCourses = courses.map((uc: any) => ({
-    id: uc.course.id,
-    title: uc.course.title,
-    instructor: uc.course.instructor || "Instructor", // fallback if not present
-    thumbnail: uc.course.thumbnail_photo_path,
+    id: uc.course?.id,
+    title: uc.course?.title,
+    instructor: uc.course?.instructor || "Instructor", // fallback if not present
+    thumbnail: uc.course?.thumbnail_photo_path,
     progress: uc.progress_percentage,
-    totalLessons: uc.course.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0,
+    totalLessons: uc.course?.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0,
     completedLessons: Math.round((uc.progress_percentage / 100) * (
-      uc.course.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0
+      uc.course?.course_modules?.reduce((sum: number, m: any) => sum + (m.course_module_lessons?.length || 0), 0) || 0
     )),
     lastAccessed: uc.updated_at,
     completed: uc.progress_percentage === 100,

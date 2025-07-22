@@ -44,13 +44,13 @@ const CourseEditDialog = ({ course, open, onOpenChange, onSave }: CourseEditDial
     console.log('CourseEditDialog useEffect triggered with course:', course);
     if (course) {
       const newFormData = {
-        title: course.title || '',
-        instructor: course.instructor || '',
-        category: course.category || '',
-        description: course.description || '',
-        price: course.price || 0,
-        duration: course.duration || '',
-        status: course.status || 'pending'
+        title: course?.title || '',
+        instructor: course?.instructor || '',
+        category: course?.category || '',
+        description: course?.description || '',
+        price: course?.price || 0,
+        duration: course?.duration || '',
+        status: course?.status || 'pending'
       };
       console.log('Setting form data to:', newFormData);
       setFormData(newFormData);

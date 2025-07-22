@@ -31,9 +31,9 @@ const Index = () => {
 
   // Filter and search courses from backend
   const filteredCourses = (courses || []).filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (course.description || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
+    const matchesSearch = course?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (course?.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || course?.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -187,7 +187,7 @@ const Index = () => {
           ) : filteredCourses.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
               {filteredCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+                <CourseCard key={course?.id} course={course} />
               ))}
             </div>
           ) : (

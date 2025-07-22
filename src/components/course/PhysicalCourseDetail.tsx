@@ -33,8 +33,8 @@ interface PhysicalCourseDetailProps {
 }
 
 const PhysicalCourseDetail = ({ course, onBookAppointment, onEnroll }: PhysicalCourseDetailProps) => {
-  const taxAmount = course.price * 0.13; // 13% HST for Ontario
-  const totalPrice = course.price + taxAmount;
+  const taxAmount = course?.price * 0.13; // 13% HST for Ontario
+  const totalPrice = course?.price + taxAmount;
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -46,7 +46,7 @@ const PhysicalCourseDetail = ({ course, onBookAppointment, onEnroll }: PhysicalC
             Physical Course
           </Badge>
         </div>
-        <h1 className="text-4xl font-bold text-foreground">{course.title}</h1>
+        <h1 className="text-4xl font-bold text-foreground">{course?.title}</h1>
         <p className="text-xl text-muted-foreground">Professional in-car driving instruction</p>
       </div>
 
@@ -64,37 +64,37 @@ const PhysicalCourseDetail = ({ course, onBookAppointment, onEnroll }: PhysicalC
                   <Clock className="h-5 w-5 text-blue-600" />
                   <div>
                     <p className="font-medium">Duration</p>
-                    <p className="text-sm text-muted-foreground">{course.duration}</p>
+                    <p className="text-sm text-muted-foreground">{course?.duration}</p>
                   </div>
                 </div>
                 
-                {course.location && (
+                {course?.location && (
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-blue-600" />
                     <div>
                       <p className="font-medium">Location</p>
-                      <p className="text-sm text-muted-foreground">{course.location}</p>
+                      <p className="text-sm text-muted-foreground">{course?.location}</p>
                     </div>
                   </div>
                 )}
                 
-                {course.instructor && (
+                {course?.instructor && (
                   <div className="flex items-center gap-3">
                     <User className="h-5 w-5 text-blue-600" />
                     <div>
                       <p className="font-medium">Instructor</p>
-                      <p className="text-sm text-muted-foreground">{course.instructor}</p>
+                      <p className="text-sm text-muted-foreground">{course?.instructor}</p>
                     </div>
                   </div>
                 )}
                 
-                {course.rating && (
+                {course?.rating && (
                   <div className="flex items-center gap-3">
                     <Star className="h-5 w-5 text-yellow-500 fill-current" />
                     <div>
-                      <p className="font-medium">{course.rating}/5.0</p>
+                      <p className="font-medium">{course?.rating}/5.0</p>
                       <p className="text-sm text-muted-foreground">
-                        {course.reviewCount} reviews
+                        {course?.reviewCount} reviews
                       </p>
                     </div>
                   </div>
@@ -120,7 +120,7 @@ const PhysicalCourseDetail = ({ course, onBookAppointment, onEnroll }: PhysicalC
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {course.includes.map((item, index) => (
+                {course?.includes.map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                     <span className="text-foreground">{item}</span>
@@ -138,7 +138,7 @@ const PhysicalCourseDetail = ({ course, onBookAppointment, onEnroll }: PhysicalC
             <CardContent>
               <div className="prose prose-gray dark:prose-invert max-w-none">
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {course.description}
+                  {course?.description}
                 </p>
               </div>
             </CardContent>
@@ -159,7 +159,7 @@ const PhysicalCourseDetail = ({ course, onBookAppointment, onEnroll }: PhysicalC
                 <div className="space-y-2">
                   <div className="flex justify-between text-lg">
                     <span>Course Price:</span>
-                    <span className="font-medium">${course.price.toFixed(2)}</span>
+                    <span className="font-medium">${course?.price.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>HST (13%):</span>

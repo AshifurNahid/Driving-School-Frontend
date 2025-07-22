@@ -522,8 +522,8 @@ const AdminAppointmentManagement = () => {
                           <SelectContent>
                             <SelectItem value="0">All</SelectItem>
                             {courses.map((course) => (
-                              <SelectItem key={course.id} value={course.id.toString()}>
-                                {course.title}
+                              <SelectItem key={course?.id} value={course?.id.toString()}>
+                                {course?.title}
                               </SelectItem>
                             ))}
                           </SelectContent>
