@@ -74,4 +74,23 @@ export type Course = {
   course_reviews?: CourseReview[];
   rating?: number;
   total_reviews?: number;
+  total_number_of_quizzes?:number;
 };
+
+
+export type EnrolledCourses={
+  id?:number;
+  user_id?:number;
+  course_id?:number;
+  progress_percentage?:number;
+  completetion_date?:string;
+  certificate_attachment?:string;
+  certificate_issue_date?:string;
+  status?:number;
+  created_by_id?:number;
+  updated_by_id?:number;
+  
+  created_at?:string;
+  updated_at?:string;
+  course?:Course;
+}
