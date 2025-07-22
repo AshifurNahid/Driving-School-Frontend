@@ -133,7 +133,6 @@ const CourseEdit = () => {
 
   const handleSave = () => {
     // In real app, this would save to API
-    console.log('Saving course:', { ...formData, modules });
     
     toast({
       title: "Course updated",

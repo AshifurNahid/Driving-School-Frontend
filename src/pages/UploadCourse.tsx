@@ -263,7 +263,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
         setIsLoading(false);
       }
     }
-    console.log(courseDetails);
     
   }, [courseDetails, mode, initialCourse]);
 

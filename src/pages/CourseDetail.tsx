@@ -13,6 +13,7 @@ import { useCourseDetails } from '@/hooks/useCourseDetail';
 import { RootState } from '@/redux/store';
 import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/redux/actions/reviewAction';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const CourseDetail = () => {
   const { userInfo } = useAuth();
@@ -22,7 +23,8 @@ const CourseDetail = () => {
 
   const dispatch = useDispatch();
   const { course, loading, error } = useCourseDetails(Number(id));
-  const {courses:userCourseList, loading: userCourseListLoading, error: userCourseListError } = useSelector((state: RootState) => state.userCourseList);
+
+  const {courses:userCourseList} = useSelector((state: RootState) => state.userCourseList);
 
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
@@ -31,14 +33,17 @@ const CourseDetail = () => {
 
   // Fetch reviews on mount
   useEffect(() => {
-   if(userCourseList.length > 0 && userCourseList.some((course:any)=>course?.id === Number(id))||isEnrolled){
+
+   if(userCourseList.length > 0 && userCourseList.some((course:any)=>course?.course_id === Number(id))||isEnrolled){
     setIsEnrolled(true);
    }
    
   }, [isEnrolled]);
 
+  
+
   // Find if user already posted a review
-  const userReview = course?.course_reviews?.find((r: any) => r.review_from_id === userInfo?.id);
+  // const userReview = course?.course_reviews?.find((r: any) => r.review_from_id === userInfo?.id);
 
 
 
@@ -71,7 +76,6 @@ const CourseDetail = () => {
   };
 
   const handleDelete = () => {
-    console.log(editId);
     
     if (editId) {
   dispatch(deleteCourseReview(editId) as any);
@@ -100,6 +104,9 @@ const CourseDetail = () => {
   const handleEnroll = () => {
     dispatch(enrollCourse(Number(id)) as any);
     setIsEnrolled(true);
+    toast.success('Your enrollement is successful!', {
+      description: 'Keep learning and enjoy the course!',
+    });
   };
 
   return (

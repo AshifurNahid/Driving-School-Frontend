@@ -41,7 +41,6 @@ const CourseEditDialog = ({ course, open, onOpenChange, onSave }: CourseEditDial
 
   // Update form data when course changes
   useEffect(() => {
-    console.log('CourseEditDialog useEffect triggered with course:', course);
     if (course) {
       const newFormData = {
         title: course?.title || '',
@@ -52,7 +51,6 @@ const CourseEditDialog = ({ course, open, onOpenChange, onSave }: CourseEditDial
         duration: course?.duration || '',
         status: course?.status || 'pending'
       };
-      console.log('Setting form data to:', newFormData);
       setFormData(newFormData);
     }
   }, [course]);
@@ -65,7 +63,6 @@ const CourseEditDialog = ({ course, open, onOpenChange, onSave }: CourseEditDial
       ...formData
     };
 
-    console.log('Saving course with data:', updatedCourse);
     onSave(updatedCourse);
     onOpenChange(false);
     
@@ -82,7 +79,6 @@ const CourseEditDialog = ({ course, open, onOpenChange, onSave }: CourseEditDial
     }));
   };
 
-  console.log('CourseEditDialog render - course:', course, 'open:', open, 'formData:', formData);
 
   if (!course) return null;
 

@@ -215,12 +215,10 @@ const AdminDashboard = () => {
   ];
 
   const handleEditCourse = (course) => {
-    console.log('Edit button clicked for course:', course?.title, 'ID:', course?.id);
     navigate(`/course/${course?.id}/edit`);
   };
 
   const handleSaveCourse = (updatedCourse) => {
-    console.log('handleSaveCourse called with:', updatedCourse);
     setPendingCourses(prev => 
       prev.map(course => 
         course?.id === updatedCourse.id ? updatedCourse : course
@@ -278,10 +276,8 @@ const AdminDashboard = () => {
   ];
 
   const handleDialogClose = (open) => {
-    console.log('Dialog onOpenChange called with:', open);
     setEditDialogOpen(open);
     if (!open) {
-      console.log('Dialog closing, clearing editingCourse');
       // Clear editing course after a short delay to prevent visual glitches
       setTimeout(() => {
         setEditingCourse(null);
