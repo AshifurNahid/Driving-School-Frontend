@@ -110,7 +110,6 @@ export const useCourseManager = (courseId?: string) => {
   };
 
   const markAsComplete = () => {
-    console.log('Marking lesson as complete');
     // In a real app, this would update the backend
   };
 

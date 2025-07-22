@@ -7,12 +7,9 @@ export const useCourseDetails = (id: number) => {
   const dispatch = useDispatch();
   const { course, loading, error } = useSelector((state: RootState) => state.guest_course);
 
-  console.log("🧩 useCourseDetails called with id:", id);
 
   useEffect(() => {
-    console.log("🔁 useEffect running with id:", id);
     if (!id || isNaN(id)) {
-      console.log("⚠️ Invalid id detected inside useEffect:", id);
       return;
     }
     dispatch(getCourseDetail(Number(id)) as any);
