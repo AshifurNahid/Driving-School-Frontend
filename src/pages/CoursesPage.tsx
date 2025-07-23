@@ -29,9 +29,9 @@ const CoursesPage = () => {
   const filteredCourses = useMemo(() => {
     if (!courses) return [];
     return courses
-      .filter(course => filter === 'all' || course.category === filter)
+      .filter(course => filter === 'all' || course?.category === filter)
       .filter(course =>
-        course.title.toLowerCase().includes(searchTerm.toLowerCase())
+        course?.title.toLowerCase().includes(searchTerm.toLowerCase())
         // If you want to filter by instructor, add instructor to your Course type and API
       );
   }, [courses, filter, searchTerm]);
@@ -108,7 +108,7 @@ const CoursesPage = () => {
           ) : sortedCourses.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                {sortedCourses.map(course => <CourseCard key={course.id} course={course} />)}
+                {sortedCourses.map(course => <CourseCard key={course?.id} course={course} />)}
               </div>
               {/* Pagination */}
               <div className="mt-8">

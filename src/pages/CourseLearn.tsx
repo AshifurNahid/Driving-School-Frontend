@@ -47,9 +47,9 @@ const CourseLearn = () => {
         <div className="flex-1 flex flex-col">
           <CourseTopBar
             lessonTitle={currentLessonData?.title || ''}
-            moduleTitle={course.modules[currentModule]?.title || ''}
+            moduleTitle={course?.modules[currentModule]?.title || ''}
             moduleIndex={currentModule}
-            totalProgress={course.totalProgress}
+            totalProgress={course?.totalProgress}
           />
 
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 p-6">

@@ -54,9 +54,9 @@ const Dashboard = () => {
     }
   ]);
 
-  const totalStudents = courses.reduce((sum, course) => sum + course.students, 0);
-  const totalRevenue = courses.reduce((sum, course) => sum + course.revenue, 0);
-  const publishedCourses = courses.filter(course => course.status === 'Published').length;
+  const totalStudents = courses.reduce((sum, course) => sum + course?.students, 0);
+  const totalRevenue = courses.reduce((sum, course) => sum + course?.revenue, 0);
+  const publishedCourses = courses.filter(course => course?.status === 'Published').length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,25 +147,25 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => (
-                <Card key={course.id} className="overflow-hidden">
+                <Card key={course?.id} className="overflow-hidden">
                   <div className="relative">
                     <img
-                      src={course.thumbnail}
-                      alt={course.title}
+                      src={course?.thumbnail}
+                      alt={course?.title}
                       className="w-full h-48 object-cover"
                     />
                     <Badge 
                       className={`absolute top-2 right-2 ${
-                        course.status === 'Published' ? 'bg-green-500' : 'bg-yellow-500'
+                        course?.status === 'Published' ? 'bg-green-500' : 'bg-yellow-500'
                       }`}
                     >
-                      {course.status}
+                      {course?.status}
                     </Badge>
                   </div>
                   <CardHeader>
-                    <CardTitle className="line-clamp-2 text-foreground">{course.title}</CardTitle>
+                    <CardTitle className="line-clamp-2 text-foreground">{course?.title}</CardTitle>
                     <CardDescription className="line-clamp-2">
-                      {course.description}
+                      {course?.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -173,18 +173,18 @@ const Dashboard = () => {
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                           <span className="text-muted-foreground">Students:</span>
-                          <div className="font-semibold text-foreground">{course.students}</div>
+                          <div className="font-semibold text-foreground">{course?.students}</div>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Revenue:</span>
-                          <div className="font-semibold text-foreground">${course.revenue.toFixed(2)}</div>
+                          <div className="font-semibold text-foreground">${course?.revenue.toFixed(2)}</div>
                         </div>
                       </div>
                       
                       <div className="flex justify-between items-center pt-4 border-t border-border">
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" asChild>
-                            <Link to={`/course/${course.id}`}>
+                            <Link to={`/course/${course?.id}`}>
                               <Eye className="h-4 w-4 mr-1" />
                               View
                             </Link>

@@ -30,7 +30,6 @@ const ContactSection = () => {
   });
 
   function onSubmit(data: z.infer<typeof contactFormSchema>) {
-    console.log('Contact form submitted:', data);
     toast.success('Your message has been sent!', {
       description: 'We will get back to you as soon as possible.',
     });
