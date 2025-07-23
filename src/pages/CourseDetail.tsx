@@ -1,6 +1,6 @@
 import { useState,useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,17 +19,17 @@ const CourseDetail = () => {
   const { userInfo } = useAuth();
   const { id } = useParams();
   const [isEnrolled, setIsEnrolled] = useState(false);
-  if (!id) return <div>Loading...</div>; // or navigate away, etc.
-
-  const dispatch = useDispatch();
-  const { course, loading, error } = useCourseDetails(Number(id));
-
-  const {courses:userCourseList} = useSelector((state: RootState) => state.userCourseList);
-
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [editing, setEditing] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [openModules, setOpenModules] = useState<number[]>([]);
+  if (!id) {
+    return <div>Loading...</div>; // or navigate away, etc.
+  }
+  const dispatch = useDispatch();
+  const { course, loading, error } = useCourseDetails(Number(id));
+  const {courses:userCourseList} = useSelector((state: RootState) => state.userCourseList);
 
   // Fetch reviews on mount
   useEffect(() => {
@@ -228,36 +228,49 @@ const CourseDetail = () => {
                   </p>
                   
                   <div className="space-y-4">
-                    {course?.course_modules.map((section, index) => (
-                      <Card key={index}>
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-center">
-                            <CardTitle className="text-lg">{section?.module_title}</CardTitle>
-                            <div className="text-sm text-muted-foreground">
-                              {section?.course_module_lessons.length} lessons • {section?.duration}
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            {section?.course_module_lessons.map((item, itemIndex) => (
-                              <div key={itemIndex} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
-                                <div className="flex items-center">
-                                  <Play className="h-4 w-4 text-muted-foreground mr-2" />
-                                  <span className="text-foreground">{item?.lesson_title}</span>
-                                  {/* {item?.free && (
-                                    <Badge variant="outline" className="ml-2 text-xs">
-                                      Free
-                                    </Badge>
-                                  )} */}
-                                </div>
-                                <span className="text-sm text-muted-foreground">{item?.duration}</span>
+                    {course?.course_modules.map((section, index) => {
+                      const isOpen = openModules.includes(index);
+                      return (
+                        <Card key={index}>
+                          <CardHeader className="pb-3 cursor-pointer select-none" onClick={() => {
+                            setOpenModules((prev) =>
+                              prev.includes(index)
+                                ? prev.filter((i) => i !== index)
+                                : [...prev, index]
+                            );
+                          }}>
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center">
+                                {isOpen ? (
+                                  <ChevronDown className="h-5 w-5 mr-2 transition-transform" />
+                                ) : (
+                                  <ChevronRight className="h-5 w-5 mr-2 transition-transform" />
+                                )}
+                                <CardTitle className="text-lg">{section?.module_title}</CardTitle>
                               </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                              <div className="text-sm text-muted-foreground">
+                                {section?.course_module_lessons.length} lessons • {section?.duration}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          {isOpen && (
+                            <CardContent>
+                              <div className="space-y-2">
+                                {section?.course_module_lessons.map((item, itemIndex) => (
+                                  <div key={itemIndex} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
+                                    <div className="flex items-center">
+                                      <Play className="h-4 w-4 text-muted-foreground mr-2" />
+                                      <span className="text-foreground">{item?.lesson_title}</span>
+                                    </div>
+                                    <span className="text-sm text-muted-foreground">{item?.duration}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          )}
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
               </TabsContent>

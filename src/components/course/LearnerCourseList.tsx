@@ -28,7 +28,7 @@ const LearnerCourseList = ({ courses }: LearnerCourseListProps) => {
         <Card key={course?.id} className="overflow-hidden">
           <div className="relative">
             <img
-              src={course?.thumbnail}
+              src={import.meta.env.VITE_API_BASE_URL + "/"+course?.thumbnail}
               alt={course?.title}
               className="w-full h-48 object-cover"
             />
