@@ -1,9 +1,12 @@
 export type CourseReview = {
+  id?: number;
   course_id?: number;
   review_from_id?: number;
   rating?: number;
   review?: string;
   is_verified_purchase?: boolean;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type QuizQuestion = {
@@ -47,8 +50,9 @@ export type CourseModule = {
   module_description?: string;
   sequence?: number;
   status?: number;
-  course_module_lesones?: Lesson[];
+  course_module_lessons?: Lesson[];
   quizzes?: Quiz[];
+  duration?: number;
 };
 
 export type Course = {
@@ -68,4 +72,6 @@ export type Course = {
   created_at?: string;
   course_modules?: CourseModule[];
   course_reviews?: CourseReview[];
+  rating?: number;
+  total_reviews?: number;
 };

@@ -747,8 +747,8 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                     {course.thumbnail && (
                       <div className="mt-2">
                         <img 
-                          src={course.thumbnail} 
-                          alt="Course thumbnail preview" 
+        src={import.meta.env.VITE_API_BASE_URL+"/" + course.thumbnail}
+        alt="Course thumbnail preview" 
                           className="w-32 h-20 object-cover rounded border"
                         />
                       </div>

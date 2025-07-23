@@ -73,7 +73,7 @@ const AdminDashboard = () => {
   );
   
   //  const { courses, totalCourses, loading: coursesLoading,  error: coursesError } = useSelector(
-  //   (state: RootState) => state.courseList
+  //   (state: RootState) => state.guest_course
   // );
 
   const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);

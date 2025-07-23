@@ -7,10 +7,10 @@ export const useCourses = (initialPage = 1, pageSize = 10) => {
   const dispatch = useDispatch();
   const [currentPage, setCurrentPage] = useState(initialPage);
 
-  const { courses, loading, error } = useSelector((state: RootState) => state.courseList);
+  const { courses, loading, error } = useSelector((state: RootState) => state.guest_course);
 
   useEffect(() => {
-    dispatch(getCourses(currentPage, pageSize));
+    dispatch(getCourses(currentPage, pageSize) as any);
   }, [dispatch, currentPage, pageSize]);
 
   return { courses, loading, error, currentPage, setCurrentPage };
