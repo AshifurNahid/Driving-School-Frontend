@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Download, Play, Calendar, Award, Car, Clock, MapPin, User, Phone, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import LearnerCourseList from "@/components/course/LearnerCourseList";
+import ProfileSidebar from '@/components/learnerProfile/ProfileSidebar';
 // Removed react-router-dom import as it's not available
 
 const DrivingSchoolLearnerProfile = () => {
@@ -412,41 +413,12 @@ const DrivingSchoolLearnerProfile = () => {
       <div className="min-h-screen bg-background">
         <div className="flex">
           {/* Left Sidebar */}
-          <div className="w-64 bg-card border-r min-h-screen p-6">
-            {/* Profile Header */}
-            <div className="mb-8">
-              <div className="text-center">
-                <Avatar className="h-20 w-20 mx-auto mb-4">
-                  <AvatarImage src={userInfo?.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo?.full_name || "User")} alt={userInfo?.full_name || "User"} />
-                  <AvatarFallback className="text-lg">{(userInfo?.full_name || "User").split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <h2 className="font-bold text-foreground">{userInfo?.full_name || "User"}</h2>
-                <p className="text-sm text-muted-foreground">{userInfo?.role?.title || "Learner"}</p>
-                <p className="text-xs text-muted-foreground mt-1">ID: {userInfo?.id || "N/A"}</p>
-              </div>
-            </div>
-
-            {/* Navigation */}
-            <nav className="space-y-2">
-              {sidebarItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveSection(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      activeSection === item.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+          <ProfileSidebar
+            userInfo={userInfo}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            sidebarItems={sidebarItems}
+          />
 
           {/* Main Content */}
           <div className="flex-1 p-8">
