@@ -19,7 +19,7 @@ import { createAdminCourse, getAdminCourseDetails, updateAdminCourse } from '@/r
 import { toast } from '@/components/ui/use-toast';
 import { RootState } from '@/redux/store';
 
-type CourseType = 'online' | 'physical';
+type CourseType = 'online' | 'physical' | 'hybrid';
 
 interface Subsection {
   title: string;
@@ -167,7 +167,14 @@ function modalToQuizFormat(modalQuiz: any): Quiz {
 }
 // Helper function to transform API response to component format
 const transformApiResponseToCourse = (apiResponse: any): Course => {
-  const courseType = apiResponse.course_type === 0 ? 'online' : 'physical';
+  let courseType: CourseType;
+  if (apiResponse.course_type === 0) {
+    courseType = 'online';
+  } else if (apiResponse.course_type === 1) {
+    courseType = 'physical';
+  } else {
+    courseType = 'hybrid';
+  }
   
   const modules = apiResponse.course_modules?.map((module: any, index: number) => ({
     title: module.module_title || '',
@@ -285,16 +292,17 @@ console.log(course);
     course?.category &&
     course?.price > 0 &&
     course?.thumbnail_photo_path.trim() &&
-    (course?.courseType === 'physical'
+    (course?.courseType === 'physical' || course?.courseType === 'hybrid'
       ? !!course?.physicalCourseData?.title &&
         !!course?.physicalCourseData?.duration &&
         !!course?.physicalCourseData?.location
       : true);
 
   const isContentStepValid =
-    course?.courseType === 'physical' ||
-    (course?.modules.length > 0 &&
-      course?.modules.every((m) => m.title.trim() && m.subsections.length > 0));
+    course?.courseType === 'physical' || course?.courseType === 'hybrid'
+      ? true
+      : (course?.modules.length > 0 &&
+        course?.modules.every((m) => m.title.trim() && m.subsections.length > 0));
 
   // --- Navigation logic ---
   const canGoNext = () => {
@@ -319,7 +327,8 @@ console.log(course);
     setCourse(prev => ({
       ...prev,
       courseType: type,
-      modules: type === 'physical' ? [] : prev.modules
+      modules: type === 'physical' ? [] : prev.modules,
+      physicalCourseData: type === 'online' ? undefined : prev.physicalCourseData
     }));
   };
 
@@ -409,7 +418,7 @@ console.log(course);
         prerequisites: course?.prerequisites,
         thumbnail_photo_base64_code: thumbnail_photo_base64_code,
         thumbnail_photo_path: thumbnail_photo_path,
-        course_type: course?.courseType === 'online' ? 0 : 1,
+        course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
         course_modules: course?.modules.map((mod, idx) => ({
           module_title: mod.title,
           module_description: mod.description,
@@ -556,7 +565,7 @@ console.log(course);
                   <RadioGroup 
                     value={course?.courseType} 
                     onValueChange={(value) => handleCourseTypeChange(value as CourseType)}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    className="grid grid-cols-1 md:grid-cols-3 gap-4"
                   >
                     <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                       <RadioGroupItem value="online" id="online" />
@@ -575,6 +584,17 @@ console.log(course);
                         <div>
                           <p className="font-medium">Physical Course</p>
                           <p className="text-sm text-muted-foreground">In-car instruction and practice</p>
+                        </div>
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="hybrid" id="hybrid" />
+                      <label htmlFor="hybrid" className="flex items-center gap-3 cursor-pointer flex-1">
+                        <Monitor className="h-8 w-8 text-blue-600" />
+                        <Car className="h-8 w-8 text-green-600 ml-2" />
+                        <div>
+                          <p className="font-medium">Hybrid Course</p>
+                          <p className="text-sm text-muted-foreground">Online modules + in-car instruction</p>
                         </div>
                       </label>
                     </div>
