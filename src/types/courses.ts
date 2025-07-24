@@ -75,6 +75,7 @@ export type Course = {
   rating?: number;
   total_reviews?: number;
   total_number_of_quizzes?:number;
+  total_no_of_quizzes?:number;
 };
 
 

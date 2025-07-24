@@ -1,6 +1,6 @@
 import { useState,useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle, Edit, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle, Edit, Trash2, ChevronDown, ChevronRight, Video, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { RootState } from '@/redux/store';
 import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/redux/actions/reviewAction';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 
 const CourseDetail = () => {
   const { userInfo } = useAuth();
@@ -116,12 +117,13 @@ const CourseDetail = () => {
       <header className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <Button variant="ghost" asChild>
-              <Link to="/">
+           
+              <RoleBasedNavigation/>
+              {/* <Link to="/">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Courses
-              </Link>
-            </Button>
+              </Link> */}
+            
           </div>
         </div>
       </header>
@@ -184,7 +186,11 @@ const CourseDetail = () => {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-xl font-semibold mb-4">About This Course</h3>
-                    <p className="text-muted-foreground leading-relaxed">{course?.description}</p>
+                    <p className="text-muted-foreground leading-relaxed">{course?.content}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4">Prerequisites</h3>
+                    <p className="text-muted-foreground leading-relaxed">{course?.prerequisites}</p>
                   </div>
 
                   {/* <div>
@@ -223,9 +229,24 @@ const CourseDetail = () => {
               <TabsContent value="curriculum" className="p-6">
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold">Course Curriculum</h3>
-                  <p className="text-muted-foreground">
-                    {course?.course_modules.length} Modules • {course?.course_modules.reduce((acc, course_modules) => acc + course_modules.course_module_lessons.length, 0)} lectures • {course?.duration} total length
-                  </p>
+                  <div className="flex items-center gap-6 text-muted-foreground text-sm">
+    <span className="flex items-center gap-1">
+      <BookOpen className="h-4 w-4 mr-1" />
+      {course?.course_modules.length} Modules
+    </span>
+    <span className="flex items-center gap-1">
+      <Video className="h-4 w-4 mr-1" />
+      {course?.course_modules.reduce((acc, m) => acc + m.course_module_lessons.length, 0)} Lectures
+    </span>
+    <span className="flex items-center gap-1">
+      <Clock className="h-4 w-4 mr-1" />
+      {course?.duration} hrs
+    </span>
+    <span className="flex items-center gap-1">
+      <Brain className="h-4 w-4 mr-1" />
+      {course?.total_no_of_quizzes} Quizzes
+    </span>
+  </div>
                   
                   <div className="space-y-4">
                     {course?.course_modules.map((section, index) => {
