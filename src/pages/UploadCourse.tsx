@@ -87,7 +87,7 @@ interface Course {
   level: string;
   language: string;
   prerequisites: string;
-  thumbnail: string;
+  thumbnail_photo_path: string;
   courseType: CourseType;
   modules: Module[];
   physicalCourseData?: PhysicalCourseData;
@@ -116,7 +116,7 @@ const defaultCourse: Course = {
   level: '',
   language: '',
   prerequisites: '',
-  thumbnail: '',
+  thumbnail_photo_path: '',
   courseType: 'online',
   modules: [],
   physicalCourseData: {
@@ -152,17 +152,15 @@ function modalToQuizFormat(modalQuiz: any): Quiz {
   return {
     title: modalQuiz.title,
     description: modalQuiz.description,
-    passPercentage: modalQuiz.passing_score,
-    allowRetakes: modalQuiz.max_attempts > 1,
+    passPercentage: Number(modalQuiz.passing_score),
+    allowRetakes: Number(modalQuiz.max_attempts) > 1,
     questions: (modalQuiz.questions || []).map((q: any) => ({
       question: q.question,
       type: q.type === 0 ? 'mcq' : q.type === 1 ? 'true-false' : 'short-answer',
       options: typeof q.options === 'string' && q.options.length > 0
         ? q.options.split(',').map((s: string) => s.trim())
         : [],
-      correctAnswer: q.type === 1
-        ? (q.correct_answers === 'true')
-        : q.correct_answers,
+      correctAnswer: q.correct_answers,
       points: q.points,
     })),
   };
@@ -212,7 +210,7 @@ const transformApiResponseToCourse = (apiResponse: any): Course => {
     level: apiResponse.level || '',
     language: apiResponse.language || '',
     prerequisites: apiResponse.prerequisites || '',
-    thumbnail: apiResponse.thumbnail_photo || '',
+    thumbnail_photo_path: apiResponse.thumbnail_photo_path || '',
     courseType,
     modules,
     physicalCourseData: courseType === 'physical' ? {
@@ -237,6 +235,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
 
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
   const [isLoading, setIsLoading] = useState(false);
+console.log(course);
 
   // Effect to handle edit mode data loading
   useEffect(() => {
@@ -285,7 +284,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     course?.description.trim() &&
     course?.category &&
     course?.price > 0 &&
-    course?.thumbnail.trim() &&
+    course?.thumbnail_photo_path.trim() &&
     (course?.courseType === 'physical'
       ? !!course?.physicalCourseData?.title &&
         !!course?.physicalCourseData?.duration &&
@@ -313,42 +312,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   };
 
   // --- Modal Save Handlers ---
-  const handleQuizSave = (quiz: Quiz) => {
-    if (quizModal.moduleIdx !== null) {
-      const newModules = [...course?.modules];
-      newModules[quizModal.moduleIdx].quiz = quiz;
-      setCourse({ ...course, modules: newModules });
-    }
-  };
 
-  const handleMaterialSave = (materials: ModuleMaterial[]) => {
-    if (materialModal.moduleIdx !== null) {
-      const newModules = [...course?.modules];
-      newModules[materialModal.moduleIdx].materials = materials;
-      setCourse({ ...course, modules: newModules });
-    }
-  };
-
-  // --- Course Material Handlers (Course-level, as PDF URLs) ---
-  const addCourseMaterial = () => {
-    setCourse(prev => ({
-      ...prev,
-      materials: [...prev.materials, { name: '', url: '' }]
-    }));
-  };
-
-  const updateCourseMaterial = (idx: number, field: keyof CourseMaterial, value: string) => {
-    const newMaterials = [...course?.materials];
-    newMaterials[idx][field] = value;
-    setCourse(prev => ({ ...prev, materials: newMaterials }));
-  };
-
-  const removeCourseMaterial = (idx: number) => {
-    setCourse(prev => ({
-      ...prev,
-      materials: prev.materials.filter((_, i) => i !== idx)
-    }));
-  };
 
   // --- Module logic (add, remove, update, etc.) ---
   const handleCourseTypeChange = (type: CourseType) => {
@@ -359,15 +323,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     }));
   };
 
-  const handlePhysicalCourseDataChange = (field: keyof PhysicalCourseData, value: string | number) => {
-    setCourse(prev => ({
-      ...prev,
-      physicalCourseData: {
-        ...prev.physicalCourseData!,
-        [field]: value
-      }
-    }));
-  };
+  
 
   const addModule = () => {
     setCourse({
@@ -429,9 +385,16 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     try {
       setIsLoading(true);
       
-      let base64 = course?.thumbnail;
+      let base64 = course?.thumbnail_photo_path;
+      let thumbnail_photo_base64_code = undefined;
+      let thumbnail_photo_path = undefined;
+
       if (base64 && base64.startsWith('data:image')) {
-        base64 = base64.split(',')[1];
+        // New image selected, send as base64
+        thumbnail_photo_base64_code = base64.split(',')[1];
+      } else if (base64) {
+        // Existing image path, send as path
+        thumbnail_photo_path = base64;
       }
 
       const payload = {
@@ -444,7 +407,8 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
         level: course?.level,
         language: course?.language,
         prerequisites: course?.prerequisites,
-        thumbnail_photo_base64_code: base64,
+        thumbnail_photo_base64_code: thumbnail_photo_base64_code,
+        thumbnail_photo_path: thumbnail_photo_path,
         course_type: course?.courseType === 'online' ? 0 : 1,
         course_modules: course?.modules.map((mod, idx) => ({
           module_title: mod.title,
@@ -727,9 +691,9 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="thumbnail">Thumbnail Image</Label>
+                    <Label htmlFor="thumbnail_photo_path">Thumbnail Image</Label>
                     <Input
-                      id="thumbnail"
+                      id="thumbnail_photo_path"
                       type="file"
                       accept="image/*"
                       onChange={async (e) => {
@@ -737,17 +701,21 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                         if (file) {
                           const reader = new FileReader();
                           reader.onloadend = () => {
-                            setCourse({ ...course, thumbnail: reader.result as string });
+                            setCourse({ ...course, thumbnail_photo_path: reader.result as string });
                           };
                           reader.readAsDataURL(file);
                         }
                       }}
                     />
-                    {course?.thumbnail && (
+                    {course?.thumbnail_photo_path && (
                       <div className="mt-2">
                         <img 
-        src={import.meta.env.VITE_API_BASE_URL+"/" + course?.thumbnail}
-        alt="Course thumbnail preview" 
+        src={
+  course?.thumbnail_photo_path?.startsWith('data:image')
+    ? course.thumbnail_photo_path
+    : import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path
+}
+        alt="Course thumbnail_photo_path preview" 
                           className="w-32 h-20 object-cover rounded border"
                         />
                       </div>
@@ -1039,10 +1007,14 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {course?.thumbnail && (
+                  {course?.thumbnail_photo_path && (
                     <img
-                      src={course?.thumbnail}
-                      alt="Course thumbnail"
+                      src={
+  course?.thumbnail_photo_path?.startsWith('data:image')
+    ? course.thumbnail_photo_path
+    : import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path
+}
+                      alt="Course thumbnail_photo_path"
                       className="w-full h-32 object-cover rounded-md"
                     />
                   )}

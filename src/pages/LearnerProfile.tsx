@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Download, Play, Calendar, Award, Car, Clock, MapPin, User, Phone, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import LearnerCourseList from "@/components/course/LearnerCourseList";
 import ProfileSidebar from '@/components/learnerProfile/ProfileSidebar';
+import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 // Removed react-router-dom import as it's not available
 
 const DrivingSchoolLearnerProfile = () => {
@@ -409,7 +410,7 @@ const DrivingSchoolLearnerProfile = () => {
 
   return (
     <>
-      <PublicHeader />
+      <RoleBasedNavigation />
       <div className="min-h-screen bg-background">
         <div className="flex">
           {/* Left Sidebar */}

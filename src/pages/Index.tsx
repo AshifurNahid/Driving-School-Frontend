@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 
 // Dummy course data using your provided images and structure
 const dummyCourses = [
@@ -86,7 +87,7 @@ const CanadianDrivingSchool = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors">
-      <PublicHeader />
+      <RoleBasedNavigation />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 py-20 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(45deg,#1e3a8a_25%,transparent_25%),linear-gradient(-45deg,#1e3a8a_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1e3a8a_75%),linear-gradient(-45deg,transparent_75%,#1e3a8a_75%)] bg-[size:60px_60px] bg-[position:0_0,0_30px,30px_-30px,-30px_0px] opacity-10"></div>
