@@ -24,6 +24,7 @@ import LearnerCourses from "./pages/LearnerCourses";
 import AppointmentManagement from "./pages/AppointmentManagement";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
+import AdminInstructors from "./pages/AdminInstructors";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/appointments" element={<AdminAppointments />} />
+                <Route path="/admin/instructors" element={<AdminInstructors/>} />
                 <Route path="/upload-course" element={<UploadCourse mode="add" />} />
                 <Route path="/course/:id/edit" element={<UploadCourse mode="edit" />} />
                 <Route path="/course/:id" element={<CourseDetail />} />

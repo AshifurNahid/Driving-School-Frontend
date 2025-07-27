@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate,useLocation } from 'react-router-dom';
-import { 
-  Users, 
-  BookOpen, 
-  DollarSign, 
-  TrendingUp, 
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import {
+  Users,
+  BookOpen,
+  DollarSign,
+  TrendingUp,
   BarChart3,
   Settings,
   CheckCircle,
@@ -22,7 +22,8 @@ import {
   Plus,
   Clock,
   Video,
-  Brain
+  Brain,
+  UserCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,12 +48,13 @@ import { User } from "@/types/user";
 import UserDetailsModal from "@/components/admin/UserDetailsModal";
 import UserRoleEditModal from "@/components/admin/UserRoleEditModal";
 import ReactPaginate from "react-paginate";
+import AdminInstructors from './AdminInstructors';
 
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
- const location = useLocation();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState(
     location.state?.activeTab || 'overview'
   );
@@ -68,10 +70,10 @@ const AdminDashboard = () => {
   const pageSize = 10; // or whatever you want
 
   const dispatch = useDispatch<AppDispatch>();
-  const { users, totalUsers, totalPages, hasNextPage, hasPreviousPage,loading: usersLoading,  error: usersError, page } = useSelector(
+  const { users, totalUsers, totalPages, hasNextPage, hasPreviousPage, loading: usersLoading, error: usersError, page } = useSelector(
     (state: RootState) => state.adminUserList
   );
-  
+
   //  const { courses, totalCourses, loading: coursesLoading,  error: coursesError } = useSelector(
   //   (state: RootState) => state.guest_course
   // );
@@ -79,8 +81,8 @@ const AdminDashboard = () => {
   const { user: userDetails, loading: userDetailsLoading } = useSelector((state: RootState) => state.adminUserDetails);
   const { loading: deleteLoading, success: deleteSuccess, message: deleteMessage } = useSelector((state: RootState) => state.adminUserDelete);
   const { roles, loading: rolesLoading } = useSelector((state: RootState) => state.adminRoleList);
-  const { loading: roleUpdateLoading, user:userDetail, error: roleUpdateError } = useSelector((state: RootState) => state.adminUserDetails); 
-  const{ loading: courseListLoading, courses, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
+  const { loading: roleUpdateLoading, user: userDetail, error: roleUpdateError } = useSelector((state: RootState) => state.adminUserDetails);
+  const { loading: courseListLoading, courses, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
 
   // Handle viewing user details
   const handleViewUser = (userId: number) => {
@@ -109,7 +111,7 @@ const AdminDashboard = () => {
       });
       dispatch(getAdminUsers());
     }
-  }, [deleteSuccess, deleteMessage, dispatch, toast,location.state]);
+  }, [deleteSuccess, deleteMessage, dispatch, toast, location.state]);
 
   // Handle editing user role
   const handleEditUser = (user: User) => {
@@ -125,12 +127,12 @@ const AdminDashboard = () => {
     if (editUser) {
       dispatch(updateAdminRole(editUser.id, roleId));
       if (!roleUpdateLoading) {
-      toast({
-        title: "Role Updated",
-        description: "User role updated successfully.",
-      });
-      setEditUserModalOpen(false);
-    }
+        toast({
+          title: "Role Updated",
+          description: "User role updated successfully.",
+        });
+        setEditUserModalOpen(false);
+      }
     }
   };
 
@@ -145,8 +147,8 @@ const AdminDashboard = () => {
     instructors: 156,
     students: 52691
   };
-// Place this near the top of your AdminDashboard component
-// 
+  // Place this near the top of your AdminDashboard component
+  // 
   const [pendingCourses, setPendingCourses] = useState([
     {
       id: 1,
@@ -200,14 +202,16 @@ const AdminDashboard = () => {
     }
   ]);
 
- 
+
   const sidebarItems = [
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'users', label: 'User Management', icon: Users },
     // { id: 'courses', label: 'Course Moderation', icon: BookOpen },
     // { id: 'courses', label: 'Course Moderation', icon: BookOpen },
-    {id:'course-list', label: 'Course List', icon: BookOpen },
-    { id: 'appointments', label: 'Appointment Management', icon: Calendar }//,
+    { id: 'course-list', label: 'Course List', icon: BookOpen },
+    { id: 'appointments', label: 'Appointment Management', icon: Calendar },
+    { id: 'instructors', label: 'Instructor Management', icon:  UserCheck}
+
     //{ id: 'quizzes', label: 'Quiz Management', icon: FileText },
     //{ id: 'analytics', label: 'User Analytics', icon: BarChart3 },
     //{ id: 'reports', label: 'Reports & Analytics', icon: TrendingUp },
@@ -219,8 +223,8 @@ const AdminDashboard = () => {
   };
 
   const handleSaveCourse = (updatedCourse) => {
-    setPendingCourses(prev => 
-      prev.map(course => 
+    setPendingCourses(prev =>
+      prev.map(course =>
         course?.id === updatedCourse.id ? updatedCourse : course
       )
     );
@@ -603,114 +607,114 @@ const AdminDashboard = () => {
               {/* Pagination */}
               <div className="mt-4">
                 <ReactPaginate
-                    previousLabel={"← Previous"}
-                    nextLabel={"Next →"}
-                    breakLabel={"..."}
-                    pageCount={totalPages}
-                    marginPagesDisplayed={2}
-                    pageRangeDisplayed={3}
-                    onPageChange={(data) => dispatch(getAdminUsers(data.selected + 1, pageSize))}
-                    containerClassName={"pagination flex justify-center mt-4"}
-                    pageClassName={"mx-1"}
-                    activeClassName={"font-bold text-blue-600"}
-                    previousClassName={"mx-2"}
-                    nextClassName={"mx-2"}
-                    forcePage={page - 1}
+                  previousLabel={"← Previous"}
+                  nextLabel={"Next →"}
+                  breakLabel={"..."}
+                  pageCount={totalPages}
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={3}
+                  onPageChange={(data) => dispatch(getAdminUsers(data.selected + 1, pageSize))}
+                  containerClassName={"pagination flex justify-center mt-4"}
+                  pageClassName={"mx-1"}
+                  activeClassName={"font-bold text-blue-600"}
+                  previousClassName={"mx-2"}
+                  nextClassName={"mx-2"}
+                  forcePage={page - 1}
                 />
               </div>
             </div>
           )}
 
-         
+
 
           {/* Course List Tab */}
-           {activeTab === "course-list" && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-foreground">Course Management</h2>
-            <Button
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
-              onClick={() => navigate("/upload-course")}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Course
-            </Button>
-          </div>
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                {usersLoading ? (
-                  <div className="p-6 text-center text-muted-foreground">Loading courses...</div>
-                ) : usersError ? (
-                  <div className="p-6 text-center text-red-600">{usersError}</div>
-                ) : (
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left p-4 font-medium text-foreground">Title</th>
-                        <th className="text-left p-4 font-medium text-foreground">Contents</th>
-                       
-                        <th className="text-left p-4 font-medium text-foreground">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {courses && courses.length > 0 ? (
-                        courses.map((course) => {
-                          const totalModules = course?.course_modules?.length || 0;
-                          const totalLessons = course?.course_modules
-                            ? course?.course_modules.reduce((sum: number,m) => sum + (m.course_module_lesones?.length || 0), 0)
-                            : 0;
-                          const totalQuizzes = course?.course_modules
-                            ? course?.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
-                            : 0;
-                          return (
-                            <tr key={course?.id} className="border-b border-border">
-                              <td className="p-4 font-medium">{course?.title}</td>
-                              <td className="p-4 flex items-center gap-1">
-                                <BookOpen className="h-4 w-4" /> {totalModules}
-                        
-                                <Video className="h-4 w-4" /> {totalLessons}
-                             
-                                <Brain className="h-4 w-4" /> {totalQuizzes}
-                  
-                              </td>
-                              <td className="p-4">
-                                <div className="flex space-x-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                   onClick={() => navigate(`/course/${course?.id}/edit`)}
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleDeleteCourse(course?.id)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
+          {activeTab === "course-list" && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-foreground">Course Management</h2>
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
+                  onClick={() => navigate("/upload-course")}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Course
+                </Button>
+              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    {usersLoading ? (
+                      <div className="p-6 text-center text-muted-foreground">Loading courses...</div>
+                    ) : usersError ? (
+                      <div className="p-6 text-center text-red-600">{usersError}</div>
+                    ) : (
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="text-left p-4 font-medium text-foreground">Title</th>
+                            <th className="text-left p-4 font-medium text-foreground">Contents</th>
+
+                            <th className="text-left p-4 font-medium text-foreground">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {courses && courses.length > 0 ? (
+                            courses.map((course) => {
+                              const totalModules = course?.course_modules?.length || 0;
+                              const totalLessons = course?.course_modules
+                                ? course?.course_modules.reduce((sum: number, m) => sum + (m.course_module_lesones?.length || 0), 0)
+                                : 0;
+                              const totalQuizzes = course?.course_modules
+                                ? course?.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
+                                : 0;
+                              return (
+                                <tr key={course?.id} className="border-b border-border">
+                                  <td className="p-4 font-medium">{course?.title}</td>
+                                  <td className="p-4 flex items-center gap-1">
+                                    <BookOpen className="h-4 w-4" /> {totalModules}
+
+                                    <Video className="h-4 w-4" /> {totalLessons}
+
+                                    <Brain className="h-4 w-4" /> {totalQuizzes}
+
+                                  </td>
+                                  <td className="p-4">
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => navigate(`/course/${course?.id}/edit`)}
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-red-600 hover:text-red-700"
+                                        onClick={() => handleDeleteCourse(course?.id)}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                                No courses found.
                               </td>
                             </tr>
-                          );
-                        })
-                      ) : (
-                        <tr>
-                          <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                            No courses found.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                          )}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Appointment Management Tab */}
           {activeTab === 'appointments' && (
@@ -720,7 +724,7 @@ const AdminDashboard = () => {
                 <h3 className="text-xl font-semibold mb-4">Set Your Availability</h3>
                 <AdminAppointmentManagement />
               </div>
-              
+
               {/* Student Appointment Requests */}
               <div>
                 <h3 className="text-xl font-semibold mb-4">Student Appointment Requests</h3>
@@ -728,6 +732,11 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'instructors' && (
+              <AdminInstructors/>
+          )}
+
 
           {/* Quiz Management Tab */}
           {activeTab === 'quizzes' && (
@@ -743,7 +752,7 @@ const AdminDashboard = () => {
           {activeTab === 'reports' && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-foreground">Reports & Analytics</h2>
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
@@ -757,7 +766,7 @@ const AdminDashboard = () => {
                     <RevenueChart />
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
@@ -834,7 +843,7 @@ const AdminDashboard = () => {
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-foreground">Site Settings</h2>
-              
+
               <div className="grid gap-6">
                 <Card>
                   <CardHeader>
@@ -953,9 +962,9 @@ const AdminDashboard = () => {
         loading={roleUpdateLoading}
       />
     </div>
-    
+
   );
- 
+
 };
 
 export default AdminDashboard;
