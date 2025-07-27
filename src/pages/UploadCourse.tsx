@@ -285,24 +285,24 @@ console.log(course);
   const [materialModal, setMaterialModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
 
   // --- Step validation logic ---
-  const isTypeStepValid = !!course?.courseType;
+  const isTypeStepValid = !!course.courseType;
   const isInfoStepValid =
-    course?.title.trim() &&
-    course?.description.trim() &&
-    course?.category &&
-    course?.price > 0 &&
-    course?.thumbnail_photo_path.trim() &&
-    (course?.courseType === 'physical' || course?.courseType === 'hybrid'
-      ? !!course?.physicalCourseData?.title &&
-        !!course?.physicalCourseData?.duration &&
-        !!course?.physicalCourseData?.location
+    course.title.trim() &&
+    course.description.trim() &&
+    course.category &&
+    course.price > 0 &&
+    course.thumbnail_photo_path.trim() &&
+    (course.courseType === 'physical' || course.courseType === 'hybrid'
+      ? !!course.physicalCourseData?.title &&
+        !!course.physicalCourseData?.duration &&
+        !!course.physicalCourseData?.location
       : true);
 
   const isContentStepValid =
-    course?.courseType === 'physical' || course?.courseType === 'hybrid'
+    course.courseType === 'physical' || course.courseType === 'hybrid'
       ? true
-      : (course?.modules.length > 0 &&
-        course?.modules.every((m) => m.title.trim() && m.subsections.length > 0));
+      : (course.modules.length > 0 &&
+        course.modules.every((m) => m.title.trim() && m.subsections.length > 0));
 
   // --- Navigation logic ---
   const canGoNext = () => {
@@ -338,30 +338,30 @@ console.log(course);
     setCourse({
       ...course,
       modules: [
-        ...course?.modules,
+        ...course.modules,
         { title: '', description: '', subsections: [], isExpanded: true, isQuizExpanded: false, materials: [] },
       ],
     });
   };
 
   const removeModule = (moduleIndex: number) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules.splice(moduleIndex, 1);
     setCourse({ ...course, modules: newModules });
   };
 
   const updateModule = (moduleIndex: number, field: string, value: string | boolean) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex] = { ...newModules[moduleIndex], [field]: value };
     setCourse({ ...course, modules: newModules });
   };
 
   const toggleModuleExpansion = (moduleIndex: number) => {
-    updateModule(moduleIndex, 'isExpanded', !course?.modules[moduleIndex].isExpanded);
+    updateModule(moduleIndex, 'isExpanded', !course.modules[moduleIndex].isExpanded);
   };
 
   const addSubsection = (moduleIndex: number) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex].subsections = [
       ...newModules[moduleIndex].subsections,
       { title: '', videoUrl: '' },
@@ -370,7 +370,7 @@ console.log(course);
   };
 
   const removeSubsection = (moduleIndex: number, subsectionIndex: number) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex].subsections.splice(subsectionIndex, 1);
     setCourse({ ...course, modules: newModules });
   };
@@ -381,7 +381,7 @@ console.log(course);
     field: string,
     value: string
   ) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex].subsections[subsectionIndex] = {
       ...newModules[moduleIndex].subsections[subsectionIndex],
       [field]: value,
@@ -394,7 +394,7 @@ console.log(course);
     try {
       setIsLoading(true);
       
-      let base64 = course?.thumbnail_photo_path;
+      let base64 = course.thumbnail_photo_path;
       let thumbnail_photo_base64_code = undefined;
       let thumbnail_photo_path = undefined;
 
@@ -407,19 +407,19 @@ console.log(course);
       }
 
       const payload = {
-        title: course?.title,
-        description: course?.description,
-        content: course?.content,
-        category: course?.category,
-        price: Number(course?.price),
-        duration: Number(course?.duration),
-        level: course?.level,
-        language: course?.language,
-        prerequisites: course?.prerequisites,
+        title: course.title,
+        description: course.description,
+        content: course.content,
+        category: course.category,
+        price: Number(course.price),
+        duration: Number(course.duration),
+        level: course.level,
+        language: course.language,
+        prerequisites: course.prerequisites,
         thumbnail_photo_base64_code: thumbnail_photo_base64_code,
         thumbnail_photo_path: thumbnail_photo_path,
-        course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
-        course_modules: course?.modules.map((mod, idx) => ({
+        course_type: course.courseType === 'online' ? 0 : course.courseType === 'physical' ? 1 : 2,
+        course_modules: course.modules.map((mod, idx) => ({
           module_title: mod.title,
           module_description: mod.description,
           sequence: idx,
@@ -451,8 +451,8 @@ console.log(course);
         })),
       };
 
-      if (mode === 'edit' && course?.id) {
-        await dispatch(updateAdminCourse(course?.id, payload) as any);
+      if (mode === 'edit' && course.id) {
+        await dispatch(updateAdminCourse(course.id, payload) as any);
         toast({
           title: "Course updated!",
           description: "Your course has been successfully updated.",
@@ -563,7 +563,7 @@ console.log(course);
                 </CardHeader>
                 <CardContent>
                   <RadioGroup 
-                    value={course?.courseType} 
+                    value={course.courseType} 
                     onValueChange={(value) => handleCourseTypeChange(value as CourseType)}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4"
                   >
@@ -615,9 +615,9 @@ console.log(course);
                     <Label htmlFor="title">Course Title</Label>
                     <Input
                       id="title"
-                      value={course?.title}
+                      value={course.title}
                       onChange={(e) => setCourse({ ...course, title: e.target.value })}
-                      placeholder={course?.courseType === 'physical' ? "e.g., Test Prep Package" : "e.g., Complete Online Driver's Ed"}
+                      placeholder={course.courseType === 'physical' ? "e.g., Test Prep Package" : "e.g., Complete Online Driver's Ed"}
                       className="text-lg"
                     />
                   </div>
@@ -625,9 +625,9 @@ console.log(course);
                     <Label htmlFor="description">Course Description</Label>
                     <Textarea
                       id="description"
-                      value={course?.description}
+                      value={course.description}
                       onChange={(e) => setCourse({ ...course, description: e.target.value })}
-                      placeholder={course?.courseType === 'physical' 
+                      placeholder={course.courseType === 'physical' 
                         ? "Describe the benefits and preparation this physical course provides..."
                         : "Describe what students will learn in this online course?..."
                       }
@@ -638,7 +638,7 @@ console.log(course);
                     <Label htmlFor="content">Course Content Summary</Label>
                     <Textarea
                       id="content"
-                      value={course?.content}
+                      value={course.content}
                       onChange={(e) => setCourse({ ...course, content: e.target.value })}
                       placeholder="Brief summary of the course content"
                       rows={2}
@@ -647,7 +647,7 @@ console.log(course);
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
-                      <Select value={course?.category} onValueChange={(value) => setCourse({ ...course, category: value })}>
+                      <Select value={course.category} onValueChange={(value) => setCourse({ ...course, category: value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
@@ -665,9 +665,9 @@ console.log(course);
                       <Input
                         id="price"
                         type="number"
-                        value={course?.price}
+                        value={course.price}
                         onChange={(e) => setCourse({ ...course, price: Number(e.target.value) || 0 })}
-                        placeholder={course?.courseType === 'physical' ? "550" : "99.99"}
+                        placeholder={course.courseType === 'physical' ? "550" : "99.99"}
                       />
                     </div>
                     <div className="space-y-2">
@@ -675,7 +675,7 @@ console.log(course);
                       <Input
                         id="duration"
                         type="number"
-                        value={course?.duration}
+                        value={course.duration}
                         onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
                         placeholder="e.g. 20"
                       />
@@ -686,7 +686,7 @@ console.log(course);
                       <Label htmlFor="level">Level</Label>
                       <Input
                         id="level"
-                        value={course?.level}
+                        value={course.level}
                         onChange={(e) => setCourse({ ...course, level: e.target.value })}
                         placeholder="e.g. Beginner, Intermediate, Advanced"
                       />
@@ -695,7 +695,7 @@ console.log(course);
                       <Label htmlFor="language">Language</Label>
                       <Input
                         id="language"
-                        value={course?.language}
+                        value={course.language}
                         onChange={(e) => setCourse({ ...course, language: e.target.value })}
                         placeholder="e.g. English"
                       />
@@ -704,7 +704,7 @@ console.log(course);
                       <Label htmlFor="prerequisites">Prerequisites</Label>
                       <Input
                         id="prerequisites"
-                        value={course?.prerequisites}
+                        value={course.prerequisites}
                         onChange={(e) => setCourse({ ...course, prerequisites: e.target.value })}
                         placeholder="e.g. None, Basic driving knowledge"
                       />
@@ -727,13 +727,13 @@ console.log(course);
                         }
                       }}
                     />
-                    {course?.thumbnail_photo_path && (
+                    {course.thumbnail_photo_path && (
                       <div className="mt-2">
                         <img 
         src={
-  course?.thumbnail_photo_path?.startsWith('data:image')
+  course.thumbnail_photo_path?.startsWith('data:image')
     ? course.thumbnail_photo_path
-    : import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path
+    : import.meta.env.VITE_API_BASE_URL + "/" + course.thumbnail_photo_path
 }
         alt="Course thumbnail_photo_path preview" 
                           className="w-32 h-20 object-cover rounded border"
@@ -772,7 +772,7 @@ console.log(course);
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {course?.modules.map((module, moduleIndex) => (
+                  {course.modules.map((module, moduleIndex) => (
                     <Card key={moduleIndex} className="border-2 border-dashed border-border">
                       <Collapsible
                         open={module.isExpanded}
@@ -961,8 +961,8 @@ console.log(course);
                         </CollapsibleContent>
                       </Collapsible>
                     </Card>
-                  ))}
-                  {course?.modules.length === 0 && (
+                                      ))}
+                  {course.modules.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg">
                       <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <h3 className="text-lg font-medium mb-2">No modules yet</h3>
@@ -989,12 +989,12 @@ console.log(course);
                 <CardContent>
                   <div className="mb-4">
                     <h3 className="font-bold text-lg mb-2">Preview</h3>
-                    <div>Title: {course?.title}</div>
-                    <div>Description: {course?.description}</div>
-                    <div>Category: {course?.category}</div>
-                    <div>Price: ${course?.price}</div>
-                    <div>Type: {course?.courseType}</div>
-                    <div>Materials: {course?.materials.length} file(s)</div>
+                    <div>Title: {course.title}</div>
+                    <div>Description: {course.description}</div>
+                    <div>Category: {course.category}</div>
+                    <div>Price: ${course.price}</div>
+                    <div>Type: {course.courseType}</div>
+                    <div>Materials: {course.materials.length} file(s)</div>
                   </div>
                   <Button onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                     {mode === 'edit' ? 'Update Course' : 'Publish Course'}
@@ -1022,17 +1022,17 @@ console.log(course);
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    {course?.courseType === 'physical' ? <Car className="h-5 w-5 mr-2" /> : <Play className="h-5 w-5 mr-2" />}
+                    {course.courseType === 'physical' ? <Car className="h-5 w-5 mr-2" /> : <Play className="h-5 w-5 mr-2" />}
                     Course Preview
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {course?.thumbnail_photo_path && (
+                  {course.thumbnail_photo_path && (
                     <img
                       src={
-  course?.thumbnail_photo_path?.startsWith('data:image')
+  course.thumbnail_photo_path?.startsWith('data:image')
     ? course.thumbnail_photo_path
-    : import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path
+    : import.meta.env.VITE_API_BASE_URL + "/" + course.thumbnail_photo_path
 }
                       alt="Course thumbnail_photo_path"
                       className="w-full h-32 object-cover rounded-md"
@@ -1040,45 +1040,45 @@ console.log(course);
                   )}
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-bold text-foreground text-lg">{course?.title || 'Course Title'}</h3>
+                      <h3 className="font-bold text-foreground text-lg">{course.title || 'Course Title'}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {course?.description || 'Course description will appear here...'}
+                        {course.description || 'Course description will appear here...'}
                       </p>
                     </div>
-                    <Badge variant={course?.courseType === 'physical' ? 'default' : 'secondary'} className="ml-2">
-                      {course?.courseType === 'physical' ? 'Physical' : 'Online'}
+                    <Badge variant={course.courseType === 'physical' ? 'default' : 'secondary'} className="ml-2">
+                      {course.courseType === 'physical' ? 'Physical' : 'Online'}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    {course?.category && (
-                      <Badge variant="outline">{course?.category.replace('-', ' ')}</Badge>
+                    {course.category && (
+                      <Badge variant="outline">{course.category.replace('-', ' ')}</Badge>
                     )}
-                    {course?.price > 0 && (
-                      <span className="text-lg font-bold text-blue-600">${course?.price} CAD</span>
+                    {course.price > 0 && (
+                      <span className="text-lg font-bold text-blue-600">${course.price} CAD</span>
                     )}
                   </div>
                   <Separator />
                   <div>
                     <h4 className="font-semibold text-foreground mb-3">Course Content</h4>
-                    {course?.courseType === 'physical' ? (
+                    {course.courseType === 'physical' ? (
                       <div className="space-y-3">
                         <div className="text-sm text-muted-foreground">
                           <div className="flex justify-between">
                             <span>Duration:</span>
-                            <span className="font-medium">{course?.physicalCourseData?.duration || 'TBD'}</span>
+                            <span className="font-medium">{course.physicalCourseData?.duration || 'TBD'}</span>
                           </div>
-                          {course?.physicalCourseData?.location && (
+                          {course.physicalCourseData?.location && (
                             <div className="flex justify-between">
                               <span>Location:</span>
-                              <span className="font-medium">{course?.physicalCourseData.location}</span>
+                              <span className="font-medium">{course.physicalCourseData.location}</span>
                             </div>
                           )}
                         </div>
-                        {course?.physicalCourseData?.includes && (
+                        {course.physicalCourseData?.includes && (
                           <div>
                             <h5 className="text-sm font-medium mb-2">What's Included:</h5>
                             <div className="space-y-1">
-                              {course?.physicalCourseData.includes.split('\n').filter(item => item.trim()).map((item, index) => (
+                              {course.physicalCourseData.includes.split('\n').filter(item => item.trim()).map((item, index) => (
                                 <div key={index} className="text-xs text-muted-foreground flex items-center">
                                   <div className="h-1 w-1 bg-blue-600 rounded-full mr-2"></div>
                                   {item.trim()}
@@ -1092,24 +1092,24 @@ console.log(course);
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                           <div>
-                            <span className="font-medium">{course?.modules.length}</span> modules
+                            <span className="font-medium">{course.modules.length}</span> modules
                           </div>
                           <div>
-                            <span className="font-medium">{course?.modules.reduce((total, module) => total + module.subsections.length, 0)}</span> lessons
+                            <span className="font-medium">{course.modules.reduce((total, module) => total + module.subsections.length, 0)}</span> lessons
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                           <div>
-                            <span className="font-medium">{course?.modules.filter(module => module.quiz && module.quiz.questions.length > 0).length}</span> quizzes
+                            <span className="font-medium">{course.modules.filter(module => module.quiz && module.quiz.questions.length > 0).length}</span> quizzes
                           </div>
-                          {course?.modules.reduce((total, module) => total + module.subsections.length, 0) > 0 && (
+                          {course.modules.reduce((total, module) => total + module.subsections.length, 0) > 0 && (
                             <div>
-                              <span className="font-medium">{`${Math.ceil(course?.modules.reduce((total, module) => total + module.subsections.length, 0) * 1.5)} hours`}</span>
+                              <span className="font-medium">{`${Math.ceil(course.modules.reduce((total, module) => total + module.subsections.length, 0) * 1.5)} hours`}</span>
                             </div>
                           )}
                         </div>
                         <div className="space-y-2 max-h-64 overflow-y-auto">
-                          {course?.modules.map((module, index) => (
+                          {course.modules.map((module, index) => (
                             <div key={index} className="text-sm">
                               <div className="font-medium text-foreground flex items-center">
                                 <BookOpen className="h-3 w-3 mr-2" />
@@ -1138,7 +1138,7 @@ console.log(course);
                               </div>
                             </div>
                           ))}
-                          {course?.modules.length === 0 && (
+                          {course.modules.length === 0 && (
                             <div className="text-muted-foreground text-sm">
                               No modules added yet
                             </div>
@@ -1151,14 +1151,14 @@ console.log(course);
                   <div>
                     <h4 className="font-semibold text-foreground mb-3">Materials</h4>
                     <ul>
-                      {course?.materials.map((mat, idx) => (
+                      {course.materials.map((mat, idx) => (
                         <li key={idx} className="text-xs text-muted-foreground flex items-center">
                           <span className="mr-2">•</span>
                           <a href={mat.url} target="_blank" rel="noopener noreferrer" className="underline">{mat.name || mat.url}</a>
                         </li>
                       ))}
                     </ul>
-                    {course?.materials.length === 0 && (
+                    {course.materials.length === 0 && (
                       <div className="text-muted-foreground text-sm">
                         No materials added yet.
                       </div>
@@ -1176,12 +1176,12 @@ console.log(course);
   onClose={() => setQuizModal({ open: false, moduleIdx: null })}
   quiz={
     quizModal.moduleIdx !== null
-      ? quizToModalFormat(course?.modules[quizModal.moduleIdx].quiz)
+      ? quizToModalFormat(course.modules[quizModal.moduleIdx].quiz)
       : undefined
   }
   onSave={(modalQuiz: any) => {
     if (quizModal.moduleIdx !== null) {
-      const newModules = [...course?.modules];
+      const newModules = [...course.modules];
       newModules[quizModal.moduleIdx].quiz = modalToQuizFormat(modalQuiz);
       setCourse({ ...course, modules: newModules });
     }
