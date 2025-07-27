@@ -33,8 +33,8 @@ interface PhysicalCourseDetailProps {
 }
 
 const PhysicalCourseDetail = ({ course, onBookAppointment, onEnroll }: PhysicalCourseDetailProps) => {
-  const taxAmount = course?.price * 0.13; // 13% HST for Ontario
-  const totalPrice = course?.price + taxAmount;
+  const taxAmount = course?.price * 0.13; 
+  const totalPrice = course?.price;
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
