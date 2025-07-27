@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, ArrowRight, Car, Award, TrendingUp, Monitor, CheckCircle, Star, Users, Clock, PlayCircle, Shield, MapPin, Phone, Mail, Calendar } from 'lucide-react';
 import { CourseCard } from '@/components/course/CourseCard';
 import { useCourses } from '@/hooks/useCourses';
@@ -57,10 +57,23 @@ const dummyCourses = [
   }
 ];
 
+const heroImages = [
+ "/hero/slide1.jpg",
+  "/hero/slide2.jpg",
+];
+
 const CanadianDrivingSchool = () => {
+  // All hooks must be inside the component function
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const { courses, loading, error } = useCourses(1, 8); // Fetch 8 courses for the homepage
+  const [currentHeroImage, setCurrentHeroImage] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentHeroImage((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Driving course categories
   const categories = [
@@ -89,73 +102,45 @@ const CanadianDrivingSchool = () => {
     <div className="min-h-screen bg-background text-foreground transition-colors">
       <RoleBasedNavigation />
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,#1e3a8a_25%,transparent_25%),linear-gradient(-45deg,#1e3a8a_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1e3a8a_75%),linear-gradient(-45deg,transparent_75%,#1e3a8a_75%)] bg-[size:60px_60px] bg-[position:0_0,0_30px,30px_-30px,-30px_0px] opacity-10"></div>
-        
-        {/* Animated Driving Images */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Car 1 - Floating Animation */}
-          <div className="absolute top-20 left-10 w-20 h-20 animate-bounce opacity-30">
-            <div className="w-full h-full bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-              <Car className="w-10 h-10 text-white animate-pulse" />
-            </div>
-          </div>
-          
-          {/* Steering Wheel - Rotating */}
-          <div className="absolute top-32 right-16 w-24 h-24 animate-spin opacity-25" style={{animationDuration: '15s'}}>
-            <div className="w-full h-full bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30">
-              <div className="w-16 h-16 border-4 border-white/50 rounded-full flex items-center justify-center">
-                <div className="w-2 h-8 bg-white/60 rounded"></div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Traffic Light - Blinking */}
-          <div className="absolute bottom-32 left-20 w-16 h-24 opacity-35">
-            <div className="w-full h-full bg-white/20 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-1 border border-white/30">
-              <div className="w-4 h-4 bg-red-400 rounded-full animate-pulse"></div>
-              <div className="w-4 h-4 bg-yellow-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-              <div className="w-4 h-4 bg-green-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-            </div>
-          </div>
-          
-          {/* Road Lines - Moving */}
-          <div className="absolute bottom-20 right-24 w-32 h-20 opacity-30">
-            <div className="w-full h-full bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center overflow-hidden border border-white/20">
-              <div className="flex space-x-2 animate-pulse">
-                <div className="w-1 h-12 bg-white/60 rounded animate-bounce"></div>
-                <div className="w-1 h-12 bg-white/60 rounded animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                <div className="w-1 h-12 bg-white/60 rounded animate-bounce" style={{animationDelay: '0.4s'}}></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Additional Floating Elements */}
-          <div className="absolute top-1/2 left-1/4 w-6 h-6 bg-white/20 rounded-full animate-ping opacity-20"></div>
-          <div className="absolute top-1/3 right-1/3 w-8 h-8 bg-white/15 rounded-full animate-pulse opacity-25"></div>
-          <div className="absolute bottom-1/3 left-1/3 w-4 h-4 bg-white/25 rounded-full animate-bounce opacity-30"></div>
+      <section className="relative py-20 overflow-hidden">
+        {/* Blurred background carousel */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+          {heroImages.map((img, idx) => (
+            <img
+              key={img}
+              src={img}
+              alt=""
+              className={`
+                absolute inset-0 w-full h-full object-cover transition-opacity duration-1000
+                ${idx === currentHeroImage ? "opacity-50  scale-110" : "opacity-0"}
+              `}
+              style={{ zIndex: 0 }}
+              draggable={false}
+            />
+          ))}
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Hero content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8">
-              <Award className="w-5 h-5 text-white mr-3" />
-              <span className="text-white font-semibold">MTO Approved • 25+ Years Experience • 98% Pass Rate</span>
+            <div className="inline-flex items-center px-6 py-3 rounded-full mb-8">
+              <Award className="w-5 h-5 text-black mr-3" />
+              <span className="font-semibold text-black">MTO Approved • 25+ Years Experience • 98% Pass Rate</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold text-black mb-6 leading-tight">
               Learn to Drive with{' '}
               <span className="text-red-400">
                 Canada's Best
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-black mb-12 max-w-4xl mx-auto leading-relaxed">
               Professional driving instruction across NL. From G1 to full license, 
               we'll get you road-ready with confidence and safety.
             </p>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 mb-12 text-white/90">
+            <div className="flex flex-wrap justify-center items-center gap-8 mb-12 text-black">
               <div className="flex items-center">
                 <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
                 <span className="font-medium">50,000+ Drivers Trained</span>
@@ -215,7 +200,7 @@ const CanadianDrivingSchool = () => {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <div className="text-center mb-4">
-              <p className="text-lg text-white/90 font-medium mb-4">
+              <p className="text-lg text-black/90 font-medium mb-4">
                 Book your driving lesson today! Choose from morning, afternoon, or evening slots.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -225,7 +210,7 @@ const CanadianDrivingSchool = () => {
                     Book Driving Lesson
                   </button>
                 </Link>
-                <button className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/20 text-lg px-8 py-4 font-semibold rounded-xl transition-all">
+                <button className="bg-black/10 backdrop-blur-sm border-2 border-white/30 text-black hover:bg-white/20 text-lg px-8 py-4 font-semibold rounded-xl transition-all">
                   <PlayCircle className="mr-2 h-5 w-5 inline" />
                   Watch Demo Video
                 </button>
