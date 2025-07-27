@@ -342,7 +342,7 @@ const AdminDashboard = () => {
             <ThemeToggle />
             {sidebarOpen && (
               <Button variant="outline" size="sm" asChild>
-                <Link to="/dashboard">Go to Home</Link>
+                <Link to="/admin">Go to Home</Link>
               </Button>
             )}
           </div>

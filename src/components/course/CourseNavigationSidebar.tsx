@@ -64,7 +64,7 @@ const CourseNavigationSidebar = ({
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className={sidebarCollapsed ? 'w-full' : ''}>
-            <Link to="/dashboard">
+            <Link to="/admin">
               <ArrowLeft className="h-4 w-4" />
               {!sidebarCollapsed && <span className="ml-2">Back to Dashboard</span>}
             </Link>

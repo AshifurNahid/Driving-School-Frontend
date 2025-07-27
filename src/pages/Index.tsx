@@ -123,35 +123,33 @@ const CanadianDrivingSchool = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <div className="inline-flex items-center px-6 py-3 rounded-full mb-8">
-              <Award className="w-5 h-5 text-black mr-3" />
-              <span className="font-semibold text-black">MTO Approved • 25+ Years Experience • 98% Pass Rate</span>
+              <Award className="w-5 h-5 text-black dark:text-white mr-3" />
+              <span className="font-semibold text-black dark:text-white">MTO Approved • 25+ Years Experience • 98% Pass Rate</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold text-black mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold text-black dark:text-white mb-6 leading-tight">
               Learn to Drive with{' '}
-              <span className="text-red-400">
-                Canada's Best
-              </span>
+              <span className="text-red-500 dark:text-pink-400">Canada's Best</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-black/90 dark:text-white/90 font-bold mb-12 max-w-4xl mx-auto leading-relaxed">
               Professional driving instruction across Newfoundland and Labrador. From learner's license (Level I) to full Class 5 license, 
               we'll get you road-ready with confidence and safety.
             </p>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 mb-12 text-black">
+            <div className="flex flex-wrap justify-center items-center gap-8 mb-12 text-black dark:text-white">
               <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
-                <span className="font-medium">50,000+ Drivers Trained</span>
+                <CheckCircle className="w-5 h-5 font-bold text-black-400 dark:text-white-400 mr-2" />
+                <span className="font-bold">50,000+ Drivers Trained</span>
               </div>
               <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
-                <span className="font-medium">MTO Certified Instructors</span>
+                <CheckCircle className="w-5 h-5 font-bold text-black-400 dark:text-white-400 mr-2" />
+                <span className="font-bold">MTO Certified Instructors</span>
               </div>
               <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
-                <span className="font-medium">Flexible Scheduling</span>
+                <CheckCircle className="w-5 h-5 font-bold text-black-400 dark:text-white-400 mr-2" />
+                <span className="font-bold">Flexible Scheduling</span>
               </div>
             </div>
           </div>
@@ -200,7 +198,7 @@ const CanadianDrivingSchool = () => {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <div className="text-center mb-4">
-              <p className="text-lg text-black/90 font-medium mb-4">
+              <p className="text-lg text-black/90 font-bold mb-4 dark:text-white">
                 Book your driving lesson today! Choose from morning, afternoon, or evening slots.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -210,7 +208,7 @@ const CanadianDrivingSchool = () => {
                     Book Driving Lesson
                   </button>
                 </Link>
-                <button className="bg-black/10 backdrop-blur-sm border-2 border-white/30 text-black hover:bg-white/20 text-lg px-8 py-4 font-semibold rounded-xl transition-all">
+                <button className="bg-black/10 backdrop-blur-sm border-2 dark:text-white border-white/30 text-black hover:bg-white/20 text-lg px-8 py-4 font-semibold rounded-xl transition-all">
                   <PlayCircle className="mr-2 h-5 w-5 inline" />
                   Watch Demo Video
                 </button>

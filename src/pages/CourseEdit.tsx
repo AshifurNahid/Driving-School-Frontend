@@ -139,7 +139,7 @@ const CourseEdit = () => {
       description: "Course has been successfully updated.",
     });
     
-    navigate('/dashboard');
+    navigate('/admin');
   };
 
   const handleInputChange = (field: string, value: string | number | boolean | string[]) => {

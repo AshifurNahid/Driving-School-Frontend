@@ -107,7 +107,7 @@ const PublicHeader = () => {
                         <NavLink to="/courses" className={mobileLinkClass}>Browse Courses</NavLink>
                       </SheetClose>
                       <SheetClose asChild>
-                        <NavLink to="/dashboard" className={mobileLinkClass}>Dashboard</NavLink>
+                        <NavLink to="/admin" className={mobileLinkClass}>Dashboard</NavLink>
                       </SheetClose>
                     </nav>
                     <div className="mt-auto space-y-2">
