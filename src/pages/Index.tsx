@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 
 // Dummy course data using your provided images and structure
-const dummyCourses = [
+/*const dummyCourses = [
   {
     id: 1,
     title: "G1 to G2 License Program",
@@ -55,7 +55,7 @@ const dummyCourses = [
     thumbnail_photo_path: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=250&fit=crop",
     course_reviews: Array(203)
   }
-];
+];*/
 
 const heroImages = [
  "/hero/slide1.jpg",
@@ -88,7 +88,7 @@ const CanadianDrivingSchool = () => {
   ];
 
   // Combine fetched courses and dummy courses for display
-  const allCourses = [...(courses || []), ...dummyCourses];
+  const allCourses = [...(courses || [])];
 
   // Filter and search courses from backend
   const filteredCourses = allCourses.filter(course => {
@@ -134,8 +134,8 @@ const CanadianDrivingSchool = () => {
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-black mb-12 max-w-4xl mx-auto leading-relaxed">
-              Professional driving instruction across NL. From G1 to full license, 
+            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed">
+              Professional driving instruction across Newfoundland and Labrador. From learner's license (Level I) to full Class 5 license, 
               we'll get you road-ready with confidence and safety.
             </p>
 
