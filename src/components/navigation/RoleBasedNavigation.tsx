@@ -42,7 +42,7 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
         {/* Left side - Logo */}
         <div className="flex items-center">
           <NavLink to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            EduPlatform
+            NL Driving
           </NavLink>
         </div>
 

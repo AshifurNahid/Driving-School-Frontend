@@ -150,7 +150,7 @@ const CanadianDrivingSchool = () => {
             </h1>
             
             <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Professional driving instruction across Ontario. From G1 to full license, 
+              Professional driving instruction across NL. From G1 to full license, 
               we'll get you road-ready with confidence and safety.
             </p>
 
@@ -360,7 +360,7 @@ const CanadianDrivingSchool = () => {
               Why Choose DriveCanada Pro?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              As Ontario's premier driving school, we combine professional instruction with modern teaching methods 
+              As NL's premier driving school, we combine professional instruction with modern teaching methods 
               to ensure your success on the road.
             </p>
           </div>
