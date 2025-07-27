@@ -242,7 +242,10 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
 
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
   const [isLoading, setIsLoading] = useState(false);
-console.log(course);
+  const [courseLoaded, setCourseLoaded] = useState(false);
+  
+console.log('Current course state:', course);
+console.log('Current course type:', course?.courseType);
 
   // Effect to handle edit mode data loading
   useEffect(() => {
@@ -254,10 +257,11 @@ console.log(course);
 
   // Effect to set course data when course details are loaded
   useEffect(() => {
-    if (mode === 'edit' && courseDetails && !initialCourse) {
+    if (mode === 'edit' && courseDetails && !initialCourse && !courseLoaded) {
       try {
         const transformedCourse = transformApiResponseToCourse(courseDetails);
         setCourse(transformedCourse);
+        setCourseLoaded(true);
         setIsLoading(false);
       } catch (error) {
         console.error('Error transforming course data:', error);
@@ -270,14 +274,18 @@ console.log(course);
       }
     }
     
-  }, [courseDetails, mode, initialCourse]);
+  }, [courseDetails, mode, initialCourse, courseLoaded]);
 
   // Effect to handle initial course prop
   useEffect(() => {
     if (initialCourse) {
       setCourse(initialCourse);
+      setCourseLoaded(true);
+    } else if (mode === 'add') {
+      // For add mode, mark as loaded immediately so user selections aren't overridden
+      setCourseLoaded(true);
     }
-  }, [initialCourse]);
+  }, [initialCourse, mode]);
 
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -324,12 +332,17 @@ console.log(course);
 
   // --- Module logic (add, remove, update, etc.) ---
   const handleCourseTypeChange = (type: CourseType) => {
-    setCourse(prev => ({
-      ...prev,
-      courseType: type,
-      modules: type === 'physical' ? [] : prev.modules,
-      physicalCourseData: type === 'online' ? undefined : prev.physicalCourseData
-    }));
+    console.log('Changing course type to:', type);
+    setCourse(prev => {
+      const newCourse = {
+        ...prev,
+        courseType: type,
+        modules: type === 'physical' ? [] : prev.modules,
+        physicalCourseData: type === 'online' ? undefined : prev.physicalCourseData
+      };
+      console.log('New course state after type change:', newCourse);
+      return newCourse;
+    });
   };
 
   
@@ -394,6 +407,8 @@ console.log(course);
     try {
       setIsLoading(true);
       
+      console.log('Submitting course with type:', course?.courseType);
+      
       let base64 = course?.thumbnail_photo_path;
       let thumbnail_photo_base64_code = undefined;
       let thumbnail_photo_path = undefined;
@@ -405,6 +420,9 @@ console.log(course);
         // Existing image path, send as path
         thumbnail_photo_path = base64;
       }
+
+      const courseTypeNumber = course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2;
+      console.log('Mapped course type number:', courseTypeNumber);
 
       const payload = {
         title: course?.title,
@@ -418,7 +436,7 @@ console.log(course);
         prerequisites: course?.prerequisites,
         thumbnail_photo_base64_code: thumbnail_photo_base64_code,
         thumbnail_photo_path: thumbnail_photo_path,
-        course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
+        course_type: courseTypeNumber,
         course_modules: course?.modules.map((mod, idx) => ({
           module_title: mod.title,
           module_description: mod.description,
@@ -450,6 +468,9 @@ console.log(course);
             : [],
         })),
       };
+
+      console.log('Final payload:', payload);
+      console.log('Payload course_type:', payload.course_type);
 
       if (mode === 'edit' && course?.id) {
         await dispatch(updateAdminCourse(course?.id, payload) as any);
@@ -564,7 +585,10 @@ console.log(course);
                 <CardContent>
                   <RadioGroup 
                     value={course?.courseType} 
-                    onValueChange={(value) => handleCourseTypeChange(value as CourseType)}
+                    onValueChange={(value) => {
+                      console.log('RadioGroup onValueChange called with:', value);
+                      handleCourseTypeChange(value as CourseType);
+                    }}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4"
                   >
                     <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
