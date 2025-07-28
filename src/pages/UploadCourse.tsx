@@ -179,7 +179,7 @@ const transformApiResponseToCourse = (apiResponse: any): Course => {
   const modules = apiResponse.course_modules?.map((module: any, index: number) => ({
     title: module.module_title || '',
     description: module.module_description || '',
-    subsections: module.course_module_lesones?.map((lesson: any) => ({
+          subsections: module.course_module_lessons?.map((lesson: any) => ({
       title: lesson.lesson_title || '',
       description: lesson.lesson_description || '',
       duration: lesson.duration || 0,
@@ -291,12 +291,7 @@ console.log(course);
     course?.description.trim() &&
     course?.category &&
     course?.price > 0 &&
-    course?.thumbnail_photo_path.trim() &&
-    (course?.courseType === 'physical' || course?.courseType === 'hybrid'
-      ? !!course?.physicalCourseData?.title &&
-        !!course?.physicalCourseData?.duration &&
-        !!course?.physicalCourseData?.location
-      : true);
+    course?.thumbnail_photo_path.trim();
 
   const isContentStepValid =
     course?.courseType === 'physical' || course?.courseType === 'hybrid'
@@ -313,7 +308,62 @@ console.log(course);
   };
 
   const goNext = () => {
-    if (canGoNext() && currentStep < steps.length - 1) setCurrentStep(currentStep + 1);
+    // Validate current step before proceeding
+    if (currentStep === 0) {
+      if (!course?.courseType) {
+        alert('Please select a course type to continue.');
+        return;
+      }
+    } else if (currentStep === 1) {
+      const missingFields = [];
+      if (!course?.title?.trim()) missingFields.push('Course Title');
+      if (!course?.description?.trim()) missingFields.push('Course Description');
+      if (!course?.content?.trim()) missingFields.push('Course Content');
+      if (!course?.category) missingFields.push('Category');
+      if (!course?.price || course?.price <= 0) missingFields.push('Price');
+      if (!course?.duration || course?.duration <= 0) missingFields.push('Duration');
+      if (!course?.level?.trim()) missingFields.push('Level');
+      if (!course?.language?.trim()) missingFields.push('Language');
+      if (!course?.prerequisites?.trim()) missingFields.push('Prerequisites');
+      if (!course?.thumbnail_photo_path?.trim()) missingFields.push('Thumbnail Image');
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
+        return;
+      }
+    } else if (currentStep === 2) {
+      if (!course?.modules || course?.modules.length === 0) {
+        alert('Please add at least one module to continue.');
+        return;
+      }
+      
+      const missingFields = [];
+      course?.modules.forEach((module, moduleIndex) => {
+        if (!module.title?.trim()) {
+          missingFields.push(`Module ${moduleIndex + 1} Title`);
+        }
+        if (!module.subsections || module.subsections.length === 0) {
+          missingFields.push(`At least one lesson in Module ${moduleIndex + 1}`);
+        } else {
+          module.subsections.forEach((subsection, lessonIndex) => {
+            if (!subsection.title?.trim()) {
+              missingFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
+            }
+            if (!subsection.videoUrl?.trim()) {
+              missingFields.push(`Lesson ${lessonIndex + 1} Video URL in Module ${moduleIndex + 1}`);
+            }
+          });
+        }
+      });
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
+        return;
+      }
+    }
+    
+    // If validation passes, proceed to next step
+    if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1);
   };
   const goBack = () => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
@@ -391,6 +441,52 @@ console.log(course);
 
   // --- Submit Handler with dispatch ---
   const handleSubmit = async () => {
+    // Validate required fields before submitting
+    const requiredFields = [];
+    
+    if (!course?.title?.trim()) requiredFields.push('Course Title');
+    if (!course?.description?.trim()) requiredFields.push('Course Description');
+    if (!course?.content?.trim()) requiredFields.push('Course content');
+
+    if (!course?.category?.trim()) requiredFields.push('Category');
+    if (!course?.price || course?.price <= 0) requiredFields.push('Price');
+    if (!course?.duration || course?.duration <= 0) requiredFields.push('Duration');
+    if (!course?.level?.trim()) requiredFields.push('Level');
+    if (!course?.language?.trim()) requiredFields.push('Language');
+    if (!course?.thumbnail_photo_path?.trim()) requiredFields.push('Thumbnail Image');
+    if(!course?.prerequisites?.trim()) requiredFields.push('Prerequisites');
+    
+    
+    // For all course types, validate modules and lessons (since UI is the same)
+    if (!course?.modules || course?.modules.length === 0) {
+      requiredFields.push('At least one module');
+    } else {
+      course?.modules.forEach((module, moduleIndex) => {
+        if (!module.title?.trim()) {
+          requiredFields.push(`Module ${moduleIndex + 1} Title`);
+        }
+        if (!module.subsections || module.subsections.length === 0) {
+          requiredFields.push(`At least one lesson in Module ${moduleIndex + 1}`);
+        } else {
+          module.subsections.forEach((subsection, lessonIndex) => {
+            if (!subsection.title?.trim()) {
+              requiredFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
+            }
+            if (!subsection.videoUrl?.trim()) {
+              requiredFields.push(`Lesson ${lessonIndex + 1} Video URL in Module ${moduleIndex + 1}`);
+            }
+          });
+        }
+      });
+    }
+    
+    // If there are missing required fields, show alert and return
+    if (requiredFields.length > 0) {
+      const missingFieldsMessage = `Please fill in the following required fields:\n\n${requiredFields.join('\n')}`;
+      alert(missingFieldsMessage);
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -399,10 +495,11 @@ console.log(course);
       let thumbnail_photo_path = undefined;
 
       if (base64 && base64.startsWith('data:image')) {
-        // New image selected, send as base64
-        thumbnail_photo_base64_code = base64.split(',')[1];
-      } else if (base64) {
-        // Existing image path, send as path
+        // New image selected, send the complete data URL as base64
+        // Backend will handle splitting and extracting the base64 part
+        thumbnail_photo_base64_code = base64;
+      } else if (base64 && base64.trim() !== '') {
+        // Existing image path, send only as path
         thumbnail_photo_path = base64;
       }
 
@@ -416,8 +513,8 @@ console.log(course);
         level: course?.level,
         language: course?.language,
         prerequisites: course?.prerequisites,
-        thumbnail_photo_base64_code: thumbnail_photo_base64_code,
-        thumbnail_photo_path: thumbnail_photo_path,
+        ...(thumbnail_photo_base64_code && { thumbnail_photo_base64_code }),
+        ...(thumbnail_photo_path && { thumbnail_photo_path }),
         course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
         course_modules: course?.modules.map((mod, idx) => ({
           module_title: mod.title,
@@ -452,13 +549,13 @@ console.log(course);
       };
 
       if (mode === 'edit' && course?.id) {
-        await dispatch(updateAdminCourse(course?.id, payload) as any);
+      await dispatch(updateAdminCourse(course?.id, payload) as any);
         toast({
           title: "Course updated!",
           description: "Your course has been successfully updated.",
         });
       } else {
-        await dispatch(createAdminCourse(payload) as any);
+      await dispatch(createAdminCourse(payload) as any);
         toast({
           title: "Course published!",
           description: "Your course has been successfully uploaded.",
@@ -664,8 +761,8 @@ console.log(course);
                       <Label htmlFor="price">Price (CAD)</Label>
                       <Input
                         id="price"
-                        type="number"
-                        value={course?.price}
+                        type="text"
+                        value={course?.price || ''}
                         onChange={(e) => setCourse({ ...course, price: Number(e.target.value) || 0 })}
                         placeholder={course?.courseType === 'physical' ? "550" : "99.99"}
                       />
@@ -674,8 +771,8 @@ console.log(course);
                       <Label htmlFor="duration">Duration (hours)</Label>
                       <Input
                         id="duration"
-                        type="number"
-                        value={course?.duration}
+                        type="text"
+                        value={course?.duration || ''}
                         onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
                         placeholder="e.g. 20"
                       />
@@ -719,9 +816,29 @@ console.log(course);
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Validate file size (max 5MB)
+                          if (file.size > 5 * 1024 * 1024) {
+                            alert('Image file size must be less than 5MB');
+                            return;
+                          }
+                          
+                          // Validate file type
+                          if (!file.type.startsWith('image/')) {
+                            alert('Please select a valid image file');
+                            return;
+                          }
+
                           const reader = new FileReader();
                           reader.onloadend = () => {
-                            setCourse({ ...course, thumbnail_photo_path: reader.result as string });
+                            const result = reader.result as string;
+                            if (result && result.startsWith('data:image/')) {
+                              setCourse({ ...course, thumbnail_photo_path: result });
+                            } else {
+                              alert('Failed to read image file. Please try again.');
+                            }
+                          };
+                          reader.onerror = () => {
+                            alert('Error reading image file. Please try again.');
                           };
                           reader.readAsDataURL(file);
                         }
@@ -884,8 +1001,8 @@ console.log(course);
                                       />
                                        
                                       <Input
-                                        type="number"
-                                        value={subsection.duration || 0}
+                                        type="text"
+                                        value={subsection.duration || ''}
                                         onChange={(e) => updateSubsection(moduleIndex, subsectionIndex, 'duration', e.target.value)}
                                         placeholder="Duration (in minutes)"
                                         className="bg-background"
@@ -1009,7 +1126,7 @@ console.log(course);
                 Back
               </Button>
               {currentStep < steps.length - 1 && (
-                <Button onClick={goNext} disabled={!canGoNext()}>
+                <Button onClick={goNext}>
                   Next
                 </Button>
               )}
