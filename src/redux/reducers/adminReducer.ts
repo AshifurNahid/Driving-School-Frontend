@@ -182,7 +182,8 @@ interface AdminCourseListState {
   courses: Course[]; // Adjust type as necessary
   error: string | null;
   courseDetails?: Course | null; // Optional for details view
-  
+  deleteSuccess?: boolean;
+  deleteMessage?: string | null;
 }
 
 const initialCourseListState: AdminCourseListState = {
@@ -190,7 +191,8 @@ const initialCourseListState: AdminCourseListState = {
   courses: [],
   error: null,
   courseDetails: null,
-  
+  deleteSuccess: false,
+  deleteMessage: null,
 };
 
 export const adminCourseListReducer = (
@@ -203,7 +205,7 @@ export const adminCourseListReducer = (
     case "ADMIN_COURSE_CREATE_REQUEST":
     case "ADMIN_COURSE_UPDATE_REQUEST":
     case "ADMIN_COURSE_DELETE_REQUEST":
-      return { ...state, loading: true, error: null };
+      return { ...state, loading: true, error: null, deleteSuccess: false, deleteMessage: null };
     case "ADMIN_COURSE_LIST_SUCCESS":
       return {
         ...state,
@@ -231,6 +233,8 @@ export const adminCourseListReducer = (
         loading: false,
         courses: state.courses.filter(course => course?.id !== action.payload.courseId),
         error: "No error",
+        deleteSuccess: true,
+        deleteMessage: action.payload.message,
       };
     case "ADMIN_COURSE_LIST_FAIL":
     case "ADMIN_COURSE_DETAILS_FAIL":

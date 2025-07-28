@@ -82,7 +82,7 @@ const AdminDashboard = () => {
   const { loading: deleteLoading, success: deleteSuccess, message: deleteMessage } = useSelector((state: RootState) => state.adminUserDelete);
   const { roles, loading: rolesLoading } = useSelector((state: RootState) => state.adminRoleList);
   const { loading: roleUpdateLoading, user: userDetail, error: roleUpdateError } = useSelector((state: RootState) => state.adminUserDetails);
-  const { loading: courseListLoading, courses, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
+  const { loading: courseListLoading, courses, error: courseListError, deleteSuccess: courseDeleteSuccess, deleteMessage: courseDeleteMessage } = useSelector((state: RootState) => state.adminCourseList);
 
   // Handle viewing user details
   const handleViewUser = (userId: number) => {
@@ -96,7 +96,9 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteCourse = (courseId: number) => {
-    dispatch(deleteAdminCourse(courseId));
+    if (window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+      dispatch(deleteAdminCourse(courseId));
+    }
   };
 
   // Show toast and refetch users after successful delete
@@ -112,6 +114,16 @@ const AdminDashboard = () => {
       dispatch(getAdminUsers());
     }
   }, [deleteSuccess, deleteMessage, dispatch, toast, location.state]);
+
+  // Show toast after successful course delete
+  useEffect(() => {
+    if (courseDeleteSuccess) {
+      toast({
+        title: "Course Deleted",
+        description: courseDeleteMessage || "Course successfully deleted.",
+      });
+    }
+  }, [courseDeleteSuccess, courseDeleteMessage, toast]);
 
   // Handle editing user role
   const handleEditUser = (user: User) => {
@@ -662,7 +674,7 @@ const AdminDashboard = () => {
                             courses.map((course) => {
                               const totalModules = course?.course_modules?.length || 0;
                               const totalLessons = course?.course_modules
-                                ? course?.course_modules.reduce((sum: number, m) => sum + (m.course_module_lesones?.length || 0), 0)
+                                ? course?.course_modules.reduce((sum: number, m) => sum + (m.course_module_lessons?.length || 0), 0)
                                 : 0;
                               const totalQuizzes = course?.course_modules
                                 ? course?.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
