@@ -395,6 +395,12 @@ const AdminAppointmentManagement = () => {
                             📍 {appointment.location}
                           </span>
                         )}
+                        {/* Display price if available */}
+                        {appointment.pricePerSlot > 0 && (
+                          <span className="text-xs text-green-600 font-medium">
+                            ${appointment.pricePerSlot}
+                          </span>
+                        )}
                         {getStatusBadge(appointment.status)}
                       </div>
                       <div className="flex gap-2 self-end sm:self-auto">

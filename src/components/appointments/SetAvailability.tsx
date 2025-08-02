@@ -17,9 +17,11 @@ const SetAvailability = () => {
     setLoading(true);
     setError('');
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    api.get(`/appointment-slots/date/${dateStr}?courseId=0`)
+    api.get(`/appointment-slots/date/${dateStr}`)
       .then(res => {
-        const data = Array.isArray(res.data) ? res.data : (res.data.data && Array.isArray(res.data.data)) ? res.data.data : [];
+        // Extract data from nested response if needed
+        const responseData = res.data.data || res.data;
+        const data = Array.isArray(responseData) ? responseData : [];
         setSlots(data);
       })
       .catch(err => {
@@ -129,9 +131,10 @@ const SetAvailability = () => {
                             slot.status === 1 ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300' : 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
                           }`}>
                             {slot.status === 1 ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                            {slot.status === 1 ? 'Available' : 'Booked'}
+                            {slot.status === 1 ? 'Available' : (slot.status === 0 ? 'Unavailable' : 'Booked')}
                           </div>
                         </div>
+                        
                         <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600 dark:text-gray-300">
                           <span className="flex items-center gap-1">
                             <User className="h-4 w-4" />
@@ -145,6 +148,11 @@ const SetAvailability = () => {
                             <span className="flex items-center gap-1">
                               <BookOpen className="h-4 w-4" />
                               {slot.courseTitle}
+                            </span>
+                          )}
+                          {slot.pricePerSlot > 0 && (
+                            <span className="flex items-center gap-1 text-green-600 font-medium">
+                              <span className="text-xs">$</span>{slot.pricePerSlot}
                             </span>
                           )}
                         </div>

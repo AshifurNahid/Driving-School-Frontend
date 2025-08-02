@@ -20,6 +20,7 @@ import {
 interface AppointmentSlot {
   id: number;
   instructorId: number;
+  courseId?: number; // Added property for courseId
   date: string;
   startTime: string;
   endTime: string;
@@ -29,6 +30,7 @@ interface AppointmentSlot {
   updatedById: number;
   createdAt: string;
   updatedAt: string;
+  pricePerSlot?: number; // Added property for pricePerSlot
 }
 
 // Interface for appointment slots state
