@@ -493,62 +493,70 @@ const CanadianDrivingSchool = () => {
       </section>
 
       
-
-      {/* Why Choose Us Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background dark:bg-[#181830] transition-colors">
+{/* Why Choose Us Section - Mobile Optimized */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-background dark:bg-[#181830] transition-colors">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
               Why Choose DriveCanada Pro?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto px-2">
               As NL's premier driving school, we combine professional instruction with modern teaching methods 
               to ensure your success on the road.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Mobile: 2 cards per row, Tablet: 2 cards, Desktop: 3 cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
             {[
               {
-                icon: <Award className="w-8 h-8 text-red-600" />,
+                icon: <Award className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-red-600" />,
                 title: "MTO Certified Instructors",
                 description: "All our instructors are Ministry of Transportation certified with years of professional teaching experience."
               },
               {
-                icon: <Shield className="w-8 h-8 text-green-600" />,
+                icon: <Shield className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-green-600" />,
                 title: "Modern Safety Features",
                 description: "Our training vehicles are equipped with dual controls and latest safety technology for secure learning."
               },
               {
-                icon: <Clock className="w-8 h-8 text-blue-600" />,
+                icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-blue-600" />,
                 title: "Flexible Scheduling",
                 description: "Book lessons at your convenience with morning, afternoon, evening, and weekend availability."
               },
               {
-                icon: <Users className="w-8 h-8 text-purple-600" />,
+                icon: <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-purple-600" />,
                 title: "Personalized Training",
                 description: "One-on-one instruction tailored to your learning pace and driving goals."
               },
               {
-                icon: <TrendingUp className="w-8 h-8 text-orange-600" />,
+                icon: <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-orange-600" />,
                 title: "High Pass Rate",
                 description: "98% of our students pass their driving test on the first attempt with our proven methods."
               },
               {
-                icon: <MapPin className="w-8 h-8 text-indigo-600" />,
+                icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-indigo-600" />,
                 title: "Multiple Locations",
                 description: "Convenient pickup locations across the GTA with door-to-door service available."
               }
             ].map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-card dark:bg-[#23235b] text-card-foreground">
-                <CardContent className="p-8">
-                  <div className="flex justify-center mb-6">
-                    <div className="p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-[#23235b] dark:to-[#181830] rounded-full">
+                <CardContent className="p-3 sm:p-4 lg:p-8">
+                  <div className="flex justify-center mb-3 sm:mb-4 lg:mb-6">
+                    <div className="p-2 sm:p-2.5 lg:p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-[#23235b] dark:to-[#181830] rounded-full">
                       {feature.icon}
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground dark:text-white mb-4">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <h3 className="text-sm sm:text-base lg:text-xl font-bold text-foreground dark:text-white mb-2 sm:mb-3 lg:mb-4 leading-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm lg:text-base text-muted-foreground leading-relaxed hidden sm:block">
+                    {feature.description}
+                  </p>
+                  {/* Shortened description for mobile */}
+                  <p className="text-xs text-muted-foreground leading-relaxed sm:hidden">
+                    {feature.description.split('.')[0]}.
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -556,51 +564,74 @@ const CanadianDrivingSchool = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white" id="contact">
+      {/* Contact Section - Mobile Optimized */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white" id="contact">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Start Driving?</h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
+              Ready to Start Driving?
+            </h2>
+            <p className="text-sm sm:text-base lg:text-xl text-gray-300 max-w-3xl mx-auto px-2">
               Contact us today to book your first lesson or get more information about our programs.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {/* Mobile: Stack vertically, Tablet+: 3 columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Phone className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Call Us</h3>
-              <p className="text-gray-300">+1 (709- 351 6738)</p>
-              {/* <p className="text-gray-300">(416) 555-3748</p> */}
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Call Us</h3>
+              <a 
+                href="tel:+17093516738" 
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors duration-200"
+              >
+                <span className="text-sm sm:text-base">+1 (709) 351-6738</span>
+                <Phone className="w-3 h-3 text-gray-400" />
+              </a>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Mail className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Email Us</h3>
-              <p className="text-gray-300">info@nldriversacademy.ca</p>
-              {/* <p className="text-gray-300">booking@drivecanadapro.ca</p> */}
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Email Us</h3>
+              <a 
+                href="mailto:info@nldriversacademy.ca" 
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors duration-200"
+              >
+                <span className="text-sm sm:text-base break-all sm:break-normal">info@nldriversacademy.ca</span>
+                <Mail className="w-3 h-3 text-gray-400" />
+              </a>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Visit Us</h3>
-              <p className="text-gray-300">411 Torbay Rd, St. John's, NL A1A 5C9</p>
-              {/* <p className="text-gray-300">Toronto, ON M5H 2M9</p> */}
+              <h3 className="text-lg sm:text-xl font-bold mb-2">Visit Us</h3>
+              <a 
+                href="https://maps.google.com/?q=411+Torbay+Rd,+St.+John's,+NL+A1A+5C9" 
+                target="_blank"
+                rel="noopener noreferrer" 
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors duration-200"
+              >
+                <span className="text-sm sm:text-base">411 Torbay Rd, St. John's, NL</span>
+                <MapPin className="w-3 h-3 text-gray-400" />
+              </a>
             </div>
           </div>
 
           <div className="text-center">
-            <button className="bg-red-600 hover:bg-red-700 text-white text-xl px-12 py-4 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
-              <Calendar className="mr-3 h-6 w-6 inline" />
-              Book Your First Lesson Today
-            </button>
+            <Link to="/appointments">
+              <button className="bg-red-600 hover:bg-red-700 text-white text-base sm:text-lg lg:text-xl px-6 sm:px-8 lg:px-12 py-3 sm:py-3.5 lg:py-4 font-bold rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all w-full sm:w-auto">
+                <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 inline" />
+                <span className="text-sm sm:text-base lg:text-xl">Book Your First Lesson Today</span>
+              </button>
+            </Link>
           </div>
         </div>
       </section>
+      
       <Footer />
     </div>
   );
