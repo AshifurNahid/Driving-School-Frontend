@@ -572,24 +572,24 @@ const CanadianDrivingSchool = () => {
                 <Phone className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-2">Call Us</h3>
-              <p className="text-gray-300">(416) 555-DRIVE</p>
-              <p className="text-gray-300">(416) 555-3748</p>
+              <p className="text-gray-300">+1 (709- 351 6738)</p>
+              {/* <p className="text-gray-300">(416) 555-3748</p> */}
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-2">Email Us</h3>
-              <p className="text-gray-300">info@drivecanadapro.ca</p>
-              <p className="text-gray-300">booking@drivecanadapro.ca</p>
+              <p className="text-gray-300">info@nldriversacademy.ca</p>
+              {/* <p className="text-gray-300">booking@drivecanadapro.ca</p> */}
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-bold mb-2">Visit Us</h3>
-              <p className="text-gray-300">123 Queen Street West</p>
-              <p className="text-gray-300">Toronto, ON M5H 2M9</p>
+              <p className="text-gray-300">411 Torbay Rd, St. John's, NL A1A 5C9</p>
+              {/* <p className="text-gray-300">Toronto, ON M5H 2M9</p> */}
             </div>
           </div>
 
