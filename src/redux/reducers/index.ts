@@ -15,6 +15,7 @@ import {
   appointmentSlotCreateReducer,
   appointmentSlotUpdateReducer,
   appointmentSlotDeleteReducer,
+  bookDirectAppointmentReducer  // NEW
 } from "./appointmentReducer";
 
 const rootReducer = combineReducers({
@@ -33,7 +34,10 @@ const rootReducer = combineReducers({
   appointmentSlotCreate: appointmentSlotCreateReducer,
   appointmentSlotUpdate: appointmentSlotUpdateReducer,
   appointmentSlotDelete: appointmentSlotDeleteReducer,
+  bookDirectAppointment: bookDirectAppointmentReducer // NEW
+
+  
   // add other reducers here
 });
-
+export type RootState = ReturnType<typeof rootReducer>;
 export default rootReducer;

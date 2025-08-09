@@ -1,3 +1,5 @@
+// src/redux/reducers/appointmentReducers.ts
+
 import {
   APPOINTMENT_SLOTS_REQUEST,
   APPOINTMENT_SLOTS_SUCCESS,
@@ -14,13 +16,17 @@ import {
   APPOINTMENT_SLOT_DELETE_SUCCESS,
   APPOINTMENT_SLOT_DELETE_FAIL,
   APPOINTMENT_SLOT_DELETE_RESET,
-} from "../constants/appointmentConstants";
+  BOOK_DIRECT_APPOINTMENT_REQUEST,
+  BOOK_DIRECT_APPOINTMENT_SUCCESS,
+  BOOK_DIRECT_APPOINTMENT_FAILURE,
+  BOOK_DIRECT_APPOINTMENT_RESET
+} from '../constants/appointmentConstants';
 
 // Interface for appointment slot
-interface AppointmentSlot {
+export interface AppointmentSlot {
   id: number;
   instructorId: number;
-  courseId?: number; // Added property for courseId
+  courseId?: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -30,7 +36,9 @@ interface AppointmentSlot {
   updatedById: number;
   createdAt: string;
   updatedAt: string;
-  pricePerSlot?: number; // Added property for pricePerSlot
+  pricePerSlot?: number;
+  instructorName?: string;
+  courseTitle?: string;
 }
 
 // Interface for appointment slots state
@@ -43,11 +51,11 @@ interface AppointmentSlotsState {
 // Initial state
 const initialAppointmentSlotsState: AppointmentSlotsState = {
   loading: false,
-  appointmentSlots: [], // Ensure this is initialized as an empty array
+  appointmentSlots: [],
   error: null,
 };
 
-// Appointment slots reducer
+// Appointment slots reducer (existing)
 export const appointmentSlotsReducer = (
   state = initialAppointmentSlotsState,
   action: any
@@ -59,7 +67,7 @@ export const appointmentSlotsReducer = (
       return {
         ...state,
         loading: false,
-        appointmentSlots: Array.isArray(action.payload) ? action.payload : [], // Ensure it's an array
+        appointmentSlots: Array.isArray(action.payload) ? action.payload : [],
         error: null,
       };
     case APPOINTMENT_SLOTS_FAIL:
@@ -85,7 +93,7 @@ const initialAppointmentSlotCreateState: AppointmentSlotCreateState = {
   error: null,
 };
 
-// Appointment slot create reducer
+// Appointment slot create reducer (existing)
 export const appointmentSlotCreateReducer = (
   state = initialAppointmentSlotCreateState,
   action: any
@@ -126,7 +134,7 @@ const initialAppointmentSlotUpdateState: AppointmentSlotUpdateState = {
   error: null,
 };
 
-// Appointment slot update reducer
+// Appointment slot update reducer (existing)
 export const appointmentSlotUpdateReducer = (
   state = initialAppointmentSlotUpdateState,
   action: any
@@ -165,7 +173,7 @@ const initialAppointmentSlotDeleteState: AppointmentSlotDeleteState = {
   error: null,
 };
 
-// Appointment slot delete reducer
+// Appointment slot delete reducer (existing)
 export const appointmentSlotDeleteReducer = (
   state = initialAppointmentSlotDeleteState,
   action: any
@@ -184,6 +192,66 @@ export const appointmentSlotDeleteReducer = (
       return { ...state, loading: false, success: false, error: action.payload };
     case APPOINTMENT_SLOT_DELETE_RESET:
       return initialAppointmentSlotDeleteState;
+    default:
+      return state;
+  }
+};
+
+// NEW: Book Direct Appointment State
+interface BookDirectAppointmentState {
+  loading: boolean;
+  success: boolean;
+  message: string | null;
+  error: string | null;
+  data: any;
+}
+
+const bookDirectAppointmentInitialState: BookDirectAppointmentState = {
+  loading: false,
+  success: false,
+  message: null,
+  error: null,
+  data: null,
+};
+
+// NEW: Book Direct Appointment Reducer
+export const bookDirectAppointmentReducer = (
+  state = bookDirectAppointmentInitialState,
+  action: any
+): BookDirectAppointmentState => {
+  switch (action.type) {
+    case BOOK_DIRECT_APPOINTMENT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: false,
+        message: null,
+        error: null
+      };
+    
+    case BOOK_DIRECT_APPOINTMENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        message: action.payload.message,
+        error: null,
+        data: action.payload.data
+      };
+    
+    case BOOK_DIRECT_APPOINTMENT_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        success: false,
+        message: null,
+        error: action.payload,
+        data: null
+      };
+    
+    case BOOK_DIRECT_APPOINTMENT_RESET:
+      return bookDirectAppointmentInitialState;
+    
     default:
       return state;
   }

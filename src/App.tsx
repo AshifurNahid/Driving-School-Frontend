@@ -25,7 +25,7 @@ import AppointmentManagement from "./pages/AppointmentManagement";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
 import AdminInstructors from "./pages/AdminInstructors";
-
+import UserAppointment from '@/pages/UserAppointment';
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -54,7 +54,7 @@ const App = () => (
                 <Route path="/course/:id/learn" element={<CourseLearn />} />
                 <Route path="/learner/profile" element={<LearnerProfile />} />
                 <Route path="/learner/courses" element={<LearnerCourses />} />
-                <Route path="/appointments" element={<AppointmentManagement />} />
+                <Route path="/appointments" element={<UserAppointment  />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
