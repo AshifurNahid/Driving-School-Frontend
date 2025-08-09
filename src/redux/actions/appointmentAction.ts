@@ -15,7 +15,10 @@ import {
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
-  BOOK_DIRECT_APPOINTMENT_RESET
+  BOOK_DIRECT_APPOINTMENT_RESET,
+  USER_APPOINTMENTS_REQUEST,
+  USER_APPOINTMENTS_SUCCESS,
+  USER_APPOINTMENTS_FAIL
 } from "../constants/appointmentConstants";
 
 
@@ -271,4 +274,30 @@ export const bookDirectAppointment = (payload: BookDirectAppointmentPayload) => 
       dispatch(bookDirectAppointmentFailure(errorMessage));
     }
   };
+};
+
+// Get user appointments
+export const getUserAppointments = (userId: number) => async (dispatch: any) => {
+  try {
+    dispatch({ type: USER_APPOINTMENTS_REQUEST });
+    
+    const { data } = await api.get(`/appointments/user/${userId}`);
+    
+    // Get appointments from the response - handle both direct array or nested data object
+    const userAppointments = Array.isArray(data) ? data : 
+                           (data.data && Array.isArray(data.data)) ? data.data : [];
+    
+    dispatch({
+      type: USER_APPOINTMENTS_SUCCESS,
+      payload: userAppointments,
+    });
+  } catch (error: any) {
+    dispatch({
+      type: USER_APPOINTMENTS_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
 };

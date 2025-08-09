@@ -19,7 +19,10 @@ import {
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
-  BOOK_DIRECT_APPOINTMENT_RESET
+  BOOK_DIRECT_APPOINTMENT_RESET,
+  USER_APPOINTMENTS_REQUEST,
+  USER_APPOINTMENTS_SUCCESS,
+  USER_APPOINTMENTS_FAIL
 } from '../constants/appointmentConstants';
 
 // Interface for appointment slot
@@ -91,6 +94,42 @@ const initialAppointmentSlotCreateState: AppointmentSlotCreateState = {
   success: false,
   appointmentSlot: null,
   error: null,
+};
+
+// User Appointments State Interface
+interface UserAppointmentsState {
+  loading: boolean;
+  appointments: any[]; // Using any for now, will be UserAppointmentItem[] from types
+  error: string | null;
+}
+
+// Initial state for user appointments
+const initialUserAppointmentsState: UserAppointmentsState = {
+  loading: false,
+  appointments: [],
+  error: null,
+};
+
+// User appointments reducer
+export const userAppointmentsReducer = (
+  state = initialUserAppointmentsState,
+  action: any
+): UserAppointmentsState => {
+  switch (action.type) {
+    case USER_APPOINTMENTS_REQUEST:
+      return { ...state, loading: true, error: null };
+    case USER_APPOINTMENTS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        appointments: Array.isArray(action.payload) ? action.payload : [],
+        error: null,
+      };
+    case USER_APPOINTMENTS_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
 };
 
 // Appointment slot create reducer (existing)
