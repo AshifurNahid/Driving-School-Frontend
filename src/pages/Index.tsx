@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, ArrowRight, Car, Award, TrendingUp, Monitor, CheckCircle, Star, Users, Clock, PlayCircle, Shield, MapPin, Phone, Mail, Calendar } from 'lucide-react';
 import { CourseCard } from '@/components/course/CourseCard';
 import { useCourses } from '@/hooks/useCourses';
-import PublicHeader from '@/components/PublicHeader';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

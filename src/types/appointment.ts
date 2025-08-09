@@ -80,3 +80,38 @@ export interface AppointmentSettings {
   allowCancellation: boolean;
   requireNote: boolean;
 }
+
+// API response appointment interface
+export interface UserAppointmentItem {
+  id: number;
+  userId: number;
+  availableAppointmentSlotId: number;
+  userCourseId: number | null;
+  appointmentType: string;
+  hoursConsumed: number;
+  amountPaid: number;
+  note: string | null;
+  learnerPermitIssueDate: string | null;
+  permitNumber: string | null;
+  permitExpirationDate: string | null;
+  drivingExperience: string | null;
+  isLicenceFromAnotherCountry: boolean;
+  status: string;
+  createdAt: string;
+  appointmentSlot: {
+    id: number;
+    instructorId: number;
+    courseId: number;
+    date: string;
+    startTime: string;
+    endTime: string;
+    location: string;
+    status: number;
+    createdById: number;
+    updatedById: number;
+    createdAt: string;
+    updatedAt: string;
+    pricePerSlot: number;
+  };
+  userCourse: any;
+}

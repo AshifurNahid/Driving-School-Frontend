@@ -43,12 +43,8 @@ const AppointmentManagement = () => {
             {isAdmin && (
               <TabsTrigger value="availability">My Availability</TabsTrigger>
             )}
-            <TabsTrigger value="book">
-              {isAdmin ? "View All Bookings" : "Book Appointment"}
-            </TabsTrigger>
-            <TabsTrigger value="history">
-              {isAdmin ? "Appointment History" : "My Appointments"}
-            </TabsTrigger>
+       
+      
           </TabsList>
 
           {isAdmin && (
@@ -57,17 +53,7 @@ const AppointmentManagement = () => {
             </TabsContent>
           )}
 
-          <TabsContent value="book" className="mt-6">
-            {isAdmin ? (
-              <AppointmentHistory />
-            ) : (
-              <BookAppointment />
-            )}
-          </TabsContent>
-
-          <TabsContent value="history" className="mt-6">
-            <AppointmentHistory />
-          </TabsContent>
+          
         </Tabs>
       </div>
     </div>

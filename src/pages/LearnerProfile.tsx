@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { getUserCourses } from "@/redux/actions/userCourseAction";
+import { getUserAppointments } from "@/redux/actions/appointmentAction";
 import { RootState } from "@/redux/store";
 import { useAuth } from "@/hooks/useAuth";
 import PublicHeader from '@/components/PublicHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Download, Play, Calendar, Award, Car, Clock, MapPin, User, Phone, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import LearnerCourseList from "@/components/course/LearnerCourseList";
 import ProfileSidebar from '@/components/learnerProfile/ProfileSidebar';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
+import { UserAppointmentItem } from '@/types/appointment';
 // Removed react-router-dom import as it's not available
 
 const DrivingSchoolLearnerProfile = () => {
@@ -24,10 +25,12 @@ const DrivingSchoolLearnerProfile = () => {
   const dispatch = useDispatch();
   const userId = userInfo?.id;
   const { courses, loading, error } = useSelector((state: RootState) => state.userCourseList);
+  const { appointments, loading: appointmentsLoading, error: appointmentsError } = useSelector((state: RootState) => state.userAppointments);
 
   useEffect(() => {
     if (userId) {
       dispatch(getUserCourses(userId) as any);
+      dispatch(getUserAppointments(userId) as any);
     }
   }, [dispatch, userId]);
 
@@ -48,57 +51,19 @@ const DrivingSchoolLearnerProfile = () => {
   const activeCourses = mappedCourses.filter(course => !course?.completed);
   const completedCourses = mappedCourses.filter(course => course?.completed);
 
-  // Mock data for appointments
-  const appointments = [
-    {
-      id: 1,
-      type: "Practical Lesson",
-      instructor: "Sarah Johnson",
-      date: "2025-07-25",
-      start_time: "10:00 AM",
-      end_time: "12:00 PM",
-      location: "Main Training Ground",
-      status: "confirmed",
-      vehicle: "Toyota Corolla - ABC123",
-      notes: "Focus on parallel parking"
-    },
-    {
-      id: 2,
-      type: "Road Test",
-      instructor: "Michael Chen",
-      date: "2025-07-28",
-      start_time: "2:00 PM",
-      end_time: "3:00 PM",
-      location: "DMV Testing Center",
-      status: "pending",
-      vehicle: "Honda Civic - XYZ456",
-      notes: "Final driving test for license"
-    },
-    {
-      id: 3,
-      type: "Theory Class",
-      instructor: "Emma Wilson",
-      date: "2025-07-30",
-      start_time: "9:00 AM",
-      end_time: "10:30 AM",
-      location: "Classroom A",
-      status: "confirmed",
-      vehicle: "N/A",
-      notes: "Traffic laws and regulations"
-    },
-    {
-      id: 4,
-      type: "Practical Lesson",
-      instructor: "Sarah Johnson",
-      date: "2025-08-02",
-      start_time: "11:00 AM",
-      end_time: "1:00 PM",
-      location: "City Driving Route",
-      status: "cancelled",
-      vehicle: "Toyota Corolla - ABC123",
-      notes: "Cancelled due to weather"
-    }
-  ];
+  // Map API appointment data to our UI format
+  const mappedAppointments = appointments.map((appointment: UserAppointmentItem) => ({
+    id: appointment.id,
+    type: appointment.appointmentType || "Driving Lesson",
+    instructor: `Instructor ${appointment.appointmentSlot?.instructorId || ""}`,
+    date: appointment.appointmentSlot?.date || "",
+    start_time: appointment.appointmentSlot?.startTime || "",
+    end_time: appointment.appointmentSlot?.endTime || "",
+    location: appointment.appointmentSlot?.location || "School Location",
+    status: appointment.status.toLowerCase(),
+    vehicle: "School Vehicle",
+    notes: appointment.note || ""
+  }));
 
   // Mock data for materials
   const materials = [
@@ -196,20 +161,28 @@ const DrivingSchoolLearnerProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {appointments.filter(apt => apt.status !== 'cancelled').slice(0, 3).map((appointment) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(appointment.status)}
-                        <div>
-                          <div className="font-medium">{appointment.type}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {appointment.date} | {appointment.start_time} - {appointment.end_time}
+                  {appointmentsLoading ? (
+                    <div className="text-center py-4">Loading appointments...</div>
+                  ) : appointmentsError ? (
+                    <div className="text-center py-4 text-red-500">{appointmentsError}</div>
+                  ) : mappedAppointments.filter(apt => apt.status !== 'cancelled').length > 0 ? (
+                    mappedAppointments.filter(apt => apt.status !== 'cancelled').slice(0, 3).map((appointment) => (
+                      <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(appointment.status)}
+                          <div>
+                            <div className="font-medium">{appointment.type}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {appointment.date} | {appointment.start_time} - {appointment.end_time}
+                            </div>
                           </div>
                         </div>
+                        {getStatusBadge(appointment.status)}
                       </div>
-                      {getStatusBadge(appointment.status)}
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground">No upcoming appointments</div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -217,12 +190,28 @@ const DrivingSchoolLearnerProfile = () => {
         );
 
       case 'appointments':
+        if (appointmentsLoading) {
+          return (
+            <div className="flex justify-center items-center h-64">
+              <div className="text-lg font-medium">Loading appointments...</div>
+            </div>
+          );
+        }
+
+        if (appointmentsError) {
+          return (
+            <div className="flex justify-center items-center h-64">
+              <div className="text-lg font-medium text-red-500">Error loading appointments: {appointmentsError}</div>
+            </div>
+          );
+        }
+
         // Split appointments
         const now = new Date();
-        const upcomingAppointments = appointments.filter(
+        const upcomingAppointments = mappedAppointments.filter(
           apt => apt.status !== 'cancelled' && new Date(apt.date) >= now
         );
-        const historyAppointments = appointments.filter(
+        const historyAppointments = mappedAppointments.filter(
           apt => apt.status === 'cancelled' || new Date(apt.date) < now
         );
 
@@ -411,7 +400,7 @@ const DrivingSchoolLearnerProfile = () => {
   return (
     <>
       <RoleBasedNavigation />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background mt-14">
         <div className="flex">
           {/* Left Sidebar */}
           <ProfileSidebar
