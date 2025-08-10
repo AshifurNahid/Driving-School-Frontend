@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { LearnCourse } from '@/utils/learnMapper';
 
 interface Lesson {
   id: number;
@@ -30,15 +31,8 @@ interface Module {
   lessons: Lesson[];
 }
 
-interface Course {
-  id: number;
-  title: string;
-  totalProgress: number;
-  modules: Module[];
-}
-
 interface CourseNavigationSidebarProps {
-  course: Course;
+  course: LearnCourse;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   expandedModules: number[];
