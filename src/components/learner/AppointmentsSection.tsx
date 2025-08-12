@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,6 +23,11 @@ import {
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import AppointmentDetailModal from './AppointmentDetailModal';
+=======
+import { Button } from '@/components/ui/button';
+import { Calendar } from 'lucide-react';
+import AppointmentsList from './AppointmentsList';
+>>>>>>> 82e036b (feat: enhence learner profile)
 
 interface AppointmentsSectionProps {
   appointments: any[];
@@ -29,6 +35,7 @@ interface AppointmentsSectionProps {
   appointmentsError: string | null;
 }
 
+<<<<<<< HEAD
 interface AppointmentType {
   id: number;
   userId: number;
@@ -177,11 +184,23 @@ const AppointmentsSection = ({
       <div className="flex flex-col justify-center items-center h-64 space-y-4">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         <div className="text-lg font-medium text-muted-foreground">Loading your appointments...</div>
+=======
+const AppointmentsSection = ({ 
+  appointments, 
+  appointmentsLoading, 
+  appointmentsError 
+}: AppointmentsSectionProps) => {
+  if (appointmentsLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg font-medium">Loading appointments...</div>
+>>>>>>> 82e036b (feat: enhence learner profile)
       </div>
     );
   }
 
   if (appointmentsError) {
+<<<<<<< HEAD
     // Handle the specific case when user has no appointments (404 error)
     if (appointmentsError.includes('404') || appointmentsError.includes('No appointments found')) {
       return (
@@ -231,11 +250,17 @@ const AppointmentsSection = ({
         <XCircle className="h-12 w-12 text-red-500" />
         <div className="text-lg font-medium text-red-500">Error loading appointments</div>
         <div className="text-sm text-muted-foreground">{appointmentsError}</div>
+=======
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg font-medium text-red-500">Error loading appointments: {appointmentsError}</div>
+>>>>>>> 82e036b (feat: enhence learner profile)
       </div>
     );
   }
 
   const now = new Date();
+<<<<<<< HEAD
   const upcomingAppointments = validAppointments.filter(
     apt => apt?.appointmentSlot?.date && 
            apt.status !== 'Cancelled' && 
@@ -455,6 +480,38 @@ const AppointmentsSection = ({
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
       />
+=======
+  const upcomingAppointments = appointments.filter(
+    apt => apt.status !== 'cancelled' && new Date(apt.date) >= now
+  );
+  const historyAppointments = appointments.filter(
+    apt => apt.status === 'cancelled' || new Date(apt.date) < now
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-foreground">My Appointments</h2>
+        <Button onClick={() => window.location.href = "/appointments"}>
+          <Calendar className="h-4 w-4 mr-2" />
+          Take New Appointment
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <AppointmentsList 
+          title="Upcoming Appointments"
+          appointments={upcomingAppointments}
+          emptyMessage="No upcoming appointments."
+        />
+        
+        <AppointmentsList 
+          title="History"
+          appointments={historyAppointments}
+          emptyMessage="No appointment history."
+        />
+      </div>
+>>>>>>> 82e036b (feat: enhence learner profile)
     </div>
   );
 };
