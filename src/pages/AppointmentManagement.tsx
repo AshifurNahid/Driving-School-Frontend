@@ -3,9 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser } from '@/contexts/UserContext';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
-import SetAvailability from '@/components/appointments/SetAvailability';
-import BookAppointment from '@/components/appointments/BookAppointment';
-import AppointmentHistory from '@/components/appointments/AppointmentHistory';
+
 
 const AppointmentManagement = () => {
   const { user, isAdmin } = useUser();
@@ -47,11 +45,11 @@ const AppointmentManagement = () => {
       
           </TabsList>
 
-          {isAdmin && (
+          {/* {isAdmin && (
             <TabsContent value="availability" className="mt-6">
               <SetAvailability />
             </TabsContent>
-          )}
+          )} */}
 
           
         </Tabs>
