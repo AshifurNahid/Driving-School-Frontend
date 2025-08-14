@@ -1,6 +1,8 @@
+// This component has been integrated into AppointmentsSection.tsx with enhanced UI
+// This file can be deleted if no longer referenced elsewhere
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, MapPin } from 'lucide-react';
-import { getStatusBadge } from './utils/appointmentUtils';
 
 interface AppointmentsListProps {
   title: string;
@@ -9,6 +11,8 @@ interface AppointmentsListProps {
 }
 
 const AppointmentsList = ({ title, appointments, emptyMessage }: AppointmentsListProps) => {
+  console.warn('AppointmentsList component is deprecated. Use enhanced AppointmentsSection instead.');
+  
   return (
     <div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
@@ -16,30 +20,10 @@ const AppointmentsList = ({ title, appointments, emptyMessage }: AppointmentsLis
         {appointments.length === 0 ? (
           <div className="text-muted-foreground">{emptyMessage}</div>
         ) : (
-          appointments.map((appointment) => (
-            <Card key={appointment.id}>
-              <CardContent className="pt-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-foreground">{appointment.type}</h3>
-                    {getStatusBadge(appointment.status)}
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>
-                        {appointment.date} | {appointment.start_time} - {appointment.end_time}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{appointment.location}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+          <div className="text-center p-8">
+            <p className="text-muted-foreground">This component has been enhanced.</p>
+            <p className="text-sm text-gray-500">Please use the new AppointmentsSection component.</p>
+          </div>
         )}
       </div>
     </div>
