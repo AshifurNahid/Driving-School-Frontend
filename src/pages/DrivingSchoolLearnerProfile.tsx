@@ -63,11 +63,17 @@ const DrivingSchoolLearnerProfile = () => {
       appointmentsError,
     };
 
+    // For AppointmentsSection, use raw appointments data
+    const appointmentProps = {
+      ...commonProps,
+      appointments: appointments || [], // Use raw appointments data from API
+    };
+
     switch (activeSection) {
       case 'overview':
         return <OverviewSection {...commonProps} />;
       case 'appointments':
-        return <AppointmentsSection {...commonProps} />;
+        return <AppointmentsSection {...appointmentProps} />;
       case 'courses':
         return <CoursesSection {...commonProps} />;
       case 'materials':
