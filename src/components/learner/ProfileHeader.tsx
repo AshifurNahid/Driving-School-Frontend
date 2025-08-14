@@ -8,6 +8,11 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ userInfo, activeSection, sidebarItems }: ProfileHeaderProps) => {
+  // Only show header for sections that need it (not appointments)
+  if (activeSection === 'appointments') {
+    return null; // AppointmentsSection has its own header
+  }
+
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between">
@@ -16,10 +21,6 @@ const ProfileHeader = ({ userInfo, activeSection, sidebarItems }: ProfileHeaderP
             {sidebarItems.find(item => item.id === activeSection)?.label}
           </h1>
           <div className="flex items-center gap-4 mt-2">
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Phone className="h-4 w-4 mr-1" />
-              {userInfo?.phone}
-            </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="h-4 w-4 mr-1" />
               Joined -

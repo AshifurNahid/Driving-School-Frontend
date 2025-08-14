@@ -182,6 +182,50 @@ const AppointmentsSection = ({
   }
 
   if (appointmentsError) {
+    // Handle the specific case when user has no appointments (404 error)
+    if (appointmentsError.includes('404') || appointmentsError.includes('No appointments found')) {
+      return (
+        <div className="space-y-8">
+          {/* Header Section */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-8 text-white">
+            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="relative z-10">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2">My Appointments 📅</h2>
+                  <p className="text-blue-100 text-lg">Manage your driving lessons and sessions</p>
+                </div>
+                <Button 
+                  onClick={() => window.location.href = "/appointments"}
+                  className="bg-white text-blue-600 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Book Your First Appointment
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* No Appointments Message */}
+          <Card className="p-16 text-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-700">
+            <Calendar className="h-16 w-16 text-blue-400 dark:text-blue-500 mx-auto mb-6" />
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">No Appointments Yet</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              You haven't booked any driving lessons yet. Start your driving journey by scheduling your first appointment!
+            </p>
+            <Button 
+              onClick={() => window.location.href = "/appointments"}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Book Your First Lesson
+            </Button>
+          </Card>
+        </div>
+      );
+    }
+
+    // Handle other errors
     return (
       <div className="flex flex-col justify-center items-center h-64 space-y-4">
         <XCircle className="h-12 w-12 text-red-500" />
@@ -300,28 +344,6 @@ const AppointmentsSection = ({
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-8 text-white">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">My Appointments 📅</h2>
-              <p className="text-blue-100 text-lg">Manage your driving lessons and sessions</p>
-            </div>
-            <Button 
-              onClick={() => window.location.href = "/appointments"}
-              className="bg-white text-blue-600 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Book New Appointment
-            </Button>
-          </div>
-        </div>
-        <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full"></div>
-        <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/5 rounded-full"></div>
-      </div>
-
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 dark:border-blue-700">

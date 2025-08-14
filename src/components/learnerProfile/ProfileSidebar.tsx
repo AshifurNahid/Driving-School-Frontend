@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Phone } from 'lucide-react';
 
 interface SidebarItem {
   id: string;
@@ -24,6 +25,12 @@ const ProfileSidebar = ({ userInfo, activeSection, setActiveSection, sidebarItem
       <h2 className="font-bold text-foreground">{userInfo?.full_name || "User"}</h2>
       <p className="text-sm text-muted-foreground">{userInfo?.role?.title || "Learner"}</p>
       <p className="text-xs text-muted-foreground mt-1">ID: {userInfo?.id || "N/A"}</p>
+      {userInfo?.phone && (
+        <div className="flex items-center justify-center text-xs text-muted-foreground mt-1">
+          <Phone className="h-3 w-3 mr-1" />
+          {userInfo.phone}
+        </div>
+      )}
     </div>
     <nav className="space-y-2">
       {sidebarItems.map((item) => {
