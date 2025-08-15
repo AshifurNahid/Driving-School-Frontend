@@ -28,17 +28,39 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/redux/store';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { 
+  getAdminPreviousAppointments, 
+  getAdminUpcomingAppointments, 
+  updateAppointmentStatus, 
+  AdminAppointmentItem 
+} from '@/redux/actions/appointmentAction';
 import { listInstructors } from '@/redux/actions/instructorActions';
+import { useUserDetails } from '@/hooks/useUserDetails';
 
 const AppointmentManagement = () => {
   const { toast } = useToast();
   const dispatch = useDispatch<AppDispatch>();
   
-  // Redux state selectors
-  const { appointments: appointmentsData, loading: appointmentsLoading, error: appointmentsError } = useSelector(
-    (state: RootState) => state.userAppointments
-  );
-  const appointments = Array.isArray(appointmentsData) ? appointmentsData : [];
+  // Redux state selectors - Updated to use new admin appointment states
+  const { 
+    appointments: previousAppointments = [], 
+    loading: previousLoading, 
+    error: previousError,
+    pagination: previousPagination 
+  } = useSelector((state: RootState) => state.adminPreviousAppointments);
+
+  const { 
+    appointments: upcomingAppointments = [], 
+    loading: upcomingLoading, 
+    error: upcomingError,
+    pagination: upcomingPagination 
+  } = useSelector((state: RootState) => state.adminUpcomingAppointments);
+
+  const { 
+    loading: statusUpdateLoading, 
+    success: statusUpdateSuccess, 
+    error: statusUpdateError 
+  } = useSelector((state: RootState) => state.adminAppointmentStatusUpdate);
 
   // Instructors state for filtering
   const { instructors = [], loading: instructorsLoading } = useSelector(
@@ -46,6 +68,7 @@ const AppointmentManagement = () => {
   );
 
   // Local state
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'previous'>('upcoming');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [instructorFilter, setInstructorFilter] = useState('all');
@@ -55,84 +78,104 @@ const AppointmentManagement = () => {
   const [itemsPerPage] = useState(10);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
-    appointment: any;
+    appointment: AdminAppointmentItem | null;
     action: string;
   }>({ open: false, appointment: null, action: '' });
 
-  // Fetch data on component mount
+  // Get current appointments and loading state based on active tab
+  const currentAppointments = activeTab === 'upcoming' ? upcomingAppointments : previousAppointments;
+  const currentLoading = activeTab === 'upcoming' ? upcomingLoading : previousLoading;
+  const currentError = activeTab === 'upcoming' ? upcomingError : previousError;
+  const currentPagination = activeTab === 'upcoming' ? upcomingPagination : previousPagination;
+
+  // Helper function to get instructor name
+  const getInstructorName = (instructorId: number): string => {
+    const instructor = instructors.find(inst => inst.id === instructorId);
+    return instructor?.instructor_name || `Instructor ${instructorId}`;
+  };
+
+  // Get unique user IDs from current appointments
+  const userIds = currentAppointments.map((appointment: AdminAppointmentItem) => appointment.userId);
+  const { getUserName, getUserEmail, getUserPhone, loading: userDetailsLoading, error: userDetailsError } = useUserDetails(userIds);
+
+  // Fetch data on component mount and tab change
   useEffect(() => {
     dispatch(listInstructors());
-    // dispatch(getUserAppointments()); // You'll need to implement this action
-  }, [dispatch]);
-
-  // Mock data for demonstration - replace with actual API call
-  const mockAppointments = [
-    {
-      id: 1,
-      learnerName: 'John Doe',
-      learnerEmail: 'john.doe@email.com',
-      adminName: 'Md Alamin Bhuiyan',
-      date: '2025-01-20',
-      startTime: '09:00',
-      endTime: '10:00',
-      status: 'pending',
-      courseName: 'Basic Driving Course',
-      location: 'Main Campus',
-      note: 'First time learner'
-    },
-    {
-      id: 2,
-      learnerName: 'Jane Smith',
-      learnerEmail: 'jane.smith@email.com',
-      adminName: 'Rana',
-      date: '2025-01-21',
-      startTime: '14:00',
-      endTime: '15:00',
-      status: 'approved',
-      courseName: 'Advanced Driving Course',
-      location: 'Practice Ground',
-      note: 'Needs highway practice'
-    },
-    {
-      id: 3,
-      learnerName: 'Mike Johnson',
-      learnerEmail: 'mike.johnson@email.com',
-      adminName: 'Md Alamin Bhuiyan',
-      date: '2025-01-22',
-      startTime: '11:00',
-      endTime: '12:00',
-      status: 'rejected',
-      courseName: 'Basic Driving Course',
-      location: 'Main Campus',
-      note: 'Schedule conflict'
+    if (activeTab === 'upcoming') {
+      dispatch(getAdminUpcomingAppointments(currentPage, itemsPerPage));
+    } else {
+      dispatch(getAdminPreviousAppointments(currentPage, itemsPerPage));
     }
-  ];
+  }, [dispatch, activeTab, currentPage, itemsPerPage]);
 
-  // Filter and search logic
-  const filteredAppointments = mockAppointments.filter(appointment => {
-    const matchesSearch = 
-      appointment.learnerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.learnerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.adminName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.courseName.toLowerCase().includes(searchTerm.toLowerCase());
+  // Handle status update success
+  useEffect(() => {
+    if (statusUpdateSuccess) {
+      // Refetch data when status is updated
+      if (activeTab === 'upcoming') {
+        dispatch(getAdminUpcomingAppointments(currentPage, itemsPerPage));
+      } else {
+        dispatch(getAdminPreviousAppointments(currentPage, itemsPerPage));
+      }
+    }
+  }, [statusUpdateSuccess, dispatch, activeTab, currentPage, itemsPerPage]);
+
+  // Handle status update success
+  useEffect(() => {
+    if (statusUpdateSuccess) {
+      // Refetch data when status is updated
+      if (activeTab === 'upcoming') {
+        dispatch(getAdminUpcomingAppointments(currentPage, itemsPerPage));
+      } else {
+        dispatch(getAdminPreviousAppointments(currentPage, itemsPerPage));
+      }
+    }
+  }, [statusUpdateSuccess, dispatch, activeTab, currentPage, itemsPerPage]);
+
+  // Filter and search logic - Updated to work with API data structure
+  const filteredAppointments = currentAppointments.filter((appointment: AdminAppointmentItem) => {
+    const instructorName = getInstructorName(appointment.appointmentSlot.instructorId);
+    const userName = getUserName(appointment.userId);
     
-    const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
-    const matchesInstructor = instructorFilter === 'all' || appointment.adminName === instructorFilter;
+    const matchesSearch = 
+      userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getUserEmail(appointment.userId).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getUserPhone(appointment.userId).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      instructorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.appointmentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.note.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || appointment.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesInstructor = instructorFilter === 'all' || instructorName === instructorFilter;
     
     return matchesSearch && matchesStatus && matchesInstructor;
   });
 
-  // Sort logic
-  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
-    let aValue = a[sortField as keyof typeof a];
-    let bValue = b[sortField as keyof typeof b];
+  // Sort logic - Updated for API data structure
+  const sortedAppointments = [...filteredAppointments].sort((a: AdminAppointmentItem, b: AdminAppointmentItem) => {
+    let aValue: any = '';
+    let bValue: any = '';
     
-    if (sortField === 'date') {
-      aValue = new Date(a.date).getTime();
-      bValue = new Date(b.date).getTime();
-    } else if (typeof aValue === 'string') {
-      aValue = aValue.toLowerCase();
-      bValue = (bValue as string).toLowerCase();
+    switch (sortField) {
+      case 'date':
+        aValue = new Date(a.appointmentSlot.date).getTime();
+        bValue = new Date(b.appointmentSlot.date).getTime();
+        break;
+      case 'learnerName':
+        aValue = getUserName(a.userId).toLowerCase();
+        bValue = getUserName(b.userId).toLowerCase();
+        break;
+      case 'instructorName':
+        aValue = getInstructorName(a.appointmentSlot.instructorId).toLowerCase();
+        bValue = getInstructorName(b.appointmentSlot.instructorId).toLowerCase();
+        break;
+      case 'status':
+        aValue = a.status.toLowerCase();
+        bValue = b.status.toLowerCase();
+        break;
+      default:
+        aValue = a[sortField as keyof AdminAppointmentItem];
+        bValue = b[sortField as keyof AdminAppointmentItem];
     }
     
     if (sortDirection === 'asc') {
@@ -142,10 +185,15 @@ const AppointmentManagement = () => {
     }
   });
 
-  // Pagination logic
-  const totalPages = Math.ceil(sortedAppointments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedAppointments = sortedAppointments.slice(startIndex, startIndex + itemsPerPage);
+  // Use filtered appointments length for pagination, but display all when no server-side pagination
+  const displayAppointments = sortedAppointments;
+  const totalFilteredCount = filteredAppointments.length;
+
+  // Updated stats calculations
+  const totalCount = currentPagination?.totalCount || currentAppointments.length;
+  const pendingCount = currentAppointments.filter((a: AdminAppointmentItem) => a.status.toLowerCase() === 'booked').length;
+  const approvedCount = currentAppointments.filter((a: AdminAppointmentItem) => a.status.toLowerCase() === 'approved').length;
+  const rejectedCount = currentAppointments.filter((a: AdminAppointmentItem) => a.status.toLowerCase() === 'rejected').length;
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -157,40 +205,50 @@ const AppointmentManagement = () => {
   };
 
   const getStatusBadge = (status: string) => {
+    const normalizedStatus = status.toLowerCase();
     const statusConfig: Record<string, any> = {
-      pending: { variant: 'secondary', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' },
+      booked: { variant: 'secondary', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' },
       approved: { variant: 'default', className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' },
       rejected: { variant: 'destructive', className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' },
       completed: { variant: 'outline', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' },
       cancelled: { variant: 'secondary', className: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400' },
     };
-    return statusConfig[status] || statusConfig.pending;
+    return statusConfig[normalizedStatus] || statusConfig.booked;
   };
 
-  const handleActionClick = (appointment: any, action: string) => {
+  const handleActionClick = (appointment: AdminAppointmentItem, action: string) => {
     setConfirmDialog({ open: true, appointment, action });
   };
 
   const handleConfirmAction = () => {
     const { appointment, action } = confirmDialog;
     
-    toast({
-      title: "Success",
-      description: `Appointment ${action} successfully`,
-    });
+    if (appointment) {
+      dispatch(updateAppointmentStatus(appointment.id, action));
+      
+      toast({
+        title: "Processing",
+        description: `${action.charAt(0).toUpperCase() + action.slice(1)}ing appointment...`,
+      });
+    }
     
     setConfirmDialog({ open: false, appointment: null, action: '' });
-    
-    // Here you would typically call an API to update the appointment status
-    // dispatch(updateAppointmentStatus(appointment.id, action));
   };
 
-  const handleViewProfile = (appointment: any) => {
-    // Handle viewing user profile
+  const handleViewProfile = (appointment: AdminAppointmentItem) => {
     toast({
       title: "View Profile",
-      description: `Viewing profile for ${appointment.learnerName}`,
+      description: `Viewing profile for User ${appointment.userId}`,
     });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    if (activeTab === 'upcoming') {
+      dispatch(getAdminUpcomingAppointments(newPage, itemsPerPage));
+    } else {
+      dispatch(getAdminPreviousAppointments(newPage, itemsPerPage));
+    }
   };
 
   const SortIcon = ({ field }: { field: string }) => {
@@ -211,7 +269,39 @@ const AppointmentManagement = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
+        {/* Header with Tabs */}
+        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Appointment Management
+            </CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
+              Manage and review appointment requests from students
+            </CardDescription>
+            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mt-4">
+              <Button
+                variant={activeTab === 'upcoming' ? 'default' : 'ghost'}
+                onClick={() => {
+                  setActiveTab('upcoming');
+                  setCurrentPage(1);
+                }}
+                className="flex-1"
+              >
+                Upcoming Appointments
+              </Button>
+              <Button
+                variant={activeTab === 'previous' ? 'default' : 'ghost'}
+                onClick={() => {
+                  setActiveTab('previous');
+                  setCurrentPage(1);
+                }}
+                className="flex-1"
+              >
+                Previous Appointments
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -220,7 +310,7 @@ const AppointmentManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Requests</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{mockAppointments.length}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalCount}</p>
                 </div>
                 <Calendar className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
@@ -232,7 +322,7 @@ const AppointmentManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">{mockAppointments.filter(a => a.status === 'pending').length}</p>
+                  <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
                 </div>
                 <Clock className="w-8 h-8 text-yellow-600" />
               </div>
@@ -244,7 +334,7 @@ const AppointmentManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Approved</p>
-                  <p className="text-2xl font-bold text-green-600">{mockAppointments.filter(a => a.status === 'approved').length}</p>
+                  <p className="text-2xl font-bold text-green-600">{approvedCount}</p>
                 </div>
                 <Check className="w-8 h-8 text-green-600" />
               </div>
@@ -256,7 +346,7 @@ const AppointmentManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
-                  <p className="text-2xl font-bold text-red-600">{mockAppointments.filter(a => a.status === 'rejected').length}</p>
+                  <p className="text-2xl font-bold text-red-600">{rejectedCount}</p>
                 </div>
                 <X className="w-8 h-8 text-red-600" />
               </div>
@@ -279,7 +369,7 @@ const AppointmentManagement = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="Search by student name, email, instructor, or course..."
+                  placeholder="Search by student name, email, phone, instructor, or course..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
@@ -326,29 +416,43 @@ const AppointmentManagement = () => {
             
             {/* Results count */}
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              Showing {paginatedAppointments.length} of {filteredAppointments.length} appointments
+              Showing {displayAppointments.length} of {totalFilteredCount} appointments
+              {currentPagination && (
+                <span className="ml-2">
+                  (Page {currentPagination.pageNumber} of {currentPagination.totalPages}, Total: {currentPagination.totalCount})
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Table */}
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 overflow-hidden">
-          {appointmentsLoading ? (
+          {currentLoading || userDetailsLoading ? (
             <CardContent className="p-8">
               <div className="flex items-center justify-center">
                 <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="ml-3 text-gray-600 dark:text-gray-400">Loading appointments...</span>
+                <span className="ml-3 text-gray-600 dark:text-gray-400">
+                  {currentLoading ? 'Loading appointments...' : 'Loading user details...'}
+                </span>
               </div>
             </CardContent>
-          ) : appointmentsError ? (
+          ) : currentError || userDetailsError ? (
             <CardContent className="p-8">
               <div className="flex flex-col items-center justify-center">
                 <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error Loading Appointments</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-center">{appointmentsError}</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error Loading Data</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-center">
+                  {currentError || userDetailsError}
+                </p>
+                {userDetailsError && !currentError && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
+                    Appointments loaded, but some user details may be unavailable.
+                  </p>
+                )}
               </div>
             </CardContent>
-          ) : filteredAppointments.length === 0 ? (
+          ) : displayAppointments.length === 0 ? (
             <CardContent className="p-16">
               <div className="flex flex-col items-center justify-center">
                 <Calendar className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
@@ -376,11 +480,11 @@ const AppointmentManagement = () => {
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       <button
-                        onClick={() => handleSort('adminName')}
+                        onClick={() => handleSort('instructorName')}
                         className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
                       >
                         Instructor
-                        <SortIcon field="adminName" />
+                        <SortIcon field="instructorName" />
                       </button>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -393,7 +497,7 @@ const AppointmentManagement = () => {
                       </button>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Course
+                      Course Type
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       <button
@@ -410,42 +514,48 @@ const AppointmentManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {paginatedAppointments.map((appointment) => (
+                  {displayAppointments.map((appointment: AdminAppointmentItem) => (
                     <tr key={appointment.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {appointment.learnerName}
+                            {getUserName(appointment.userId)}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {appointment.learnerEmail}
+                            {getUserEmail(appointment.userId)}
+                          </div>
+                          <div className="text-xs text-gray-400 dark:text-gray-500">
+                            {getUserPhone(appointment.userId)}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-gray-100">
-                          {appointment.adminName}
+                          {getInstructorName(appointment.appointmentSlot.instructorId)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {format(new Date(appointment.date), 'MMM dd, yyyy')}
+                            {format(new Date(appointment.appointmentSlot.date), 'MMM dd, yyyy')}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatTime(appointment.startTime)} - {formatTime(appointment.endTime)}
+                            {formatTime(appointment.appointmentSlot.startTime)} - {formatTime(appointment.appointmentSlot.endTime)}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <div className="text-sm text-gray-900 dark:text-gray-100">
-                            {appointment.courseName}
+                            {appointment.appointmentType}
                           </div>
-                          {appointment.location && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {appointment.hoursConsumed}h - ${appointment.amountPaid}
+                          </div>
+                          {appointment.appointmentSlot.location && (
                             <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                               <MapPin className="w-3 h-3" />
-                              {appointment.location}
+                              {appointment.appointmentSlot.location}
                             </div>
                           )}
                         </div>
@@ -468,13 +578,14 @@ const AppointmentManagement = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          {appointment.status === 'pending' && (
+                          {appointment.status.toLowerCase() === 'booked' && (
                             <>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleActionClick(appointment, 'approved')}
                                 className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-900/20"
+                                disabled={statusUpdateLoading}
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
@@ -483,6 +594,7 @@ const AppointmentManagement = () => {
                                 size="sm"
                                 onClick={() => handleActionClick(appointment, 'rejected')}
                                 className="h-8 px-2 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
+                                disabled={statusUpdateLoading}
                               >
                                 <X className="w-4 h-4" />
                               </Button>
@@ -499,19 +611,22 @@ const AppointmentManagement = () => {
         </Card>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {currentPagination && currentPagination.totalPages > 1 && (
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardContent className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-700 dark:text-gray-300">
-                  Page {currentPage} of {totalPages}
+                  Page {currentPagination.pageNumber} of {currentPagination.totalPages}
+                  <span className="ml-2 text-gray-500">
+                    ({currentPagination.totalCount} total appointments)
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPagination.pageNumber - 1)}
+                    disabled={!currentPagination.hasPreviousPage || currentLoading}
                     className="h-9 px-3"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -519,8 +634,8 @@ const AppointmentManagement = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(currentPagination.pageNumber + 1)}
+                    disabled={!currentPagination.hasNextPage || currentLoading}
                     className="h-9 px-3"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -541,7 +656,7 @@ const AppointmentManagement = () => {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
               Are you sure you want to {confirmDialog.action} this appointment request from
-              <span className="font-medium"> {confirmDialog.appointment?.learnerName}</span>?
+              <span className="font-medium"> {confirmDialog.appointment ? getUserName(confirmDialog.appointment.userId) : ''}</span>?
               {confirmDialog.action === 'rejected' && (
                 <div className="mt-2 text-sm text-red-600 dark:text-red-400">
                   This action will notify the student that their request has been declined.
@@ -555,13 +670,14 @@ const AppointmentManagement = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
+              disabled={statusUpdateLoading}
               className={
                 confirmDialog.action === 'approved'
                   ? 'bg-green-600 hover:bg-green-700'
                   : 'bg-red-600 hover:bg-red-700'
               }
             >
-              {confirmDialog.action?.charAt(0).toUpperCase() + confirmDialog.action?.slice(1)}
+              {statusUpdateLoading ? 'Processing...' : confirmDialog.action?.charAt(0).toUpperCase() + confirmDialog.action?.slice(1)}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
