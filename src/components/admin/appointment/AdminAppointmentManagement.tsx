@@ -309,19 +309,7 @@ const AdminAppointmentManagement = () => {
                 />
                 
                 {/* Legend */}
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Legend</h4>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                      <span className="text-gray-600 dark:text-gray-400">Has appointment slots</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                      <span className="text-gray-600 dark:text-gray-400">No slots</span>
-                    </div>
-                  </div>
-                </div>
+       
               </CardContent>
             </Card>
           </div>

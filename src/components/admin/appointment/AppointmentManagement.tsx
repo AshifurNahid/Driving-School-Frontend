@@ -212,15 +212,7 @@ const AppointmentManagement = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Appointment Requests
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Review and manage student appointment requests
-          </p>
-        </div>
-
+        
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
@@ -278,9 +270,7 @@ const AppointmentManagement = () => {
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               Appointment Requests
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
-              Manage and respond to student appointment requests
-            </CardDescription>
+           
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Search and Filters Row */}
