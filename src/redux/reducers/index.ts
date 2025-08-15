@@ -18,6 +18,7 @@ import {
   bookDirectAppointmentReducer,
   userAppointmentsReducer
 } from "./appointmentReducer";
+import { instructorListReducer } from "./instructorReducers";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -36,7 +37,9 @@ const rootReducer = combineReducers({
   appointmentSlotUpdate: appointmentSlotUpdateReducer,
   appointmentSlotDelete: appointmentSlotDeleteReducer,
   bookDirectAppointment: bookDirectAppointmentReducer,
-  userAppointments: userAppointmentsReducer
+  userAppointments: userAppointmentsReducer,
+  
+  instructorList: instructorListReducer
 
   
   // add other reducers here

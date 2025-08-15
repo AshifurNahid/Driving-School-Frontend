@@ -38,7 +38,7 @@ import CourseEditDialog from '@/components/admin/CourseEditDialog';
 import EnhancedCourseEditDialog from '@/components/admin/EnhancedCourseEditDialog';
 import QuizManagement from '@/components/admin/QuizManagement';
 import UserAnalytics from '@/components/admin/UserAnalytics';
-import AdminAppointmentManagement from '@/components/admin/AdminAppointmentManagement';
+import AdminAppointmentManagement from '@/components/admin/appointment/AdminAppointmentManagement';
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
@@ -735,7 +735,7 @@ const AdminDashboard = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-4">Set Your Availability</h3>
                 <AdminAppointmentManagement />
-              </div>
+              </div> 
 
               {/* Student Appointment Requests */}
               <div>
@@ -744,6 +744,9 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          
+          {/* Instructor Management Tab */}
 
           {activeTab === 'instructors' && (
               <AdminInstructors/>
