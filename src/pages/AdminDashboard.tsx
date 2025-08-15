@@ -38,8 +38,9 @@ import CourseEditDialog from '@/components/admin/CourseEditDialog';
 import EnhancedCourseEditDialog from '@/components/admin/EnhancedCourseEditDialog';
 import QuizManagement from '@/components/admin/QuizManagement';
 import UserAnalytics from '@/components/admin/UserAnalytics';
-import AdminAppointmentManagement from '@/components/admin/AdminAppointmentManagement';
+import AdminAppointmentManagement from '@/components/admin/appointment/AdminAppointmentManagement';
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
 import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, getAdminCourses, deleteAdminCourse } from "@/redux/actions/adminAction";
@@ -58,8 +59,6 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(
     location.state?.activeTab || 'overview'
   );
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  // const [activeTab, setActiveTab] = useState('overview');
   const [editingCourse, setEditingCourse] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [useEnhancedEditor, setUseEnhancedEditor] = useState(false);
@@ -67,7 +66,8 @@ const AdminDashboard = () => {
   const [editUserModalOpen, setEditUserModalOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10; // or whatever you want
+  const [appointmentActiveTab, setAppointmentActiveTab] = useState('availability');
+  const pageSize = 10;
 
   const dispatch = useDispatch<AppDispatch>();
   const { users, totalUsers, totalPages, hasNextPage, hasPreviousPage, loading: usersLoading, error: usersError, page } = useSelector(
@@ -215,21 +215,6 @@ const AdminDashboard = () => {
   ]);
 
 
-  const sidebarItems = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'users', label: 'User Management', icon: Users },
-    // { id: 'courses', label: 'Course Moderation', icon: BookOpen },
-    // { id: 'courses', label: 'Course Moderation', icon: BookOpen },
-    { id: 'course-list', label: 'Course List', icon: BookOpen },
-    { id: 'appointments', label: 'Appointment Management', icon: Calendar },
-    { id: 'instructors', label: 'Instructor Management', icon:  UserCheck}
-
-    //{ id: 'quizzes', label: 'Quiz Management', icon: FileText },
-    //{ id: 'analytics', label: 'User Analytics', icon: BarChart3 },
-    //{ id: 'reports', label: 'Reports & Analytics', icon: TrendingUp },
-    //{ id: 'settings', label: 'Site Settings', icon: Settings }
-  ];
-
   const handleEditCourse = (course) => {
     navigate(`/course/${course?.id}/edit`);
   };
@@ -312,70 +297,30 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-card border-r border-border transition-all duration-300 flex flex-col`}>
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between">
-            {sidebarOpen && (
-              <Link to="/" className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                EduPlatform
-              </Link>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          {sidebarItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Button
-                key={item.id}
-                variant={activeTab === item.id ? "default" : "ghost"}
-                className={`w-full justify-start ${!sidebarOpen && 'px-2'}`}
-                onClick={() => setActiveTab(item.id)}
-              >
-                <Icon className="h-4 w-4" />
-                {sidebarOpen && <span className="ml-2">{item.label}</span>}
-              </Button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center space-x-2">
-            <ThemeToggle />
-            {sidebarOpen && (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/admin">Go to Home</Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900 flex">
+      {/* New Sidebar Component */}
+      <AdminSidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        appointmentActiveTab={appointmentActiveTab}
+        onAppointmentTabChange={setAppointmentActiveTab}
+      />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 flex flex-col min-w-0 h-screen bg-[#f8f9fa] dark:bg-gray-900">
         {/* Header */}
-        <header className="bg-card shadow-sm border-b border-border p-6">
+        <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200/30 dark:border-gray-800/50 px-6 py-4 flex-shrink-0">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-              <p className="text-muted-foreground mt-1">Manage your platform efficiently</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm md:text-base">Manage your platform efficiently</p>
             </div>
             <div className="flex items-center space-x-4">
               <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                 <Shield className="h-3 w-3 mr-1" />
                 Admin
               </Badge>
-              <Avatar>
+              <Avatar className="h-8 w-8 md:h-10 md:w-10">
                 <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" />
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
@@ -383,7 +328,9 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        <div className="p-6">
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0 bg-[#f8f9fa] dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
@@ -730,20 +677,27 @@ const AdminDashboard = () => {
 
           {/* Appointment Management Tab */}
           {activeTab === 'appointments' && (
-            <div className="space-y-8">
-              {/* Admin Availability Management */}
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Set Your Availability</h3>
-                <AdminAppointmentManagement />
-              </div>
+            <div className="space-y-6">
+            
+              
+          
+              {/* Content based on sub-tab */}
+              {appointmentActiveTab === 'availability' && (
+                <div>
+                  <AdminAppointmentManagement />
+                </div>
+              )}
 
-              {/* Student Appointment Requests */}
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Student Appointment Requests</h3>
-                <AppointmentManagement />
-              </div>
+              {appointmentActiveTab === 'requests' && (
+                <div>
+                  <AppointmentManagement />
+                </div>
+              )}
             </div>
           )}
+
+          
+          {/* Instructor Management Tab */}
 
           {activeTab === 'instructors' && (
               <AdminInstructors/>
@@ -937,7 +891,8 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </main>
       </div>
 
       {/* Course Edit Dialogs */}
@@ -960,6 +915,7 @@ const AdminDashboard = () => {
           )}
         </>
       )}
+      
       <UserDetailsModal
         open={userDetailsModalOpen}
         onClose={() => setUserDetailsModalOpen(false)}
@@ -974,9 +930,7 @@ const AdminDashboard = () => {
         loading={roleUpdateLoading}
       />
     </div>
-
   );
-
 };
 
 export default AdminDashboard;

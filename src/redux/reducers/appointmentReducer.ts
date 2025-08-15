@@ -22,7 +22,16 @@ import {
   BOOK_DIRECT_APPOINTMENT_RESET,
   USER_APPOINTMENTS_REQUEST,
   USER_APPOINTMENTS_SUCCESS,
-  USER_APPOINTMENTS_FAIL
+  USER_APPOINTMENTS_FAIL,
+  ADMIN_PREVIOUS_APPOINTMENTS_REQUEST,
+  ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS,
+  ADMIN_PREVIOUS_APPOINTMENTS_FAIL,
+  ADMIN_UPCOMING_APPOINTMENTS_REQUEST,
+  ADMIN_UPCOMING_APPOINTMENTS_SUCCESS,
+  ADMIN_UPCOMING_APPOINTMENTS_FAIL,
+  ADMIN_APPOINTMENT_STATUS_UPDATE_REQUEST,
+  ADMIN_APPOINTMENT_STATUS_UPDATE_SUCCESS,
+  ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL
 } from '../constants/appointmentConstants';
 
 // Interface for appointment slot
@@ -291,6 +300,122 @@ export const bookDirectAppointmentReducer = (
     case BOOK_DIRECT_APPOINTMENT_RESET:
       return bookDirectAppointmentInitialState;
     
+    default:
+      return state;
+  }
+};
+
+// Admin appointments management interfaces and reducers
+interface AdminAppointmentsState {
+  loading: boolean;
+  appointments: any[];
+  pagination: {
+    totalCount: number;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  } | null;
+  error: string | null;
+}
+
+const initialAdminAppointmentsState: AdminAppointmentsState = {
+  loading: false,
+  appointments: [],
+  pagination: null,
+  error: null,
+};
+
+// Admin previous appointments reducer
+export const adminPreviousAppointmentsReducer = (
+  state = initialAdminAppointmentsState,
+  action: any
+): AdminAppointmentsState => {
+  switch (action.type) {
+    case ADMIN_PREVIOUS_APPOINTMENTS_REQUEST:
+      return { ...state, loading: true, error: null };
+    case ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        appointments: action.payload.data.items || [],
+        pagination: {
+          totalCount: action.payload.data.totalCount,
+          pageNumber: action.payload.data.pageNumber,
+          pageSize: action.payload.data.pageSize,
+          totalPages: action.payload.data.totalPages,
+          hasNextPage: action.payload.data.hasNextPage,
+          hasPreviousPage: action.payload.data.hasPreviousPage,
+        },
+        error: null,
+      };
+    case ADMIN_PREVIOUS_APPOINTMENTS_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+// Admin upcoming appointments reducer
+export const adminUpcomingAppointmentsReducer = (
+  state = initialAdminAppointmentsState,
+  action: any
+): AdminAppointmentsState => {
+  switch (action.type) {
+    case ADMIN_UPCOMING_APPOINTMENTS_REQUEST:
+      return { ...state, loading: true, error: null };
+    case ADMIN_UPCOMING_APPOINTMENTS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        appointments: action.payload.data.items || [],
+        pagination: {
+          totalCount: action.payload.data.totalCount,
+          pageNumber: action.payload.data.pageNumber,
+          pageSize: action.payload.data.pageSize,
+          totalPages: action.payload.data.totalPages,
+          hasNextPage: action.payload.data.hasNextPage,
+          hasPreviousPage: action.payload.data.hasPreviousPage,
+        },
+        error: null,
+      };
+    case ADMIN_UPCOMING_APPOINTMENTS_FAIL:
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+// Admin appointment status update reducer
+interface AdminAppointmentUpdateState {
+  loading: boolean;
+  success: boolean;
+  error: string | null;
+}
+
+const initialAdminAppointmentUpdateState: AdminAppointmentUpdateState = {
+  loading: false,
+  success: false,
+  error: null,
+};
+
+export const adminAppointmentStatusUpdateReducer = (
+  state = initialAdminAppointmentUpdateState,
+  action: any
+): AdminAppointmentUpdateState => {
+  switch (action.type) {
+    case ADMIN_APPOINTMENT_STATUS_UPDATE_REQUEST:
+      return { ...state, loading: true, error: null };
+    case ADMIN_APPOINTMENT_STATUS_UPDATE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        error: null,
+      };
+    case ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload };
     default:
       return state;
   }
