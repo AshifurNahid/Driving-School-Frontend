@@ -15,9 +15,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PhysicalCourseForm from '@/components/course/PhysicalCourseForm';
 import { QuizModal } from '@/components/course/QuizModal';
+import { MaterialModal } from '@/components/course/MaterialModal';
 import { createAdminCourse, getAdminCourseDetails, updateAdminCourse } from '@/redux/actions/adminAction';
 import { toast } from '@/components/ui/use-toast';
-import { RootState } from '@/redux/store';
+import { RootState, AppDispatch } from '@/redux/store';
 
 type CourseType = 'online' | 'physical' | 'hybrid';
 
@@ -129,14 +130,30 @@ const defaultCourse: Course = {
   },
   materials: [],
 };
-function quizToModalFormat(quiz: Quiz | undefined): any {
+interface ModalQuizQuestionDto {
+  question: string;
+  type: number;
+  options?: string;
+  correct_answers: string;
+  points: number;
+}
+
+interface ModalQuizDto {
+  title: string;
+  description: string;
+  passing_score: number;
+  max_attempts: number;
+  questions: ModalQuizQuestionDto[];
+}
+
+function quizToModalFormat(quiz: Quiz | undefined): ModalQuizDto | undefined {
   if (!quiz) return undefined;
   return {
     title: quiz.title,
     description: quiz.description,
     passing_score: quiz.passPercentage,
     max_attempts: quiz.allowRetakes ? 99 : 1,
-    questions: (quiz.questions || []).map(q => ({
+    questions: (quiz.questions || []).map((q): ModalQuizQuestionDto => ({
       question: q.question,
       type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
       options: (q.options || []).join(','),
@@ -148,13 +165,13 @@ function quizToModalFormat(quiz: Quiz | undefined): any {
   };
 }
 
-function modalToQuizFormat(modalQuiz: any): Quiz {
+function modalToQuizFormat(modalQuiz: ModalQuizDto): Quiz {
   return {
     title: modalQuiz.title,
     description: modalQuiz.description,
     passPercentage: Number(modalQuiz.passing_score),
     allowRetakes: Number(modalQuiz.max_attempts) > 1,
-    questions: (modalQuiz.questions || []).map((q: any) => ({
+    questions: (modalQuiz.questions || []).map((q: ModalQuizQuestionDto) => ({
       question: q.question,
       type: q.type === 0 ? 'mcq' : q.type === 1 ? 'true-false' : 'short-answer',
       options: typeof q.options === 'string' && q.options.length > 0
@@ -166,7 +183,59 @@ function modalToQuizFormat(modalQuiz: any): Quiz {
   };
 }
 // Helper function to transform API response to component format
-const transformApiResponseToCourse = (apiResponse: any): Course => {
+interface ApiLesson {
+  lesson_title?: string;
+  lesson_description?: string;
+  duration?: number;
+  lesson_attachment_path?: string;
+}
+
+interface ApiQuestion {
+  id?: number | string;
+  type: number;
+  question?: string;
+  options?: string;
+  correct_answers?: string;
+  explanation?: string;
+  points?: number;
+}
+
+interface ApiQuiz {
+  title?: string;
+  description?: string;
+  questions?: ApiQuestion[];
+  passing_score?: number;
+  time_limit?: number;
+  max_attempts: number;
+}
+
+interface ApiCourseModule {
+  module_title?: string;
+  module_description?: string;
+  course_module_lessons?: ApiLesson[];
+  quizzes?: ApiQuiz[];
+}
+
+interface AdminCourseApiResponse {
+  id?: number | string;
+  title?: string;
+  description?: string;
+  content?: string;
+  category?: string;
+  price?: number;
+  duration?: number;
+  level?: string;
+  language?: string;
+  prerequisites?: string;
+  thumbnail_photo_path?: string;
+  course_type: number;
+  includes?: string;
+  location?: string;
+  course_modules?: ApiCourseModule[];
+  materials?: CourseMaterial[];
+}
+
+const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Course => {
   let courseType: CourseType;
   if (apiResponse.course_type === 0) {
     courseType = 'online';
@@ -176,10 +245,10 @@ const transformApiResponseToCourse = (apiResponse: any): Course => {
     courseType = 'hybrid';
   }
   
-  const modules = apiResponse.course_modules?.map((module: any, index: number) => ({
+  const modules = apiResponse.course_modules?.map((module: ApiCourseModule, index: number) => ({
     title: module.module_title || '',
     description: module.module_description || '',
-          subsections: module.course_module_lessons?.map((lesson: any) => ({
+          subsections: module.course_module_lessons?.map((lesson: ApiLesson) => ({
       title: lesson.lesson_title || '',
       description: lesson.lesson_description || '',
       duration: lesson.duration || 0,
@@ -188,15 +257,18 @@ const transformApiResponseToCourse = (apiResponse: any): Course => {
     quiz: module.quizzes && module.quizzes.length > 0 ? {
       title: module.quizzes[0].title || '',
       description: module.quizzes[0].description || '',
-      questions: module.quizzes[0].questions?.map((question: any) => ({
-        id: question.id?.toString(),
-        type: question.type === 0 ? 'mcq' : question.type === 1 ? 'true-false' : 'short-answer',
-        question: question.question || '',
-        options: question.options ? question.options.split(',') : [],
-        correctAnswer: question.type === 1 ? question.correct_answers === 'true' : question.correct_answers,
-        explanation: question.explanation || '',
-        points: question.points || 1,
-      })) || [],
+      questions: module.quizzes[0].questions?.map((question: ApiQuestion) => {
+        const mappedType: Question['type'] = question.type === 0 ? 'mcq' : question.type === 1 ? 'true-false' : 'short-answer';
+        return {
+          id: question.id?.toString() || undefined,
+          type: mappedType,
+          question: question.question || '',
+          options: question.options ? question.options.split(',') : [],
+          correctAnswer: mappedType === 'true-false' ? (question.correct_answers === 'true') : (question.correct_answers || ''),
+          explanation: question.explanation || '',
+          points: question.points || 1,
+        } as Question;
+      }) || [],
       passPercentage: module.quizzes[0].passing_score || 60,
       timeLimit: module.quizzes[0].time_limit,
       allowRetakes: module.quizzes[0].max_attempts > 1,
@@ -235,7 +307,7 @@ const transformApiResponseToCourse = (apiResponse: any): Course => {
 const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add' }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   
   // Get course details from Redux store for edit mode
   const{ loading, courseDetails, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
@@ -248,7 +320,7 @@ console.log(course);
   useEffect(() => {
     if (mode === 'edit' && id && !initialCourse) {
       setIsLoading(true);
-      dispatch(getAdminCourseDetails(id) as any);
+      dispatch(getAdminCourseDetails(id));
     }
   }, [mode, id, initialCourse, dispatch]);
 
@@ -256,7 +328,7 @@ console.log(course);
   useEffect(() => {
     if (mode === 'edit' && courseDetails && !initialCourse) {
       try {
-        const transformedCourse = transformApiResponseToCourse(courseDetails);
+        const transformedCourse = transformApiResponseToCourse(courseDetails as unknown as AdminCourseApiResponse);
         setCourse(transformedCourse);
         setIsLoading(false);
       } catch (error) {
@@ -283,6 +355,27 @@ console.log(course);
   const [currentStep, setCurrentStep] = useState(0);
   const [quizModal, setQuizModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
   const [materialModal, setMaterialModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
+  const handleMaterialSave = (materials: ModuleMaterial[]) => {
+    if (materialModal.moduleIdx === -1) {
+      setCourse(prev => ({ ...prev, materials }));
+    } else if (materialModal.moduleIdx !== null) {
+      const newModules = [...course.modules];
+      newModules[materialModal.moduleIdx].materials = materials;
+      setCourse({ ...course, modules: newModules });
+    }
+  };
+
+  // Dynamically compute steps: remove Content step for physical/hybrid
+  const computedSteps = React.useMemo(() => {
+    if (course?.courseType === 'online') return steps;
+    return steps.filter((s) => s.key !== 'content');
+  }, [course?.courseType]);
+
+  // Clamp step index when course type changes (e.g., online -> physical/hybrid)
+  useEffect(() => {
+    const maxIndex = computedSteps.length - 1;
+    if (currentStep > maxIndex) setCurrentStep(maxIndex);
+  }, [computedSteps.length, currentStep]);
 
   // --- Step validation logic ---
   const isTypeStepValid = !!course?.courseType;
@@ -294,27 +387,29 @@ console.log(course);
     course?.thumbnail_photo_path.trim();
 
   const isContentStepValid =
-    course?.courseType === 'physical' || course?.courseType === 'hybrid'
-      ? true
-      : (course?.modules.length > 0 &&
-        course?.modules.every((m) => m.title.trim() && m.subsections.length > 0));
+    course?.courseType === 'online'
+      ? (course?.modules.length > 0 &&
+        course?.modules.every((m) => m.title.trim() && m.subsections.length > 0))
+      : true;
 
   // --- Navigation logic ---
   const canGoNext = () => {
-    if (currentStep === 0) return isTypeStepValid;
-    if (currentStep === 1) return isInfoStepValid;
-    if (currentStep === 2) return isContentStepValid;
+    const stepKey = computedSteps[currentStep]?.key;
+    if (stepKey === 'type') return isTypeStepValid;
+    if (stepKey === 'info') return isInfoStepValid;
+    if (stepKey === 'content') return isContentStepValid;
     return true;
   };
 
   const goNext = () => {
     // Validate current step before proceeding
-    if (currentStep === 0) {
+    const stepKey = computedSteps[currentStep]?.key;
+    if (stepKey === 'type') {
       if (!course?.courseType) {
         alert('Please select a course type to continue.');
         return;
       }
-    } else if (currentStep === 1) {
+    } else if (stepKey === 'info') {
       const missingFields = [];
       if (!course?.title?.trim()) missingFields.push('Course Title');
       if (!course?.description?.trim()) missingFields.push('Course Description');
@@ -331,7 +426,7 @@ console.log(course);
         alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
         return;
       }
-    } else if (currentStep === 2) {
+    } else if (stepKey === 'content') {
       if (!course?.modules || course?.modules.length === 0) {
         alert('Please add at least one module to continue.');
         return;
@@ -363,7 +458,7 @@ console.log(course);
     }
     
     // If validation passes, proceed to next step
-    if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1);
+    if (currentStep < computedSteps.length - 1) setCurrentStep(currentStep + 1);
   };
   const goBack = () => {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
@@ -377,7 +472,7 @@ console.log(course);
     setCourse(prev => ({
       ...prev,
       courseType: type,
-      modules: type === 'physical' ? [] : prev.modules,
+      modules: type === 'online' ? prev.modules : [],
       physicalCourseData: type === 'online' ? undefined : prev.physicalCourseData
     }));
   };
@@ -388,20 +483,20 @@ console.log(course);
     setCourse({
       ...course,
       modules: [
-        ...course?.modules,
+        ...course.modules,
         { title: '', description: '', subsections: [], isExpanded: true, isQuizExpanded: false, materials: [] },
       ],
     });
   };
 
   const removeModule = (moduleIndex: number) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules.splice(moduleIndex, 1);
     setCourse({ ...course, modules: newModules });
   };
 
   const updateModule = (moduleIndex: number, field: string, value: string | boolean) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex] = { ...newModules[moduleIndex], [field]: value };
     setCourse({ ...course, modules: newModules });
   };
@@ -411,7 +506,7 @@ console.log(course);
   };
 
   const addSubsection = (moduleIndex: number) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex].subsections = [
       ...newModules[moduleIndex].subsections,
       { title: '', videoUrl: '' },
@@ -420,7 +515,7 @@ console.log(course);
   };
 
   const removeSubsection = (moduleIndex: number, subsectionIndex: number) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex].subsections.splice(subsectionIndex, 1);
     setCourse({ ...course, modules: newModules });
   };
@@ -431,7 +526,7 @@ console.log(course);
     field: string,
     value: string
   ) => {
-    const newModules = [...course?.modules];
+    const newModules = [...course.modules];
     newModules[moduleIndex].subsections[subsectionIndex] = {
       ...newModules[moduleIndex].subsections[subsectionIndex],
       [field]: value,
@@ -457,27 +552,29 @@ console.log(course);
     if(!course?.prerequisites?.trim()) requiredFields.push('Prerequisites');
     
     
-    // For all course types, validate modules and lessons (since UI is the same)
-    if (!course?.modules || course?.modules.length === 0) {
-      requiredFields.push('At least one module');
-    } else {
-      course?.modules.forEach((module, moduleIndex) => {
-        if (!module.title?.trim()) {
-          requiredFields.push(`Module ${moduleIndex + 1} Title`);
-        }
-        if (!module.subsections || module.subsections.length === 0) {
-          requiredFields.push(`At least one lesson in Module ${moduleIndex + 1}`);
-        } else {
-          module.subsections.forEach((subsection, lessonIndex) => {
-            if (!subsection.title?.trim()) {
-              requiredFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
-            }
-            if (!subsection.videoUrl?.trim()) {
-              requiredFields.push(`Lesson ${lessonIndex + 1} Video URL in Module ${moduleIndex + 1}`);
-            }
-          });
-        }
-      });
+    // For online courses only, validate modules and lessons
+    if (course?.courseType === 'online') {
+      if (!course?.modules || course?.modules.length === 0) {
+        requiredFields.push('At least one module');
+      } else {
+        course?.modules.forEach((module, moduleIndex) => {
+          if (!module.title?.trim()) {
+            requiredFields.push(`Module ${moduleIndex + 1} Title`);
+          }
+          if (!module.subsections || module.subsections.length === 0) {
+            requiredFields.push(`At least one lesson in Module ${moduleIndex + 1}`);
+          } else {
+            module.subsections.forEach((subsection, lessonIndex) => {
+              if (!subsection.title?.trim()) {
+                requiredFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
+              }
+              if (!subsection.videoUrl?.trim()) {
+                requiredFields.push(`Lesson ${lessonIndex + 1} Video URL in Module ${moduleIndex + 1}`);
+              }
+            });
+          }
+        });
+      }
     }
     
     // If there are missing required fields, show alert and return
@@ -490,7 +587,7 @@ console.log(course);
     try {
       setIsLoading(true);
       
-      let base64 = course?.thumbnail_photo_path;
+      const base64 = course?.thumbnail_photo_path;
       let thumbnail_photo_base64_code = undefined;
       let thumbnail_photo_path = undefined;
 
@@ -516,46 +613,49 @@ console.log(course);
         ...(thumbnail_photo_base64_code && { thumbnail_photo_base64_code }),
         ...(thumbnail_photo_path && { thumbnail_photo_path }),
         course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
-        course_modules: course?.modules.map((mod, idx) => ({
-          module_title: mod.title,
-          module_description: mod.description,
-          sequence: idx,
-          course_module_lessons: mod.subsections.map((sub, subIdx) => ({
-            lesson_title: sub.title,
-            lesson_description: sub.description,
-            lesson_attachment_path: sub.videoUrl,
-            duration: Number(sub.duration) || 0,
-            sequence: subIdx,
-          })),
-          quizzes: mod.quiz
-            ? [
-                {
-                  title: mod.quiz.title,
-                  description: mod.quiz.description,
-                  passing_score: mod.quiz.passPercentage,
-                  max_attempts: mod.quiz.allowRetakes ? 99 : 1,
-                  quiz_questions: mod.quiz.questions.map((q, qIdx) => ({
-                    question: q.question,
-                    type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
-                    options: q.options ? q.options.join(',') : '',
-                    correct_answers: typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer ? 'true' : 'false',
-                    points: q.points,
-                    order_index: qIdx,
-                  })),
-                },
-              ]
-            : [],
-        })),
+        course_modules:
+          course?.courseType === 'online'
+            ? course?.modules.map((mod, idx) => ({
+                module_title: mod.title,
+                module_description: mod.description,
+                sequence: idx,
+                course_module_lessons: mod.subsections.map((sub, subIdx) => ({
+                  lesson_title: sub.title,
+                  lesson_description: sub.description,
+                  lesson_attachment_path: sub.videoUrl,
+                  duration: Number(sub.duration) || 0,
+                  sequence: subIdx,
+                })),
+                quizzes: mod.quiz
+                  ? [
+                      {
+                        title: mod.quiz.title,
+                        description: mod.quiz.description,
+                        passing_score: mod.quiz.passPercentage,
+                        max_attempts: mod.quiz.allowRetakes ? 99 : 1,
+                        quiz_questions: mod.quiz.questions.map((q, qIdx) => ({
+                          question: q.question,
+                          type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
+                          options: q.options ? q.options.join(',') : '',
+                          correct_answers: typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer ? 'true' : 'false',
+                          points: q.points,
+                          order_index: qIdx,
+                        })),
+                      },
+                    ]
+                  : [],
+              }))
+            : null,
       };
 
       if (mode === 'edit' && course?.id) {
-      await dispatch(updateAdminCourse(course?.id, payload) as any);
+      await dispatch(updateAdminCourse(course?.id, payload));
         toast({
           title: "Course updated!",
           description: "Your course has been successfully updated.",
         });
       } else {
-      await dispatch(createAdminCourse(payload) as any);
+      await dispatch(createAdminCourse(payload));
         toast({
           title: "Course published!",
           description: "Your course has been successfully uploaded.",
@@ -633,7 +733,7 @@ console.log(course);
 
         {/* Stepper */}
         <div className="flex items-center mb-8">
-          {steps.map((step, idx) => (
+          {computedSteps.map((step, idx) => (
             <React.Fragment key={step.key}>
               <div className={`flex flex-col items-center ${idx === currentStep ? 'text-blue-600 font-bold' : 'text-muted-foreground'}`}>
                 <div className={`rounded-full border-2 w-8 h-8 flex items-center justify-center mb-1 ${idx === currentStep ? 'border-blue-600' : 'border-border'}`}>
@@ -641,7 +741,7 @@ console.log(course);
                 </div>
                 <span className="text-xs">{step.label}</span>
               </div>
-              {idx < steps.length - 1 && (
+              {idx < computedSteps.length - 1 && (
                 <div className={`flex-1 h-0.5 mx-2 ${idx < currentStep ? 'bg-blue-600' : 'bg-border'}`}></div>
               )}
             </React.Fragment>
@@ -652,7 +752,7 @@ console.log(course);
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Step 1: Course Type */}
-            {currentStep === 0 && (
+            {computedSteps[currentStep]?.key === 'type' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Course Type</CardTitle>
@@ -701,7 +801,7 @@ console.log(course);
             )}
 
             {/* Step 2: Course Info */}
-            {currentStep === 1 && (
+            {computedSteps[currentStep]?.key === 'info' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Course Information</CardTitle>
@@ -869,7 +969,7 @@ console.log(course);
             )}
 
             {/* Step 3: Content */}
-            {currentStep === 2  && (
+            {computedSteps[currentStep]?.key === 'content'  && (
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
@@ -1097,7 +1197,7 @@ console.log(course);
           
 
             {/* Step 5: Preview & Publish */}
-            {currentStep === 3 && (
+            {computedSteps[currentStep]?.key === 'preview' && (
               <Card>
                 <CardHeader>
                   <CardTitle>Preview & Publish</CardTitle>
@@ -1125,7 +1225,7 @@ console.log(course);
               <Button variant="outline" onClick={goBack} disabled={currentStep === 0}>
                 Back
               </Button>
-              {currentStep < steps.length - 1 && (
+              {currentStep < computedSteps.length - 1 && (
                 <Button onClick={goNext}>
                   Next
                 </Button>
@@ -1296,9 +1396,9 @@ console.log(course);
       ? quizToModalFormat(course?.modules[quizModal.moduleIdx].quiz)
       : undefined
   }
-  onSave={(modalQuiz: any) => {
+  onSave={(modalQuiz: ModalQuizDto) => {
     if (quizModal.moduleIdx !== null) {
-      const newModules = [...course?.modules];
+      const newModules = [...course.modules];
       newModules[quizModal.moduleIdx].quiz = modalToQuizFormat(modalQuiz);
       setCourse({ ...course, modules: newModules });
     }
