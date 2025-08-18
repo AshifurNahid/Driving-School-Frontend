@@ -552,48 +552,6 @@ const CourseDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Related Courses */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Students Also Bought</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    {
-                      title: "Advanced React Patterns",
-                      price: 79.99,
-                      rating: 4.7,
-                      thumbnail: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=100&h=60&fit=crop"
-                    },
-                    {
-                      title: "Node.js Backend Development",
-                      price: 89.99,
-                      rating: 4.6,
-                      thumbnail: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=100&h=60&fit=crop"
-                    }
-                  ].map((relatedCourse, index) => (
-                    <div key={index} className="flex space-x-3">
-                      <img
-                        src={relatedCourse.thumbnail}
-                        alt={relatedCourse.title}
-                        className="w-16 h-12 object-cover rounded"
-                      />
-                      <div className="flex-1">
-                        <h4 className="text-sm font-medium line-clamp-2">{relatedCourse.title}</h4>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-sm font-bold">${relatedCourse.price}</span>
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-muted-foreground ml-1">{relatedCourse.rating}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

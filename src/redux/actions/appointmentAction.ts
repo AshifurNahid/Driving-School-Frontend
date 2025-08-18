@@ -18,7 +18,16 @@ import {
   BOOK_DIRECT_APPOINTMENT_RESET,
   USER_APPOINTMENTS_REQUEST,
   USER_APPOINTMENTS_SUCCESS,
-  USER_APPOINTMENTS_FAIL
+  USER_APPOINTMENTS_FAIL,
+  ADMIN_PREVIOUS_APPOINTMENTS_REQUEST,
+  ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS,
+  ADMIN_PREVIOUS_APPOINTMENTS_FAIL,
+  ADMIN_UPCOMING_APPOINTMENTS_REQUEST,
+  ADMIN_UPCOMING_APPOINTMENTS_SUCCESS,
+  ADMIN_UPCOMING_APPOINTMENTS_FAIL,
+  ADMIN_APPOINTMENT_STATUS_UPDATE_REQUEST,
+  ADMIN_APPOINTMENT_STATUS_UPDATE_SUCCESS,
+  ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL
 } from "../constants/appointmentConstants";
 
 
@@ -294,6 +303,123 @@ export const getUserAppointments = (userId: number) => async (dispatch: any) => 
   } catch (error: any) {
     dispatch({
       type: USER_APPOINTMENTS_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+// Admin appointment management types
+export interface AdminAppointmentItem {
+  id: number;
+  userId: number;
+  availableAppointmentSlotId: number;
+  userCourseId: number | null;
+  appointmentType: string;
+  hoursConsumed: number;
+  amountPaid: number;
+  note: string;
+  learnerPermitIssueDate: string;
+  permitNumber: string;
+  permitExpirationDate: string;
+  drivingExperience: string;
+  isLicenceFromAnotherCountry: boolean;
+  status: string;
+  createdAt: string;
+  appointmentSlot: {
+    id: number;
+    instructorId: number;
+    courseId: number;
+    date: string;
+    startTime: string;
+    endTime: string;
+    location: string | null;
+    status: number;
+    createdById: number;
+    updatedById: number;
+    createdAt: string;
+    updatedAt: string;
+    pricePerSlot: number;
+  };
+  userCourse: any | null;
+}
+
+export interface AdminAppointmentResponse {
+  status: {
+    code: string;
+    message: string;
+  };
+  data: {
+    items: AdminAppointmentItem[];
+    totalCount: number;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
+// Get admin previous appointments
+export const getAdminPreviousAppointments = (pageNumber: number = 1, pageSize: number = 10) => async (dispatch: any) => {
+  try {
+    dispatch({ type: ADMIN_PREVIOUS_APPOINTMENTS_REQUEST });
+    
+    const { data }: { data: AdminAppointmentResponse } = await api.get(`/appointments/previous?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+    
+    dispatch({
+      type: ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS,
+      payload: data,
+    });
+  } catch (error: any) {
+    dispatch({
+      type: ADMIN_PREVIOUS_APPOINTMENTS_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+// Get admin upcoming appointments
+export const getAdminUpcomingAppointments = (pageNumber: number = 1, pageSize: number = 10) => async (dispatch: any) => {
+  try {
+    dispatch({ type: ADMIN_UPCOMING_APPOINTMENTS_REQUEST });
+    
+    const { data }: { data: AdminAppointmentResponse } = await api.get(`/appointments/upcoming?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+    
+    dispatch({
+      type: ADMIN_UPCOMING_APPOINTMENTS_SUCCESS,
+      payload: data,
+    });
+  } catch (error: any) {
+    dispatch({
+      type: ADMIN_UPCOMING_APPOINTMENTS_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+// Update appointment status (approve/reject)
+export const updateAppointmentStatus = (appointmentId: number, status: string) => async (dispatch: any) => {
+  try {
+    dispatch({ type: ADMIN_APPOINTMENT_STATUS_UPDATE_REQUEST });
+    
+    const { data } = await api.put(`/appointments/${appointmentId}/status`, { status });
+    
+    dispatch({
+      type: ADMIN_APPOINTMENT_STATUS_UPDATE_SUCCESS,
+      payload: { id: appointmentId, status, data },
+    });
+  } catch (error: any) {
+    dispatch({
+      type: ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL,
       payload:
         error.response && error.response.data.message
           ? error.response.data.message
