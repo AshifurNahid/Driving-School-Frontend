@@ -310,20 +310,35 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 h-screen bg-[#f8f9fa] dark:bg-gray-900">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200/30 dark:border-gray-800/50 px-6 py-4 flex-shrink-0">
+        <header className="bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm px-6 py-5 flex-shrink-0">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm md:text-base">Manage your platform efficiently</p>
-            </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                <Shield className="h-3 w-3 mr-1" />
-                Admin
+              <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 rounded-lg flex items-center justify-center shadow-md">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Admin Dashboard
+                </h1>
+                <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm md:text-base font-medium">
+                  Manage your platform efficiently
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-6">
+              <Badge 
+                variant="secondary" 
+                className="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 border border-emerald-400/30 text-emerald-100 px-3 py-1.5 font-semibold shadow-lg backdrop-blur-sm"
+              >
+                <Shield className="h-3 w-3 mr-2" />
+                Administrator
               </Badge>
-              <Avatar className="h-8 w-8 md:h-10 md:w-10">
+              
+              <Avatar className="h-10 w-10 shadow-lg ring-2 ring-blue-400/30">
                 <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" />
-                <AvatarFallback>AD</AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
+                  AD
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>
