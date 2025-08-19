@@ -182,3 +182,21 @@ export const deleteAdminCourse = (courseId: number | string) => async (dispatch:
       });
     }
   }
+
+
+  //Get Region List
+
+  export const getAdminRegionList = () => async (dispatch: any) => {
+    try {
+      dispatch({ type: "ADMIN_REGION_LIST_REQUEST" });
+      const { data } = await api.get("/regions");
+      dispatch({ type: "ADMIN_REGION_LIST_SUCCESS", payload: data.data });
+    } catch (error: any) {
+      dispatch({
+        type: "ADMIN_REGION_LIST_FAIL",
+        payload: error.response?.data?.message || error.message,
+      });
+    }
+  }
+
+

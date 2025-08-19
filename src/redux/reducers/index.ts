@@ -5,7 +5,8 @@ import {
   adminUserDetailsReducer,
   adminUserDeleteReducer,
   adminRoleListReducer,
-  adminCourseListReducer
+  adminCourseListReducer,
+  adminRegionListReducer
 } from "./adminReducer";
 import { courseListReducer, enrolledCoursesReducer } from "./courseReducer";
 import { userCourseDetailsReducer, userCourseListReducer } from "./userCourseReducer";
@@ -46,7 +47,8 @@ const rootReducer = combineReducers({
   adminUpcomingAppointments: adminUpcomingAppointmentsReducer,
   adminAppointmentStatusUpdate: adminAppointmentStatusUpdateReducer,
   
-  instructorList: instructorListReducer
+  instructorList: instructorListReducer,
+  regionList: adminRegionListReducer,
 
   
   // add other reducers here

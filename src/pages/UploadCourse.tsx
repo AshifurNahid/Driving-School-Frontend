@@ -16,7 +16,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import PhysicalCourseForm from '@/components/course/PhysicalCourseForm';
 import { QuizModal } from '@/components/course/QuizModal';
 import { MaterialModal } from '@/components/course/MaterialModal';
-import { createAdminCourse, getAdminCourseDetails, updateAdminCourse } from '@/redux/actions/adminAction';
+import { createAdminCourse, getAdminCourseDetails, updateAdminCourse, getAdminRegionList } from '@/redux/actions/adminAction';
 import { toast } from '@/components/ui/use-toast';
 import { RootState, AppDispatch } from '@/redux/store';
 
@@ -84,7 +84,7 @@ interface Course {
   content: string;
   category: string;
   price: number;
-  duration: number; // in hours
+  duration: number; // in hours - only for online courses
   level: string;
   language: string;
   prerequisites: string;
@@ -93,11 +93,14 @@ interface Course {
   modules: Module[];
   physicalCourseData?: PhysicalCourseData;
   materials: CourseMaterial[];
+  region_id?: number | null; // only for offline and hybrid courses
+  offline_training_hours?: number | null; // only for offline and hybrid courses
 }
 
 const steps = [
   { key: 'type', label: 'Course Type' },
   { key: 'info', label: 'Course Info' },
+  { key: 'materials', label: 'Course Materials' },
   { key: 'content', label: 'Content' },
   { key: 'preview', label: 'Preview & Publish' },
 ];
@@ -129,6 +132,8 @@ const defaultCourse: Course = {
     location: ''
   },
   materials: [],
+  region_id: null,
+  offline_training_hours: null,
 };
 interface ModalQuizQuestionDto {
   question: string;
@@ -233,6 +238,8 @@ interface AdminCourseApiResponse {
   location?: string;
   course_modules?: ApiCourseModule[];
   materials?: CourseMaterial[];
+  region_id?: number | null;
+  offline_training_hours?: number | null;
 }
 
 const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Course => {
@@ -301,6 +308,8 @@ const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Cour
       location: apiResponse.location || ''
     } : undefined,
     materials: apiResponse.materials || [],
+    region_id: apiResponse.region_id,
+    offline_training_hours: apiResponse.offline_training_hours,
   };
 };
 
@@ -311,6 +320,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   
   // Get course details from Redux store for edit mode
   const{ loading, courseDetails, error: courseListError } = useSelector((state: RootState) => state.adminCourseList);
+  const { regions } = useSelector((state: RootState) => state.regionList);
 
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
   const [isLoading, setIsLoading] = useState(false);
@@ -323,6 +333,11 @@ console.log(course);
       dispatch(getAdminCourseDetails(id));
     }
   }, [mode, id, initialCourse, dispatch]);
+
+  // Effect to fetch regions
+  useEffect(() => {
+    dispatch(getAdminRegionList());
+  }, [dispatch]);
 
   // Effect to set course data when course details are loaded
   useEffect(() => {
@@ -384,7 +399,11 @@ console.log(course);
     course?.description.trim() &&
     course?.category &&
     course?.price > 0 &&
-    course?.thumbnail_photo_path.trim();
+    course?.thumbnail_photo_path.trim() &&
+    (course?.courseType === 'online' ? course?.duration > 0 : true) &&
+    (course?.courseType !== 'online' ? course?.region_id && course?.offline_training_hours : true);
+
+  const isMaterialsStepValid = true; // Materials are optional, so always valid
 
   const isContentStepValid =
     course?.courseType === 'online'
@@ -397,6 +416,7 @@ console.log(course);
     const stepKey = computedSteps[currentStep]?.key;
     if (stepKey === 'type') return isTypeStepValid;
     if (stepKey === 'info') return isInfoStepValid;
+    if (stepKey === 'materials') return isMaterialsStepValid;
     if (stepKey === 'content') return isContentStepValid;
     return true;
   };
@@ -416,15 +436,37 @@ console.log(course);
       if (!course?.content?.trim()) missingFields.push('Course Content');
       if (!course?.category) missingFields.push('Category');
       if (!course?.price || course?.price <= 0) missingFields.push('Price');
-      if (!course?.duration || course?.duration <= 0) missingFields.push('Duration');
+      if (course?.courseType === 'online' && (!course?.duration || course?.duration <= 0)) missingFields.push('Duration');
       if (!course?.level?.trim()) missingFields.push('Level');
       if (!course?.language?.trim()) missingFields.push('Language');
       if (!course?.prerequisites?.trim()) missingFields.push('Prerequisites');
       if (!course?.thumbnail_photo_path?.trim()) missingFields.push('Thumbnail Image');
+      if (course?.courseType !== 'online') {
+        if (!course?.region_id) missingFields.push('Region');
+        if (!course?.offline_training_hours) missingFields.push('Offline Training Hours');
+      }
       
       if (missingFields.length > 0) {
         alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
         return;
+      }
+    } else if (stepKey === 'materials') {
+      // Materials are optional, but if added, they must have both title and file path
+      if (course?.materials && course.materials.length > 0) {
+        const missingFields = [];
+        course.materials.forEach((material, index) => {
+          if (!material.name?.trim()) {
+            missingFields.push(`Material ${index + 1} Title`);
+          }
+          if (!material.url?.trim()) {
+            missingFields.push(`Material ${index + 1} File Path`);
+          }
+        });
+        
+        if (missingFields.length > 0) {
+          alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
+          return;
+        }
       }
     } else if (stepKey === 'content') {
       if (!course?.modules || course?.modules.length === 0) {
@@ -472,9 +514,33 @@ console.log(course);
     setCourse(prev => ({
       ...prev,
       courseType: type,
-      modules: type === 'online' ? prev.modules : [],
-      physicalCourseData: type === 'online' ? undefined : prev.physicalCourseData
+      // Clear all form content when course type changes
+      title: '',
+      description: '',
+      content: '',
+      category: '',
+      price: 0,
+      duration: 0,
+      level: '',
+      language: '',
+      prerequisites: '',
+      thumbnail_photo_path: '',
+      modules: type === 'online' ? [] : [],
+      physicalCourseData: type === 'online' ? undefined : {
+        title: '',
+        price: 0,
+        duration: '',
+        includes: '',
+        description: '',
+        location: ''
+      },
+      materials: [],
+      region_id: null,
+      offline_training_hours: null,
     }));
+    
+    // Reset to first step when course type changes
+    setCurrentStep(0);
   };
 
   
@@ -545,12 +611,17 @@ console.log(course);
 
     if (!course?.category?.trim()) requiredFields.push('Category');
     if (!course?.price || course?.price <= 0) requiredFields.push('Price');
-    if (!course?.duration || course?.duration <= 0) requiredFields.push('Duration');
+    if (course?.courseType === 'online' && (!course?.duration || course?.duration <= 0)) requiredFields.push('Duration');
     if (!course?.level?.trim()) requiredFields.push('Level');
     if (!course?.language?.trim()) requiredFields.push('Language');
     if (!course?.thumbnail_photo_path?.trim()) requiredFields.push('Thumbnail Image');
     if(!course?.prerequisites?.trim()) requiredFields.push('Prerequisites');
     
+    // For offline and hybrid courses, validate region_id and offline_training_hours
+    if (course?.courseType !== 'online') {
+      if (!course?.region_id) requiredFields.push('Region');
+      if (!course?.offline_training_hours) requiredFields.push('Offline Training Hours');
+    }
     
     // For online courses only, validate modules and lessons
     if (course?.courseType === 'online') {
@@ -575,6 +646,18 @@ console.log(course);
           }
         });
       }
+    }
+    
+    // Validate course materials if any are added
+    if (course?.materials && course.materials.length > 0) {
+      course.materials.forEach((material, index) => {
+        if (!material.name?.trim()) {
+          requiredFields.push(`Material ${index + 1} Title`);
+        }
+        if (!material.url?.trim()) {
+          requiredFields.push(`Material ${index + 1} File Path`);
+        }
+      });
     }
     
     // If there are missing required fields, show alert and return
@@ -606,13 +689,43 @@ console.log(course);
         content: course?.content,
         category: course?.category,
         price: Number(course?.price),
-        duration: Number(course?.duration),
+        duration: course?.courseType === 'online' ? Number(course?.duration) : null,
         level: course?.level,
         language: course?.language,
         prerequisites: course?.prerequisites,
         ...(thumbnail_photo_base64_code && { thumbnail_photo_base64_code }),
         ...(thumbnail_photo_path && { thumbnail_photo_path }),
         course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
+        region_id: course?.courseType === 'online' ? null : course?.region_id,
+        offline_training_hours: course?.courseType === 'online' ? null : course?.offline_training_hours,
+        course_materials: course?.materials?.map(material => {
+          // Commented out base64 handling - now using file paths only
+          /*
+          // If material.url is a base64 data URL, extract the base64 part
+          if (material.url && material.url.startsWith('data:')) {
+            return {
+              title: material.name,
+              file_path: material.url // Send the complete data URL as base64
+            };
+          } else if (material.url && material.url.trim() !== '') {
+            // If it's an existing file path, send only the path
+            return {
+              title: material.name,
+              file_path: material.url
+            };
+          }
+          */
+          
+          // Simple file path handling
+          if (material.url && material.url.trim() !== '') {
+            return {
+              title: material.name,
+              file_path: material.url
+            };
+          }
+          // Skip materials without valid file path
+          return null;
+        }).filter(Boolean) || [],
         course_modules:
           course?.courseType === 'online'
             ? course?.modules.map((mod, idx) => ({
@@ -867,16 +980,18 @@ console.log(course);
                         placeholder={course?.courseType === 'physical' ? "550" : "99.99"}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="duration">Duration (hours)</Label>
-                      <Input
-                        id="duration"
-                        type="text"
-                        value={course?.duration || ''}
-                        onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
-                        placeholder="e.g. 20"
-                      />
-                    </div>
+                    {course?.courseType === 'online' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="duration">Duration (hours)</Label>
+                        <Input
+                          id="duration"
+                          type="text"
+                          value={course?.duration || ''}
+                          onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
+                          placeholder="e.g. 20"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
@@ -907,6 +1022,39 @@ console.log(course);
                       />
                     </div>
                   </div>
+                  {/* Region and Offline Training Hours - Only for offline and hybrid courses */}
+                  {(course?.courseType === 'physical' || course?.courseType === 'hybrid') && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="region_id">Region</Label>
+                        <Select
+                          value={course?.region_id?.toString() || ''}
+                          onValueChange={(value) => setCourse({ ...course, region_id: Number(value) || null })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a region" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {regions?.map((region) => (
+                              <SelectItem key={region.id} value={region.id?.toString() || ''}>
+                                {region.region_name || `Region ${region.id}`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="offline_training_hours">Offline Training Hours</Label>
+                        <Input
+                          id="offline_training_hours"
+                          type="text"
+                          value={course?.offline_training_hours?.toString() || ''}
+                          onChange={(e) => setCourse({ ...course, offline_training_hours: parseFloat(e.target.value) || null })}
+                          placeholder="e.g. 10.5"
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="thumbnail_photo_path">Thumbnail Image</Label>
                     <Input
@@ -968,7 +1116,145 @@ console.log(course);
               </Card>
             )}
 
-            {/* Step 3: Content */}
+            {/* Step 3: Course Materials */}
+            {computedSteps[currentStep]?.key === 'materials' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <BookOpen className="h-5 w-5 mr-2" />
+                    Course Materials
+                  </CardTitle>
+                  <CardDescription>
+                    Add supplementary materials like PDFs, documents, or other resources for your students.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-medium">Course Materials</h4>
+                      <Button
+                        onClick={() => {
+                          setCourse(prev => ({
+                            ...prev,
+                            materials: [...(prev.materials || []), { name: '', url: '' }]
+                          }));
+                        }}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Material
+                      </Button>
+                    </div>
+                    
+                    {course?.materials && course.materials.length > 0 ? (
+                      <div className="space-y-3">
+                        {course.materials.map((material, index) => (
+                          <Card key={index} className="p-4">
+                            <div className="flex items-start space-x-3">
+                              <div className="flex-1 space-y-3">
+                                <div>
+                                  <Label htmlFor={`material-title-${index}`}>Material Title</Label>
+                                  <Input
+                                    id={`material-title-${index}`}
+                                    value={material.name}
+                                    onChange={(e) => {
+                                      const newMaterials = [...course.materials];
+                                      newMaterials[index].name = e.target.value;
+                                      setCourse({ ...course, materials: newMaterials });
+                                    }}
+                                    placeholder="e.g., Course Handbook, Study Guide"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor={`material-file-${index}`}>File Path</Label>
+                                  <Input
+                                    id={`material-file-${index}`}
+                                    type="text"
+                                    value={material.url}
+                                    onChange={(e) => {
+                                      const newMaterials = [...course.materials];
+                                      newMaterials[index].url = e.target.value;
+                                      setCourse({ ...course, materials: newMaterials });
+                                    }}
+                                    placeholder="e.g., /uploads/materials/handbook.pdf"
+                                  />
+                                  {/* Commented out base64 conversion logic
+                                  <Input
+                                    id={`material-file-${index}`}
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.txt,.zip,.rar"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        // Validate file size (max 10MB)
+                                        if (file.size > 10 * 1024 * 1024) {
+                                          alert('File size must be less than 10MB');
+                                          return;
+                                        }
+                                        
+                                        // Convert file to base64 for upload
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                          const result = reader.result as string;
+                                          if (result && result.startsWith('data:')) {
+                                            const newMaterials = [...course.materials];
+                                            newMaterials[index].url = result; // Store base64 data
+                                            setCourse({ ...course, materials: newMaterials });
+                                          }
+                                        };
+                                        reader.readAsDataURL(file);
+                                      }
+                                    }}
+                                  />
+                                  */}
+                                  {material.url && (
+                                    <div className="mt-2 text-xs text-muted-foreground">
+                                      File path: {material.url}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const newMaterials = course.materials.filter((_, i) => i !== index);
+                                  setCourse({ ...course, materials: newMaterials });
+                                }}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
+                        <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <h3 className="text-lg font-medium mb-2">No materials added yet</h3>
+                        <p className="mb-4">Add supplementary materials to enhance your course.</p>
+                        <Button
+                          onClick={() => {
+                            setCourse(prev => ({
+                              ...prev,
+                              materials: [{ name: '', url: '' }]
+                            }));
+                          }}
+                          variant="outline"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add First Material
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 4: Content */}
             {computedSteps[currentStep]?.key === 'content'  && (
               <Card>
                 <CardHeader>
@@ -1193,9 +1479,6 @@ console.log(course);
               </Card>
             )}
 
-            {/* Step 4: Materials */}
-          
-
             {/* Step 5: Preview & Publish */}
             {computedSteps[currentStep]?.key === 'preview' && (
               <Card>
@@ -1290,6 +1573,20 @@ console.log(course);
                               <span className="font-medium">{course?.physicalCourseData.location}</span>
                             </div>
                           )}
+                          {course?.region_id && (
+                            <div className="flex justify-between">
+                              <span>Region:</span>
+                              <span className="font-medium">
+                                {regions?.find(r => r.id === course.region_id)?.region_name || `Region ${course.region_id}`}
+                              </span>
+                            </div>
+                          )}
+                          {course?.offline_training_hours && (
+                            <div className="flex justify-between">
+                              <span>Offline Training Hours:</span>
+                              <span className="font-medium">{course.offline_training_hours} hours</span>
+                            </div>
+                          )}
                         </div>
                         {course?.physicalCourseData?.includes && (
                           <div>
@@ -1305,8 +1602,24 @@ console.log(course);
                           </div>
                         )}
                       </div>
-                    ) : (
+                    ) : course?.courseType === 'hybrid' ? (
                       <div className="space-y-3">
+                        <div className="text-sm text-muted-foreground">
+                          {course?.region_id && (
+                            <div className="flex justify-between">
+                              <span>Region:</span>
+                              <span className="font-medium">
+                                {regions?.find(r => r.id === course.region_id)?.region_name || `Region ${course.region_id}`}
+                              </span>
+                            </div>
+                          )}
+                          {course?.offline_training_hours && (
+                            <div className="flex justify-between">
+                              <span>Offline Training Hours:</span>
+                              <span className="font-medium">{course.offline_training_hours} hours</span>
+                            </div>
+                          )}
+                        </div>
                         <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                           <div>
                             <span className="font-medium">{course?.modules.length}</span> modules
@@ -1362,6 +1675,63 @@ console.log(course);
                           )}
                         </div>
                       </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                          <div>
+                            <span className="font-medium">{course?.modules.length}</span> modules
+                          </div>
+                          <div>
+                            <span className="font-medium">{course?.modules.reduce((total, module) => total + module.subsections.length, 0)}</span> lessons
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                          <div>
+                            <span className="font-medium">{course?.modules.filter(module => module.quiz && module.quiz.questions.length > 0).length}</span> quizzes
+                          </div>
+                          {course?.duration > 0 && (
+                            <div>
+                              <span className="font-medium">{course.duration} hours</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {course?.modules.map((module, index) => (
+                            <div key={index} className="text-sm">
+                              <div className="font-medium text-foreground flex items-center">
+                                <BookOpen className="h-3 w-3 mr-2" />
+                                Module {index + 1}: {module.title || 'Untitled Module'}
+                              </div>
+                              <div className="ml-5 text-muted-foreground space-y-1">
+                                <div>
+                                  {module.subsections.length} lesson{module.subsections.length !== 1 ? 's' : ''}
+                                </div>
+                                {module.quiz && (
+                                  <div className="flex items-center text-xs">
+                                    <Brain className="h-2 w-2 mr-1" />
+                                    Quiz ({module.quiz.questions.length} questions)
+                                  </div>
+                                )}
+                                {module.subsections.length > 0 && (
+                                  <div className="ml-2 space-y-1">
+                                    {module.subsections.map((subsection, subIndex) => (
+                                      <div key={subIndex} className="text-xs flex items-center">
+                                        <Video className="h-2 w-2 mr-1" />
+                                        {subsection.title || `Lesson ${subIndex + 1}`}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          {course?.modules.length === 0 && (
+                            <div className="text-muted-foreground text-sm">
+                              No modules added yet
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                   <Separator />
@@ -1371,7 +1741,12 @@ console.log(course);
                       {course?.materials.map((mat, idx) => (
                         <li key={idx} className="text-xs text-muted-foreground flex items-center">
                           <span className="mr-2">•</span>
-                          <a href={mat.url} target="_blank" rel="noopener noreferrer" className="underline">{mat.name || mat.url}</a>
+                          <span>{mat.name || `Material ${idx + 1}`}</span>
+                          {mat.url && (
+                            <span className="ml-2 text-xs opacity-75">
+                              ({mat.url})
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -1404,12 +1779,7 @@ console.log(course);
     }
   }}
 />
-      {/* <MaterialModal
-        open={materialModal.open}
-        onClose={() => setMaterialModal({ open: false, moduleIdx: null })}
-        materials={materialModal.moduleIdx !== null ? course?.modules[materialModal.moduleIdx].materials || [] : []}
-        onSave={handleMaterialSave}
-      /> */}
+    
     </div>
                   );
                 };
