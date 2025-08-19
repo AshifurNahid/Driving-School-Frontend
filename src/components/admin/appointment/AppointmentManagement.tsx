@@ -32,9 +32,11 @@ import {
   getAdminPreviousAppointments, 
   getAdminUpcomingAppointments, 
   updateAppointmentStatus, 
+  cancelAppointment,
   AdminAppointmentItem 
 } from '@/redux/actions/appointmentAction';
 import { listInstructors } from '@/redux/actions/instructorActions';
+import { ADMIN_APPOINTMENT_CANCEL_RESET } from '@/redux/constants/appointmentConstants';
 import { useUserDetails } from '@/hooks/useUserDetails';
 
 const AppointmentManagement = () => {
@@ -62,6 +64,12 @@ const AppointmentManagement = () => {
     error: statusUpdateError 
   } = useSelector((state: RootState) => state.adminAppointmentStatusUpdate);
 
+  const { 
+    loading: cancelLoading, 
+    success: cancelSuccess, 
+    error: cancelError 
+  } = useSelector((state: RootState) => state.adminAppointmentCancel);
+
   // Instructors state for filtering
   const { instructors = [], loading: instructorsLoading } = useSelector(
     (state: RootState) => state.instructorList
@@ -81,6 +89,12 @@ const AppointmentManagement = () => {
     appointment: AdminAppointmentItem | null;
     action: string;
   }>({ open: false, appointment: null, action: '' });
+
+  const [cancelDialog, setCancelDialog] = useState<{
+    open: boolean;
+    appointment: AdminAppointmentItem | null;
+    reason: string;
+  }>({ open: false, appointment: null, reason: '' });
 
   // Get current appointments and loading state based on active tab
   const currentAppointments = activeTab === 'upcoming' ? upcomingAppointments : previousAppointments;
@@ -120,17 +134,41 @@ const AppointmentManagement = () => {
     }
   }, [statusUpdateSuccess, dispatch, activeTab, currentPage, itemsPerPage]);
 
-  // Handle status update success
+  // Handle cancel success
   useEffect(() => {
-    if (statusUpdateSuccess) {
-      // Refetch data when status is updated
+    if (cancelSuccess) {
+      // Show success message
+      toast({
+        title: "Success",
+        description: "Appointment cancelled successfully",
+      });
+      
+      // Refetch data when appointment is cancelled
       if (activeTab === 'upcoming') {
         dispatch(getAdminUpcomingAppointments(currentPage, itemsPerPage));
       } else {
         dispatch(getAdminPreviousAppointments(currentPage, itemsPerPage));
       }
+      
+      // Close dialog and reset state
+      setCancelDialog({ open: false, appointment: null, reason: '' });
+      dispatch({ type: ADMIN_APPOINTMENT_CANCEL_RESET });
     }
-  }, [statusUpdateSuccess, dispatch, activeTab, currentPage, itemsPerPage]);
+  }, [cancelSuccess, dispatch, activeTab, currentPage, itemsPerPage, toast]);
+
+  // Handle cancel error
+  useEffect(() => {
+    if (cancelError) {
+      toast({
+        title: "Error",
+        description: cancelError,
+        variant: "destructive",
+      });
+      
+      // Reset error state
+      dispatch({ type: ADMIN_APPOINTMENT_CANCEL_RESET });
+    }
+  }, [cancelError, dispatch, toast]);
 
   // Filter and search logic - Updated to work with API data structure
   const filteredAppointments = currentAppointments.filter((appointment: AdminAppointmentItem) => {
@@ -233,6 +271,31 @@ const AppointmentManagement = () => {
     }
     
     setConfirmDialog({ open: false, appointment: null, action: '' });
+  };
+
+  const handleCancelClick = (appointment: AdminAppointmentItem) => {
+    setCancelDialog({ open: true, appointment, reason: '' });
+  };
+
+  const handleConfirmCancel = () => {
+    const { appointment, reason } = cancelDialog;
+    
+    if (appointment && reason.trim()) {
+      dispatch(cancelAppointment(appointment.id, reason));
+      
+      toast({
+        title: "Processing",
+        description: "Cancelling appointment...",
+      });
+      
+      setCancelDialog({ open: false, appointment: null, reason: '' });
+    } else {
+      toast({
+        title: "Error",
+        description: "Please provide a cancellation reason.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleViewProfile = (appointment: AdminAppointmentItem) => {
@@ -457,10 +520,13 @@ const AppointmentManagement = () => {
               <div className="flex flex-col items-center justify-center">
                 <Calendar className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  No Appointment Requests
+                  No {activeTab === 'upcoming' ? 'Upcoming' : 'Previous'} Appointments
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-center">
-                  No appointment requests found matching your criteria.
+                  {activeTab === 'upcoming' 
+                    ? 'No upcoming appointment requests found. New appointments will appear here when students make requests.'
+                    : 'No previous appointment requests found. Completed and past appointments will appear here.'
+                  }
                 </p>
               </div>
             </CardContent>
@@ -579,26 +645,16 @@ const AppointmentManagement = () => {
                             <Eye className="w-4 h-4" />
                           </Button>
                           {appointment.status.toLowerCase() === 'booked' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleActionClick(appointment, 'approved')}
-                                className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-900/20"
-                                disabled={statusUpdateLoading}
-                              >
-                                <Check className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleActionClick(appointment, 'rejected')}
-                                className="h-8 px-2 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
-                                disabled={statusUpdateLoading}
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelClick(appointment)}
+                              className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
+                              disabled={cancelLoading}
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Cancel
+                            </Button>
                           )}
                         </div>
                       </td>
@@ -678,6 +734,47 @@ const AppointmentManagement = () => {
               }
             >
               {statusUpdateLoading ? 'Processing...' : confirmDialog.action?.charAt(0).toUpperCase() + confirmDialog.action?.slice(1)}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Appointment Dialog */}
+      <AlertDialog open={cancelDialog.open} onOpenChange={(open) => !open && setCancelDialog({ open: false, appointment: null, reason: '' })}>
+        <AlertDialogContent className="bg-white dark:bg-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 dark:text-gray-100">
+              Cancel Appointment
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+              Are you sure you want to cancel this appointment for
+              <span className="font-medium"> {cancelDialog.appointment ? getUserName(cancelDialog.appointment.userId) : ''}</span>?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Cancellation Reason *
+              </label>
+              <Input
+                value={cancelDialog.reason}
+                onChange={(e) => setCancelDialog(prev => ({ ...prev, reason: e.target.value }))}
+                placeholder="Please provide a reason for cancellation..."
+                className="w-full"
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmCancel}
+              disabled={cancelLoading || !cancelDialog.reason.trim()}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {cancelLoading ? 'Cancelling...' : 'Cancel Appointment'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
