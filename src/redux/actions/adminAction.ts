@@ -116,7 +116,7 @@ export const createAdminCourse = (courseData: any) => async (dispatch: any)=> {
 }
 
 // Get Courses (Admin)
-export const getAdminCourses = (page = 1, pageSize = 10) =>
+export const getAdminCourses = (page = 1, pageSize = 11) =>
   async (dispatch: any) => {
   try {
     dispatch({ type: "ADMIN_COURSE_LIST_REQUEST" });
