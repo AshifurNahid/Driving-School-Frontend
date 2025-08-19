@@ -40,6 +40,7 @@ import QuizManagement from '@/components/admin/QuizManagement';
 import UserAnalytics from '@/components/admin/UserAnalytics';
 import AdminAppointmentManagement from '@/components/admin/appointment/AdminAppointmentManagement';
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
+import SlotPriceManagement from '@/pages/SlotPriceManagement';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
@@ -691,6 +692,12 @@ const AdminDashboard = () => {
               {appointmentActiveTab === 'requests' && (
                 <div>
                   <AppointmentManagement />
+                </div>
+              )}
+
+              {appointmentActiveTab === 'pricing' && (
+                <div>
+                  <SlotPriceManagement />
                 </div>
               )}
             </div>

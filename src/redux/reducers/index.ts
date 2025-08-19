@@ -24,6 +24,13 @@ import {
   adminAppointmentCancelReducer
 } from "./appointmentReducer";
 import { instructorListReducer } from "./instructorReducers";
+import {
+  slotPricingListReducer,
+  slotPricingCreateReducer,
+  slotPricingUpdateReducer,
+  slotPricingDeleteReducer,
+  slotPricingDetailsReducer
+} from "./slotPricingReducer";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -52,6 +59,12 @@ const rootReducer = combineReducers({
   instructorList: instructorListReducer,
   regionList: adminRegionListReducer,
 
+  // Slot Pricing reducers
+  slotPricingList: slotPricingListReducer,
+  slotPricingCreate: slotPricingCreateReducer,
+  slotPricingUpdate: slotPricingUpdateReducer,
+  slotPricingDelete: slotPricingDeleteReducer,
+  slotPricingDetails: slotPricingDetailsReducer,
   
   // add other reducers here
 });

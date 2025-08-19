@@ -13,7 +13,11 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
-  FileText
+  FileText,
+  DollarSign,
+  Settings,
+  LogOut,
+  Grid3X3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,16 +51,17 @@ const AdminSidebar = ({
   const [appointmentExpanded, setAppointmentExpanded] = useState(activeTab === 'appointments');
 
   const sidebarItems: SidebarItem[] = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'users', label: 'User Management', icon: Users },
-    { id: 'course-list', label: 'Course List', icon: BookOpen },
-    { id: 'appointments', label: 'Appointment Management', icon: Calendar },
-    { id: 'instructors', label: 'Instructor Management', icon: UserCheck }
+    { id: 'overview', label: 'Dashboard', icon: Grid3X3 },
+    { id: 'users', label: 'Users', icon: Users },
+    { id: 'course-list', label: 'Courses', icon: BookOpen },
+    { id: 'appointments', label: 'Appointments', icon: Calendar },
+    { id: 'instructors', label: 'Instructors', icon: UserCheck }
   ];
 
   const appointmentSubItems = [
-    { id: 'availability', label: 'Set Your Availability', icon: Clock },
-    { id: 'requests', label: 'Student Appointment Requests', icon: FileText }
+    { id: 'availability', label: 'Availability', icon: Clock },
+    { id: 'requests', label: 'Requests', icon: FileText },
+    { id: 'pricing', label: 'Pricing', icon: DollarSign }
   ];
 
   useEffect(() => {
