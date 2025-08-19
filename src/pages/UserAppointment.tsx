@@ -129,8 +129,13 @@ const UserAppointment: React.FC = () => {
     dispatch(bookDirectAppointmentReset());
   };
 
-  // Filter only available slots (status === 1)
-  const availableSlots = slots.filter(slot => slot.status === 1);
+  // Filter only available slots (status === 1) and slots with price available
+  const availableSlots = slots.filter(slot => 
+    slot.status === 1 && 
+    slot.pricePerSlot !== undefined && 
+    slot.pricePerSlot !== null && 
+    slot.pricePerSlot > 0
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors">
