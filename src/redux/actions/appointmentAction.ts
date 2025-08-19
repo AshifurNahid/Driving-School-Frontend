@@ -27,7 +27,10 @@ import {
   ADMIN_UPCOMING_APPOINTMENTS_FAIL,
   ADMIN_APPOINTMENT_STATUS_UPDATE_REQUEST,
   ADMIN_APPOINTMENT_STATUS_UPDATE_SUCCESS,
-  ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL
+  ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL,
+  ADMIN_APPOINTMENT_CANCEL_REQUEST,
+  ADMIN_APPOINTMENT_CANCEL_SUCCESS,
+  ADMIN_APPOINTMENT_CANCEL_FAIL
 } from "../constants/appointmentConstants";
 
 
@@ -369,18 +372,58 @@ export const getAdminPreviousAppointments = (pageNumber: number = 1, pageSize: n
     
     const { data }: { data: AdminAppointmentResponse } = await api.get(`/appointments/previous?pageNumber=${pageNumber}&pageSize=${pageSize}`);
     
-    dispatch({
-      type: ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS,
-      payload: data,
-    });
+    // Check if the response indicates no appointments found
+    if (data.status?.code === "Appointments.NotFound") {
+      // Treat as successful response with empty data
+      dispatch({
+        type: ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS,
+        payload: {
+          status: data.status,
+          data: {
+            items: [],
+            totalCount: 0,
+            pageNumber: pageNumber,
+            pageSize: pageSize,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false
+          }
+        },
+      });
+    } else {
+      dispatch({
+        type: ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS,
+        payload: data,
+      });
+    }
   } catch (error: any) {
-    dispatch({
-      type: ADMIN_PREVIOUS_APPOINTMENTS_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
-    });
+    // Check for specific 404 errors for appointment endpoints
+    if (error.response?.status === 404) {
+      // Handle 404 as no appointments found (endpoint might not be available)
+      dispatch({
+        type: ADMIN_PREVIOUS_APPOINTMENTS_SUCCESS,
+        payload: {
+          status: { code: "Appointments.NotFound", message: "No appointments found." },
+          data: {
+            items: [],
+            totalCount: 0,
+            pageNumber: pageNumber,
+            pageSize: pageSize,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false
+          }
+        },
+      });
+    } else {
+      dispatch({
+        type: ADMIN_PREVIOUS_APPOINTMENTS_FAIL,
+        payload:
+          error.response && error.response.data.message
+            ? error.response.data.message
+            : error.message,
+      });
+    }
   }
 };
 
@@ -391,18 +434,58 @@ export const getAdminUpcomingAppointments = (pageNumber: number = 1, pageSize: n
     
     const { data }: { data: AdminAppointmentResponse } = await api.get(`/appointments/upcoming?pageNumber=${pageNumber}&pageSize=${pageSize}`);
     
-    dispatch({
-      type: ADMIN_UPCOMING_APPOINTMENTS_SUCCESS,
-      payload: data,
-    });
+    // Check if the response indicates no appointments found
+    if (data.status?.code === "Appointments.NotFound") {
+      // Treat as successful response with empty data
+      dispatch({
+        type: ADMIN_UPCOMING_APPOINTMENTS_SUCCESS,
+        payload: {
+          status: data.status,
+          data: {
+            items: [],
+            totalCount: 0,
+            pageNumber: pageNumber,
+            pageSize: pageSize,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false
+          }
+        },
+      });
+    } else {
+      dispatch({
+        type: ADMIN_UPCOMING_APPOINTMENTS_SUCCESS,
+        payload: data,
+      });
+    }
   } catch (error: any) {
-    dispatch({
-      type: ADMIN_UPCOMING_APPOINTMENTS_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
-    });
+    // Check for specific 404 errors for appointment endpoints
+    if (error.response?.status === 404) {
+      // Handle 404 as no appointments found (endpoint might not be available)
+      dispatch({
+        type: ADMIN_UPCOMING_APPOINTMENTS_SUCCESS,
+        payload: {
+          status: { code: "Appointments.NotFound", message: "No appointments found." },
+          data: {
+            items: [],
+            totalCount: 0,
+            pageNumber: pageNumber,
+            pageSize: pageSize,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false
+          }
+        },
+      });
+    } else {
+      dispatch({
+        type: ADMIN_UPCOMING_APPOINTMENTS_FAIL,
+        payload:
+          error.response && error.response.data.message
+            ? error.response.data.message
+            : error.message,
+      });
+    }
   }
 };
 
@@ -420,6 +503,35 @@ export const updateAppointmentStatus = (appointmentId: number, status: string) =
   } catch (error: any) {
     dispatch({
       type: ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL,
+      payload:
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message,
+    });
+  }
+};
+
+// Cancel appointment
+export const cancelAppointment = (appointmentId: number, cancellationReason: string) => async (dispatch: any) => {
+  try {
+    dispatch({ type: ADMIN_APPOINTMENT_CANCEL_REQUEST });
+    
+    console.log('Canceling appointment:', appointmentId, 'with reason:', cancellationReason);
+    
+    const { data } = await api.put(`/appointments/${appointmentId}/cancel`, { 
+      cancellationReason 
+    });
+    
+    console.log('Cancel response:', data);
+    
+    dispatch({
+      type: ADMIN_APPOINTMENT_CANCEL_SUCCESS,
+      payload: { id: appointmentId, cancellationReason, data },
+    });
+  } catch (error: any) {
+    console.error('Cancel appointment error:', error);
+    dispatch({
+      type: ADMIN_APPOINTMENT_CANCEL_FAIL,
       payload:
         error.response && error.response.data.message
           ? error.response.data.message

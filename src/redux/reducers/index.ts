@@ -19,7 +19,8 @@ import {
   userAppointmentsReducer,
   adminPreviousAppointmentsReducer,
   adminUpcomingAppointmentsReducer,
-  adminAppointmentStatusUpdateReducer
+  adminAppointmentStatusUpdateReducer,
+  adminAppointmentCancelReducer
 } from "./appointmentReducer";
 import { instructorListReducer } from "./instructorReducers";
 
@@ -44,6 +45,7 @@ const rootReducer = combineReducers({
   adminPreviousAppointments: adminPreviousAppointmentsReducer,
   adminUpcomingAppointments: adminUpcomingAppointmentsReducer,
   adminAppointmentStatusUpdate: adminAppointmentStatusUpdateReducer,
+  adminAppointmentCancel: adminAppointmentCancelReducer,
   
   instructorList: instructorListReducer
 
