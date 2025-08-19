@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/redux/store';
+import { logout } from '@/redux/actions/authAction';
+import { useToast } from '@/hooks/use-toast';
 import {
   Users,
   BookOpen,
@@ -49,6 +53,20 @@ const AdminSidebar = ({
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [appointmentExpanded, setAppointmentExpanded] = useState(activeTab === 'appointments');
+  
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { toast } = useToast();
+
+  // Handle logout
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+  };
 
   const sidebarItems: SidebarItem[] = [
     { id: 'overview', label: 'Dashboard', icon: Grid3X3 },
@@ -245,22 +263,56 @@ const AdminSidebar = ({
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700/50 dark:border-gray-800/50 flex-shrink-0">
-          <div className={cn("flex items-center gap-3", isOpen ? "justify-between" : "justify-center")}>
-            <div className="[&_button]:text-gray-200 [&_button]:hover:text-white [&_button]:hover:bg-gray-700/30 [&_button]:border-gray-600 [&_button]:hover:border-gray-500">
-              <ThemeToggle />
-            </div>
-            {isOpen && (
+        <div className="p-4 border-t border-gray-700/50 dark:border-gray-800/50 flex-shrink-0 space-y-3">
+          {isOpen && (
+            <div className="flex items-center justify-between gap-3">
               <Button
                 variant="outline"
                 size="sm"
                 asChild
                 className="text-xs border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white hover:bg-gray-700/50"
               >
-                <Link to="/admin">Go to Home</Link>
+                <Link to="/">Go to Home</Link>
               </Button>
-            )}
+              <div className="[&_button]:text-gray-200 [&_button]:hover:text-white [&_button]:hover:bg-gray-700/30 [&_button]:border-gray-600 [&_button]:hover:border-gray-500">
+                <ThemeToggle />
+              </div>
+            </div>
+          )}
+          
+          {/* Sign Out Button */}
+          <div className={cn("flex", isOpen ? "justify-center" : "justify-center")}>
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size={isOpen ? "sm" : "sm"}
+              className={cn(
+                "group bg-gradient-to-r from-red-500/10 to-pink-500/10 hover:from-red-500/20 hover:to-pink-500/20",
+                "border border-red-500/20 hover:border-red-400/40 text-red-400 hover:text-red-300", 
+                "backdrop-blur-sm shadow-lg hover:shadow-red-500/20 transition-all duration-300",
+                "font-semibold tracking-wide",
+                isOpen ? "w-full justify-start px-4 py-2.5" : "w-10 h-10 p-0"
+              )}
+            >
+              <LogOut className={cn(
+                "h-4 w-4 transition-transform duration-200 group-hover:scale-110", 
+                isOpen && "mr-3"
+              )} />
+              {isOpen && (
+                <span className="font-semibold text-sm tracking-wide">
+                  Sign Out
+                </span>
+              )}
+            </Button>
           </div>
+          
+          {!isOpen && (
+            <div className="flex justify-center">
+              <div className="[&_button]:text-gray-200 [&_button]:hover:text-white [&_button]:hover:bg-gray-700/30 [&_button]:border-gray-600 [&_button]:hover:border-gray-500">
+                <ThemeToggle />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

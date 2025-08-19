@@ -96,23 +96,13 @@ const AppointmentForm = ({
 
   return (
     <Card className={cn("bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700", className)}>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {editingAppointment ? 'Edit Appointment Slot' : 'Create Appointment Slot'}
-        </CardTitle>
-        <CardDescription className="text-gray-600 dark:text-gray-400">
-          {editingAppointment 
-            ? 'Update the appointment slot details below' 
-            : 'Set up a new time slot for student appointments'
-          }
-        </CardDescription>
-      </CardHeader>
+      
       
       <CardContent className="space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             {/* Instructor and Course Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
               {/* Instructor Dropdown */}
               <FormField
                 control={form.control}
@@ -161,11 +151,7 @@ const AppointmentForm = ({
                                 <span className="font-medium text-gray-900 dark:text-gray-100">
                                   {course?.title}
                                 </span>
-                                {course?.description && (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                                    {course.description}
-                                  </span>
-                                )}
+                             
                               </div>
                             </SelectItem>
                           ))}
