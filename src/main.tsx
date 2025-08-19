@@ -10,10 +10,15 @@ import "./index.css";
 import { refreshTokenOnStart } from "@/utils/auth";
 import { Provider } from "react-redux";
 import { store } from "./redux/store.ts";
+import { logout } from "@/redux/actions/authAction";
 
 async function start() {
-  // Wait for refresh to complete so initial requests get a fresh token
-  await refreshTokenOnStart();
+  const ok = await refreshTokenOnStart();
+  if (!ok) {
+    store.dispatch<any>(logout());
+    window.location.href = "/login";
+    return;
+  }
 
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

@@ -100,8 +100,9 @@ interface Course {
 const steps = [
   { key: 'type', label: 'Course Type' },
   { key: 'info', label: 'Course Info' },
-  { key: 'materials', label: 'Course Materials' },
   { key: 'content', label: 'Content' },
+  { key: 'materials', label: 'Course Materials' },
+
   { key: 'preview', label: 'Preview & Publish' },
 ];
 
@@ -334,10 +335,12 @@ console.log(course);
     }
   }, [mode, id, initialCourse, dispatch]);
 
-  // Effect to fetch regions
+  // Effect to fetch regions once if not present in store
   useEffect(() => {
-    dispatch(getAdminRegionList());
-  }, [dispatch]);
+    if (!regions || regions.length === 0) {
+      dispatch(getAdminRegionList());
+    }
+  }, [dispatch, regions]);
 
   // Effect to set course data when course details are loaded
   useEffect(() => {
@@ -689,7 +692,7 @@ console.log(course);
         content: course?.content,
         category: course?.category,
         price: Number(course?.price),
-        duration: course?.courseType === 'online' ? Number(course?.duration) : null,
+        duration: course?.courseType === 'online' ? parseFloat(String(course?.duration)) : null,
         level: course?.level,
         language: course?.language,
         prerequisites: course?.prerequisites,
@@ -736,7 +739,7 @@ console.log(course);
                   lesson_title: sub.title,
                   lesson_description: sub.description,
                   lesson_attachment_path: sub.videoUrl,
-                  duration: Number(sub.duration) || 0,
+                  duration: parseFloat(String(sub.duration)) || 0,
                   sequence: subIdx,
                 })),
                 quizzes: mod.quiz
@@ -768,6 +771,8 @@ console.log(course);
           description: "Your course has been successfully updated.",
         });
       } else {
+        console.log(payload);
+        
       await dispatch(createAdminCourse(payload));
         toast({
           title: "Course published!",
@@ -985,10 +990,12 @@ console.log(course);
                         <Label htmlFor="duration">Duration (hours)</Label>
                         <Input
                           id="duration"
-                          type="text"
+                          type="number"
+                          step="0.01"
+                          inputMode="decimal"
                           value={course?.duration || ''}
-                          onChange={(e) => setCourse({ ...course, duration: Number(e.target.value) || 0 })}
-                          placeholder="e.g. 20"
+                          onChange={(e) => setCourse({ ...course, duration: parseFloat(e.target.value) || 0 })}
+                          placeholder="e.g. 20.5"
                         />
                       </div>
                     )}
@@ -1047,7 +1054,9 @@ console.log(course);
                         <Label htmlFor="offline_training_hours">Offline Training Hours</Label>
                         <Input
                           id="offline_training_hours"
-                          type="text"
+                          type="number"
+                          step="0.01"
+                          inputMode="decimal"
                           value={course?.offline_training_hours?.toString() || ''}
                           onChange={(e) => setCourse({ ...course, offline_training_hours: parseFloat(e.target.value) || null })}
                           placeholder="e.g. 10.5"

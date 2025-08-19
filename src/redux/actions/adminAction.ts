@@ -186,7 +186,16 @@ export const deleteAdminCourse = (courseId: number | string) => async (dispatch:
 
   //Get Region List
 
-  export const getAdminRegionList = () => async (dispatch: any) => {
+  export const getAdminRegionList = () => async (dispatch: any, getState: any) => {
+    const state = getState?.();
+    const existing = state?.regionList?.regions;
+    const isLoading = state?.regionList?.loading;
+
+    // Skip fetching if regions are already cached or a fetch is in-flight
+    if (isLoading || (Array.isArray(existing) && existing.length > 0)) {
+      return;
+    }
+
     try {
       dispatch({ type: "ADMIN_REGION_LIST_REQUEST" });
       const { data } = await api.get("/regions");

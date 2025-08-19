@@ -23,11 +23,11 @@ function getStoredRefreshToken(): string | null {
   return localStorage.getItem("refresh_token");
 }
 
-export async function refreshTokenOnStart(): Promise<void> {
+export async function refreshTokenOnStart(): Promise<boolean> {
   const userId = getStoredUserId();
   const refreshToken = getStoredRefreshToken();
 
-  if (!userId || !refreshToken) return;
+  if (!userId || !refreshToken) return true;
 
   try {
     // alert(userId)
@@ -42,11 +42,20 @@ export async function refreshTokenOnStart(): Promise<void> {
 
     if (newAccess) localStorage.setItem("access_token", newAccess);
     if (newRefresh) localStorage.setItem("refresh_token", newRefresh);
-  } catch (err) {
-    // Optional: decide if you want to clear tokens or keep them
-    // localStorage.removeItem("access_token");
-    // localStorage.removeItem("refresh_token");
-    // localStorage.removeItem("userInfo");
-    console.warn("Refresh on start failed:", err);
+    return true;
+  } catch (err: any) {
+    const status = err?.response?.status;
+    const message: string | undefined = err?.response?.data?.status?.message || err?.message;
+
+    const shouldClear = status === 401 || status === 403 || status === 404 || /invalid/i.test(message || "");
+
+    if (shouldClear) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("userInfo");
+    }
+
+    console.warn("Refresh on start failed:", status, message);
+    return !shouldClear;
   }
 }
