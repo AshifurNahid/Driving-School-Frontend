@@ -180,9 +180,10 @@ export const adminRoleListReducer = (
 // Course Management State
 interface AdminCourseListState {
   loading: boolean;
-  courses: Course[]; // Adjust type as necessary
+  courses: Course[];
+  totalCourses: number;
   error: string | null;
-  courseDetails?: Course | null; // Optional for details view
+  courseDetails?: Course | null;
   deleteSuccess?: boolean;
   deleteMessage?: string | null;
 }
@@ -190,6 +191,7 @@ interface AdminCourseListState {
 const initialCourseListState: AdminCourseListState = {
   loading: false,
   courses: [],
+  totalCourses: 0,
   error: null,
   courseDetails: null,
   deleteSuccess: false,
@@ -212,28 +214,29 @@ export const adminCourseListReducer = (
         ...state,
         loading: false,
         courses: action.payload.courses,
-        error: "No error",
+        totalCourses: action.payload.totalCourses || action.payload.courses.length,
+        error: null,
       };
     case "ADMIN_COURSE_DETAILS_SUCCESS":
       return {
         ...state,
         loading: false,
         courseDetails: action.payload,
-        error: "No error",
+        error: null,
       };
     case "ADMIN_COURSE_CREATE_SUCCESS":
       return {
         ...state,
         loading: false,
         courses: [action.payload, ...state.courses], // add new course to list
-        error: "No error",
+        error: null,
       };
     case "ADMIN_COURSE_DELETE_SUCCESS":
       return {
         ...state,
         loading: false,
         courses: state.courses.filter(course => course?.id !== action.payload.courseId),
-        error: "No error",
+        error: null,
         deleteSuccess: true,
         deleteMessage: action.payload.message,
       };

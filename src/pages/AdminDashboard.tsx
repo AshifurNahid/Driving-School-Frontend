@@ -42,6 +42,7 @@ import AdminAppointmentManagement from '@/components/admin/appointment/AdminAppo
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
 import SlotPriceManagement from '@/pages/SlotPriceManagement';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import CourseManagement from '@/components/admin/CourseManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
 import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, getAdminCourses, deleteAdminCourse } from "@/redux/actions/adminAction";
@@ -290,7 +291,7 @@ const AdminDashboard = () => {
   // Fetch users on mount
   useEffect(() => {
     dispatch(getAdminUsers(currentPage, pageSize));
-    dispatch(getAdminCourses(currentPage, pageSize));
+    dispatch(getAdminCourses(1, 11));
   }, [dispatch, currentPage]);
 
   const handlePageClick = (selectedItem: { selected: number }) => {
@@ -604,91 +605,7 @@ const AdminDashboard = () => {
 
           {/* Course List Tab */}
           {activeTab === "course-list" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-foreground">Course Management</h2>
-                <Button
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
-                  onClick={() => navigate("/upload-course")}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Course
-                </Button>
-              </div>
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    {usersLoading ? (
-                      <div className="p-6 text-center text-muted-foreground">Loading courses...</div>
-                    ) : usersError ? (
-                      <div className="p-6 text-center text-red-600">{usersError}</div>
-                    ) : (
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left p-4 font-medium text-foreground">Title</th>
-                            <th className="text-left p-4 font-medium text-foreground">Contents</th>
-
-                            <th className="text-left p-4 font-medium text-foreground">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {courses && courses.length > 0 ? (
-                            courses.map((course) => {
-                              const totalModules = course?.course_modules?.length || 0;
-                              const totalLessons = course?.course_modules
-                                ? course?.course_modules.reduce((sum: number, m) => sum + (m.course_module_lessons?.length || 0), 0)
-                                : 0;
-                              const totalQuizzes = course?.course_modules
-                                ? course?.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
-                                : 0;
-                              return (
-                                <tr key={course?.id} className="border-b border-border">
-                                  <td className="p-4 font-medium">{course?.title}</td>
-                                  <td className="p-4 flex items-center gap-1">
-                                    <BookOpen className="h-4 w-4" /> {totalModules}
-
-                                    <Video className="h-4 w-4" /> {totalLessons}
-
-                                    <Brain className="h-4 w-4" /> {totalQuizzes}
-
-                                  </td>
-                                  <td className="p-4">
-                                    <div className="flex space-x-2">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => navigate(`/course/${course?.id}/edit`)}
-                                      >
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-red-600 hover:text-red-700"
-                                        onClick={() => handleDeleteCourse(course?.id)}
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                                No courses found.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <CourseManagement />
           )}
 
           {/* Appointment Management Tab */}
