@@ -116,16 +116,16 @@ export const createAdminCourse = (courseData: any) => async (dispatch: any)=> {
 }
 
 // Get Courses (Admin)
-export const getAdminCourses = (page = 1, pageSize = 10) =>
+export const getAdminCourses = (page = 1, pageSize = 11) =>
   async (dispatch: any) => {
   try {
     dispatch({ type: "ADMIN_COURSE_LIST_REQUEST" });
-    const { data } = await api.get(`/courses?PageNumber=${page}&PageSize=${pageSize}`);
+    const response = await api.get(`/courses?PageNumber=${page}&PageSize=${pageSize}`);
     dispatch({
       type: "ADMIN_COURSE_LIST_SUCCESS",
       payload: {
-        courses: data.data,
-       
+        courses: response.data.data,
+        totalCourses: response.data.data.length,
       },
     });
   } catch (error: any) {

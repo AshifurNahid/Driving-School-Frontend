@@ -20,9 +20,17 @@ import {
   userAppointmentsReducer,
   adminPreviousAppointmentsReducer,
   adminUpcomingAppointmentsReducer,
-  adminAppointmentStatusUpdateReducer
+  adminAppointmentStatusUpdateReducer,
+  adminAppointmentCancelReducer
 } from "./appointmentReducer";
 import { instructorListReducer } from "./instructorReducers";
+import {
+  slotPricingListReducer,
+  slotPricingCreateReducer,
+  slotPricingUpdateReducer,
+  slotPricingDeleteReducer,
+  slotPricingDetailsReducer
+} from "./slotPricingReducer";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -46,10 +54,17 @@ const rootReducer = combineReducers({
   adminPreviousAppointments: adminPreviousAppointmentsReducer,
   adminUpcomingAppointments: adminUpcomingAppointmentsReducer,
   adminAppointmentStatusUpdate: adminAppointmentStatusUpdateReducer,
+  adminAppointmentCancel: adminAppointmentCancelReducer,
   
   instructorList: instructorListReducer,
   regionList: adminRegionListReducer,
 
+  // Slot Pricing reducers
+  slotPricingList: slotPricingListReducer,
+  slotPricingCreate: slotPricingCreateReducer,
+  slotPricingUpdate: slotPricingUpdateReducer,
+  slotPricingDelete: slotPricingDeleteReducer,
+  slotPricingDetails: slotPricingDetailsReducer,
   
   // add other reducers here
 });

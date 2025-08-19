@@ -40,7 +40,9 @@ import QuizManagement from '@/components/admin/QuizManagement';
 import UserAnalytics from '@/components/admin/UserAnalytics';
 import AdminAppointmentManagement from '@/components/admin/appointment/AdminAppointmentManagement';
 import AppointmentManagement from '@/components/admin/appointment/AppointmentManagement';
+import SlotPriceManagement from '@/pages/SlotPriceManagement';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import CourseManagement from '@/components/admin/CourseManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
 import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, getAdminCourses, deleteAdminCourse } from "@/redux/actions/adminAction";
@@ -289,7 +291,7 @@ const AdminDashboard = () => {
   // Fetch users on mount
   useEffect(() => {
     dispatch(getAdminUsers(currentPage, pageSize));
-    dispatch(getAdminCourses(currentPage, pageSize));
+    dispatch(getAdminCourses(1, 11));
   }, [dispatch, currentPage]);
 
   const handlePageClick = (selectedItem: { selected: number }) => {
@@ -309,20 +311,35 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 h-screen bg-[#f8f9fa] dark:bg-gray-900">
         {/* Header */}
-        <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200/30 dark:border-gray-800/50 px-6 py-4 flex-shrink-0">
+        <header className="bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-200/60 dark:border-slate-700/60 shadow-sm px-6 py-5 flex-shrink-0">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm md:text-base">Manage your platform efficiently</p>
-            </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                <Shield className="h-3 w-3 mr-1" />
-                Admin
+              <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 rounded-lg flex items-center justify-center shadow-md">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Admin Dashboard
+                </h1>
+                <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm md:text-base font-medium">
+                  Manage your platform efficiently
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-6">
+              <Badge 
+                variant="secondary" 
+                className="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 border border-emerald-400/30 text-emerald-100 px-3 py-1.5 font-semibold shadow-lg backdrop-blur-sm"
+              >
+                <Shield className="h-3 w-3 mr-2" />
+                Administrator
               </Badge>
-              <Avatar className="h-8 w-8 md:h-10 md:w-10">
+              
+              <Avatar className="h-10 w-10 shadow-lg ring-2 ring-blue-400/30">
                 <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" />
-                <AvatarFallback>AD</AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
+                  AD
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>
@@ -588,91 +605,7 @@ const AdminDashboard = () => {
 
           {/* Course List Tab */}
           {activeTab === "course-list" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-foreground">Course Management</h2>
-                <Button
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 font-medium"
-                  onClick={() => navigate("/upload-course")}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Course
-                </Button>
-              </div>
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    {usersLoading ? (
-                      <div className="p-6 text-center text-muted-foreground">Loading courses...</div>
-                    ) : usersError ? (
-                      <div className="p-6 text-center text-red-600">{usersError}</div>
-                    ) : (
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left p-4 font-medium text-foreground">Title</th>
-                            <th className="text-left p-4 font-medium text-foreground">Contents</th>
-
-                            <th className="text-left p-4 font-medium text-foreground">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {courses && courses.length > 0 ? (
-                            courses.map((course) => {
-                              const totalModules = course?.course_modules?.length || 0;
-                              const totalLessons = course?.course_modules
-                                ? course?.course_modules.reduce((sum: number, m) => sum + (m.course_module_lessons?.length || 0), 0)
-                                : 0;
-                              const totalQuizzes = course?.course_modules
-                                ? course?.course_modules.filter((m) => m.quizzes && m.quizzes.length > 0).length
-                                : 0;
-                              return (
-                                <tr key={course?.id} className="border-b border-border">
-                                  <td className="p-4 font-medium">{course?.title}</td>
-                                  <td className="p-4 flex items-center gap-1">
-                                    <BookOpen className="h-4 w-4" /> {totalModules}
-
-                                    <Video className="h-4 w-4" /> {totalLessons}
-
-                                    <Brain className="h-4 w-4" /> {totalQuizzes}
-
-                                  </td>
-                                  <td className="p-4">
-                                    <div className="flex space-x-2">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => navigate(`/course/${course?.id}/edit`)}
-                                      >
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="text-red-600 hover:text-red-700"
-                                        onClick={() => handleDeleteCourse(course?.id)}
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                                No courses found.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <CourseManagement />
           )}
 
           {/* Appointment Management Tab */}
@@ -691,6 +624,12 @@ const AdminDashboard = () => {
               {appointmentActiveTab === 'requests' && (
                 <div>
                   <AppointmentManagement />
+                </div>
+              )}
+
+              {appointmentActiveTab === 'pricing' && (
+                <div>
+                  <SlotPriceManagement />
                 </div>
               )}
             </div>
