@@ -3,10 +3,27 @@ import { type Course } from '@/types/courses';
 import { Link } from 'react-router-dom';
 
 export const CourseCard = ({ course }: { course: Course }) => {
-  // Use full URL for dummy courses, API base for backend
-  const imageSrc = course.thumbnail_photo_path?.startsWith('http')
-    ? course.thumbnail_photo_path
-    : import.meta.env.VITE_API_BASE_URL + '/' + course.thumbnail_photo_path;
+  // Helper function to get image URL
+  const getImageUrl = (thumbnailPath: string | undefined) => {
+    if (!thumbnailPath) return '/placeholder.svg';
+    
+    // If it's already a full URL, use it as-is
+    if (thumbnailPath.startsWith('http')) {
+      console.log(`CourseCard - Using full URL: ${thumbnailPath}`);
+      return thumbnailPath;
+    }
+    
+    // Clean the path - remove leading slash if present
+    const cleanPath = thumbnailPath.startsWith('/') ? thumbnailPath.substring(1) : thumbnailPath;
+    
+    // Construct the full URL
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dms-edu.runasp.net';
+    const fullUrl = `${baseUrl}/${cleanPath}`;
+    console.log(`CourseCard - Constructed URL: ${fullUrl} from path: ${thumbnailPath}`);
+    return fullUrl;
+  };
+
+  const imageSrc = getImageUrl(course.thumbnail_photo_path);
 
   return (
     <div className="bg-card dark:bg-[#23235b] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group h-full min-h-[420px] text-card-foreground">
@@ -15,6 +32,10 @@ export const CourseCard = ({ course }: { course: Course }) => {
           src={imageSrc}
           alt={course.title}
           className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 bg-white"
+          onError={(e) => {
+            console.error(`CourseCard - Failed to load image: ${imageSrc}`);
+            (e.target as HTMLImageElement).src = '/placeholder.svg';
+          }}
         />
         <div className="absolute top-5 left-5">
           <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium">

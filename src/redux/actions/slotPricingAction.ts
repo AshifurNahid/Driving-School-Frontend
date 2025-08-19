@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import axios from '@/utils/axios';
+import api from '@/utils/axios';
 
 // Action Types
 export const SLOT_PRICING_LIST_REQUEST = 'SLOT_PRICING_LIST_REQUEST';
@@ -55,7 +55,7 @@ export const getSlotPricingList = (pageNumber: number = 1, pageSize: number = 10
   try {
     dispatch({ type: SLOT_PRICING_LIST_REQUEST });
 
-    const { data } = await axios.get(`/slot-pricing?page_number=${pageNumber}&page_size=${pageSize}`);
+    const { data } = await api.get(`/slot-pricing?page_number=${pageNumber}&page_size=${pageSize}`);
 
     dispatch({
       type: SLOT_PRICING_LIST_SUCCESS,
@@ -74,7 +74,7 @@ export const createSlotPricing = (payload: SlotPricingCreatePayload) => async (d
   try {
     dispatch({ type: SLOT_PRICING_CREATE_REQUEST });
 
-    const { data } = await axios.post('/slot-pricing', payload);
+    const { data } = await api.post('/slot-pricing', payload);
 
     dispatch({
       type: SLOT_PRICING_CREATE_SUCCESS,
@@ -96,7 +96,7 @@ export const updateSlotPricing = (id: number, payload: Omit<SlotPricingUpdatePay
   try {
     dispatch({ type: SLOT_PRICING_UPDATE_REQUEST });
 
-    const { data } = await axios.put(`/slot-pricing/${id}`, payload);
+    const { data } = await api.put(`/slot-pricing/${id}`, payload);
 
     dispatch({
       type: SLOT_PRICING_UPDATE_SUCCESS,
@@ -118,7 +118,7 @@ export const deleteSlotPricing = (id: number) => async (dispatch: Dispatch) => {
   try {
     dispatch({ type: SLOT_PRICING_DELETE_REQUEST });
 
-    await axios.delete(`/slot-pricing/${id}`);
+    await api.delete(`/slot-pricing/${id}`);
 
     dispatch({
       type: SLOT_PRICING_DELETE_SUCCESS,
@@ -137,7 +137,7 @@ export const getSlotPricingDetails = (id: number) => async (dispatch: Dispatch) 
   try {
     dispatch({ type: SLOT_PRICING_DETAILS_REQUEST });
 
-    const { data } = await axios.get(`/slot-pricing/${id}`);
+    const { data } = await api.get(`/slot-pricing/${id}`);
 
     dispatch({
       type: SLOT_PRICING_DETAILS_SUCCESS,
