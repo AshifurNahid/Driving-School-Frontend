@@ -54,7 +54,11 @@ export type CourseModule = {
   quizzes?: Quiz[];
   duration?: number;
 };
-
+export type CourseMaterial = {
+  id?: number;
+  title?: string;
+  file_path?: string;
+};
 export type Course = {
   id?: number;
   title?: string;
@@ -63,6 +67,8 @@ export type Course = {
   category?: string;
   price?: number;
   duration?: number;
+  region_id?:number;
+  offline_training_hours?:number;
   level?: string;
   language?: string;
   course_type?: number;
@@ -76,6 +82,7 @@ export type Course = {
   total_reviews?: number;
   total_number_of_quizzes?:number;
   total_no_of_quizzes?:number;
+  course_materials?: CourseMaterial[];
 };
 
 

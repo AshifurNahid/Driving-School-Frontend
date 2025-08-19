@@ -14,6 +14,7 @@ import {
   ROLE_UPDATE_FAIL,
 } from "../constants/adminConstants";
 import { User, UserRole } from "@/types/user";
+import { Region } from "@/types/region";
 
 // User List State
 interface AdminUserListState {
@@ -241,6 +242,37 @@ export const adminCourseListReducer = (
     case "ADMIN_COURSE_CREATE_FAIL":
     case "ADMIN_COURSE_UPDATE_FAIL":
     case "ADMIN_COURSE_DELETE_FAIL":
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+
+// Region Management State
+interface AdminRegionListState {
+  loading: boolean;
+  regions: Region[]; // Adjust type as necessary
+  error: string | null;
+}
+
+
+const initialRegionListState: AdminRegionListState = {
+  loading: false,
+  regions: [],
+  error: null,
+};
+
+export const adminRegionListReducer = (
+  state = initialRegionListState,
+  action: any
+): AdminRegionListState => {
+  switch (action.type) {
+    case "ADMIN_REGION_LIST_REQUEST":
+      return { ...state, loading: true, error: null };
+    case "ADMIN_REGION_LIST_SUCCESS":
+      return { ...state, loading: false, regions: action.payload, error: null };
+    case "ADMIN_REGION_LIST_FAIL":
       return { ...state, loading: false, error: action.payload };
     default:
       return state;

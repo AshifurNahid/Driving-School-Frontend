@@ -2,12 +2,15 @@ import {
   USER_COURSE_LIST_REQUEST,
   USER_COURSE_LIST_SUCCESS,
   USER_COURSE_LIST_FAIL,
+  USER_COURSE_DETAILS_REQUEST,
+  USER_COURSE_DETAILS_SUCCESS,
+  USER_COURSE_DETAILS_FAIL,
 } from "../constants/userCourseConstants";
-import { UserCourse } from "@/types/user";
+import { EnrolledCourses } from "@/types/courses";
 
 interface UserCourseListState {
   loading: boolean;
-  courses: UserCourse[];
+  courses: EnrolledCourses[];
   error: string | null;
   page: number;
   pageSize: number;
@@ -55,3 +58,31 @@ export const userCourseListReducer = (
       return state;
   }
 }; 
+
+export interface UserCourseDetailsState {
+  loading: boolean;
+  error: string | null;
+  userCourse: EnrolledCourses | null;
+}
+
+const detailsInitialState: UserCourseDetailsState = {
+  loading: false,
+  error: null,
+  userCourse: null,
+};
+
+export const userCourseDetailsReducer = (
+  state = detailsInitialState,
+  action: any
+): UserCourseDetailsState => {
+  switch (action.type) {
+    case USER_COURSE_DETAILS_REQUEST:
+      return { ...state, loading: true, error: null };
+    case USER_COURSE_DETAILS_SUCCESS:
+      return { ...state, loading: false, userCourse: action.payload, error: null };
+    case USER_COURSE_DETAILS_FAIL:
+      return { ...state, loading: false, error: action.payload, userCourse: null };
+    default:
+      return state;
+  }
+};
