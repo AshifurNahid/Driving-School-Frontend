@@ -385,7 +385,7 @@ console.log(course);
 
   // Dynamically compute steps: remove Content step for physical/hybrid
   const computedSteps = React.useMemo(() => {
-    if (course?.courseType === 'online') return steps;
+    if (course?.courseType === 'online' || course?.courseType === 'hybrid') return steps;
     return steps.filter((s) => s.key !== 'content');
   }, [course?.courseType]);
 
@@ -439,7 +439,7 @@ console.log(course);
       if (!course?.content?.trim()) missingFields.push('Course Content');
       if (!course?.category) missingFields.push('Category');
       if (!course?.price || course?.price <= 0) missingFields.push('Price');
-      if (course?.courseType === 'online' && (!course?.duration || course?.duration <= 0)) missingFields.push('Duration');
+      if ((course?.courseType === 'online' || course?.courseType === 'hybrid') && (!course?.duration || course?.duration <= 0)) missingFields.push('Online Duration');
       if (!course?.level?.trim()) missingFields.push('Level');
       if (!course?.language?.trim()) missingFields.push('Language');
       if (!course?.prerequisites?.trim()) missingFields.push('Prerequisites');
@@ -614,7 +614,7 @@ console.log(course);
 
     if (!course?.category?.trim()) requiredFields.push('Category');
     if (!course?.price || course?.price <= 0) requiredFields.push('Price');
-    if (course?.courseType === 'online' && (!course?.duration || course?.duration <= 0)) requiredFields.push('Duration');
+    if ((course?.courseType === 'online' || course?.courseType === 'hybrid') && (!course?.duration || course?.duration <= 0)) requiredFields.push('Online Duration');
     if (!course?.level?.trim()) requiredFields.push('Level');
     if (!course?.language?.trim()) requiredFields.push('Language');
     if (!course?.thumbnail_photo_path?.trim()) requiredFields.push('Thumbnail Image');
@@ -654,12 +654,8 @@ console.log(course);
     // Validate course materials if any are added
     if (course?.materials && course.materials.length > 0) {
       course.materials.forEach((material, index) => {
-        if (!material.name?.trim()) {
-          requiredFields.push(`Material ${index + 1} Title`);
-        }
-        if (!material.url?.trim()) {
-          requiredFields.push(`Material ${index + 1} File Path`);
-        }
+        if (!material.name?.trim()) requiredFields.push(`Material ${index + 1} Title`);
+        if (!material.url?.trim()) requiredFields.push(`Material ${index + 1} File Path`);
       });
     }
     
@@ -680,8 +676,10 @@ console.log(course);
       if (base64 && base64.startsWith('data:image')) {
         // New image selected, send the complete data URL as base64
         // Backend will handle splitting and extracting the base64 part
-        thumbnail_photo_base64_code = base64;
-      } else if (base64 && base64.trim() !== '') {
+thumbnail_photo_base64_code = base64.split(',')[1]; 
+
+
+} else if (base64 && base64.trim() !== '') {
         // Existing image path, send only as path
         thumbnail_photo_path = base64;
       }
@@ -692,45 +690,34 @@ console.log(course);
         content: course?.content,
         category: course?.category,
         price: Number(course?.price),
-        duration: course?.courseType === 'online' ? parseFloat(String(course?.duration)) : null,
+        // For hybrid, send both online and offline fields
+        duration: course?.courseType === 'online' || course?.courseType === 'hybrid'
+          ? parseFloat(String(course?.duration))
+          : null,
         level: course?.level,
         language: course?.language,
         prerequisites: course?.prerequisites,
         ...(thumbnail_photo_base64_code && { thumbnail_photo_base64_code }),
         ...(thumbnail_photo_path && { thumbnail_photo_path }),
         course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
-        region_id: course?.courseType === 'online' ? null : course?.region_id,
-        offline_training_hours: course?.courseType === 'online' ? null : course?.offline_training_hours,
+        // For hybrid, send both region_id and offline_training_hours
+        region_id: course?.courseType === 'physical' || course?.courseType === 'hybrid'
+          ? course?.region_id
+          : null,
+        offline_training_hours: course?.courseType === 'physical' || course?.courseType === 'hybrid'
+          ? course?.offline_training_hours
+          : null,
         course_materials: course?.materials?.map(material => {
-          // Commented out base64 handling - now using file paths only
-          /*
-          // If material.url is a base64 data URL, extract the base64 part
-          if (material.url && material.url.startsWith('data:')) {
-            return {
-              title: material.name,
-              file_path: material.url // Send the complete data URL as base64
-            };
-          } else if (material.url && material.url.trim() !== '') {
-            // If it's an existing file path, send only the path
-            return {
-              title: material.name,
-              file_path: material.url
-            };
-          }
-          */
-          
-          // Simple file path handling
           if (material.url && material.url.trim() !== '') {
             return {
               title: material.name,
               file_path: material.url
             };
           }
-          // Skip materials without valid file path
           return null;
         }).filter(Boolean) || [],
         course_modules:
-          course?.courseType === 'online'
+          course?.courseType === 'online' || course?.courseType === 'hybrid'
             ? course?.modules.map((mod, idx) => ({
                 module_title: mod.title,
                 module_description: mod.description,
@@ -771,7 +758,6 @@ console.log(course);
           description: "Your course has been successfully updated.",
         });
       } else {
-        console.log(payload);
         
       await dispatch(createAdminCourse(payload));
         toast({
@@ -985,9 +971,9 @@ console.log(course);
                         placeholder={course?.courseType === 'physical' ? "550" : "99.99"}
                       />
                     </div>
-                    {course?.courseType === 'online' && (
+                    {(course?.courseType === 'online' || course?.courseType === 'hybrid') && (
                       <div className="space-y-2">
-                        <Label htmlFor="duration">Duration (hours)</Label>
+                        <Label htmlFor="duration">Online Duration (hours)</Label>
                         <Input
                           id="duration"
                           type="number"
@@ -1470,9 +1456,9 @@ console.log(course);
                               )}
                             </div> */}
                           </CardContent>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </Card>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      </Card>
                   ))}
                   {course?.modules.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg">
