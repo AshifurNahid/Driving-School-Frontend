@@ -50,6 +50,7 @@ import { Course } from '@/types/courses';
 import { RootState, AppDispatch } from '@/redux/store';
 import { getAdminCourses, deleteAdminCourse } from '@/redux/actions/adminAction';
 import { useToast } from '@/hooks/use-toast';
+import { useRegions } from '@/hooks/useRegions';
 
 interface CourseManagementProps {
   onEdit?: (course: Course) => void;
@@ -68,6 +69,7 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
     deleteSuccess, 
     deleteMessage 
   } = useSelector((state: RootState) => state.adminCourseList);
+  const { regions, loading: regionsLoading, error: regionsError } = useRegions();
 
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,6 +81,8 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+  const [regionFilter, setRegionFilter] = useState('all');
+  const [courseTypeFilter, setCourseTypeFilter] = useState('all');
 
   // Helper function to get image URL
   const getImageUrl = (thumbnailPath: string | undefined) => {
@@ -111,8 +115,9 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
     const matchesStatus = statusFilter === 'all' || 
                          (statusFilter === 'active' && course.status === 1) ||
                          (statusFilter === 'inactive' && course.status === 0);
-    
-    return matchesSearch && matchesCategory && matchesLevel && matchesStatus;
+    const matchesRegion = regionFilter === 'all' || String(course.region_id) === String(regionFilter);
+    const matchesCourseType = courseTypeFilter === 'all' || String(course.course_type) === String(courseTypeFilter);
+    return matchesSearch && matchesCategory && matchesLevel && matchesStatus && matchesRegion && matchesCourseType;
   })?.sort((a, b) => {
     let aValue, bValue;
     
@@ -228,15 +233,28 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
 
   // Get course type badge
   const getCourseTypeBadge = (courseType: number) => {
-    return courseType === 1 ? (
-      <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs px-1 py-0">
-        Online
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="text-purple-600 border-purple-600 text-xs px-1 py-0">
-        Physical
-      </Badge>
-    );
+    switch (courseType) {
+      case 0:
+        return (
+          <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs px-1 py-0">
+            Online
+          </Badge>
+        );
+      case 1:
+        return (
+          <Badge variant="outline" className="text-yellow-600 border-yellow-600 text-xs px-1 py-0">
+            Hybrid
+          </Badge>
+        );
+      case 2:
+        return (
+          <Badge variant="outline" className="text-purple-600 border-purple-600 text-xs px-1 py-0">
+            Offline
+          </Badge>
+        );
+      default:
+        return null;
+    }
   };
 
   // Show toast on delete success
@@ -265,7 +283,7 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
       whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)" }}
       className="group"
     >
-      <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-gray-800">
+      <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white dark:bg-gray-800 min-h-[370px] flex flex-col justify-between">
         {/* Thumbnail */}
         <div className="relative h-32 overflow-hidden">
           <img
@@ -597,7 +615,7 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
                   ))}
                 </SelectContent>
               </Select>
-
+{/* 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-32">
                   <SelectValue placeholder="Status" />
@@ -607,7 +625,7 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
-              </Select>
+              </Select> */}
 
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-full sm:w-40">
@@ -618,6 +636,32 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
                   <SelectItem value="title">Title</SelectItem>
                   <SelectItem value="price">Price</SelectItem>
                   <SelectItem value="rating">Rating</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={regionFilter} onValueChange={setRegionFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Region" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Regions</SelectItem>
+                  {regions.map(region => (
+                    <SelectItem key={region.id} value={region.id?.toString() || ''}>
+                      {region.region_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={courseTypeFilter} onValueChange={setCourseTypeFilter}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Course Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="0">Online</SelectItem>
+                  <SelectItem value="1">Hybrid</SelectItem>
+                  <SelectItem value="2">Offline</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -670,7 +714,7 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
                   No courses found
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  {searchTerm || categoryFilter !== 'all' || levelFilter !== 'all' || statusFilter !== 'all'
+                  {searchTerm || categoryFilter !== 'all' || levelFilter !== 'all' || statusFilter !== 'all' || regionFilter !== 'all'
                     ? 'Try adjusting your search or filter criteria.'
                     : 'Get started by creating your first course.'}
                 </p>
@@ -690,7 +734,7 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
             transition={{ duration: 0.3 }}
           >
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl">
                 {filteredCourses.map((course, index) => (
                   <CourseCard key={course.id} course={course} index={index} />
                 ))}

@@ -331,17 +331,17 @@ const AppointmentManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-4">
         {/* Header with Tabs */}
         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Appointment Management
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            {/* <CardDescription className="text-gray-600 dark:text-gray-400">
               Manage and review appointment requests from students
-            </CardDescription>
-            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mt-4">
+            </CardDescription> */}
+            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mt-2">
               <Button
                 variant={activeTab === 'upcoming' ? 'default' : 'ghost'}
                 onClick={() => {

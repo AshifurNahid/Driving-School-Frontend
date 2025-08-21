@@ -473,17 +473,17 @@ const CanadianDrivingSchool = () => {
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Enhanced header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-base mb-6">
-              <Zap className="w-5 h-5 mr-2" />
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-sm mb-4">
+              <Zap className="w-4 h-4 mr-1" />
               The DriveCanada Advantage
             </div>
-            <h2 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-3">
               Why Students{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                 Choose Us
               </span>
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-300 max-w-xl mx-auto leading-normal">
               Experience the difference that comes from decades of excellence, innovation, and unwavering commitment to your success.
             </p>
           </div>
@@ -536,23 +536,21 @@ const CanadianDrivingSchool = () => {
             ].map((feature, idx) => (
               <div key={idx} className="group relative">
                 {/* Hover glow */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700 scale-110`} />
-                
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-700 scale-105`} />
                 {/* Main card */}
-                <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/50 dark:border-gray-700/50 h-full">
+                <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-2 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-102 hover:-translate-y-1 border border-white/40 dark:border-gray-700/40 h-full">
                   {/* Icon */}
-                  <div className="flex justify-center mb-6">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                  <div className="flex justify-center mb-3">
+                    <div className={`w-8 h-8 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 group-hover:rotate-3 transition-all duration-500`}>
                       <div className="text-white">{feature.icon}</div>
                     </div>
                   </div>
-                  
                   {/* Content */}
                   <div className="text-center">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-normal">
                       {feature.description}
                     </p>
                   </div>
@@ -576,18 +574,18 @@ const CanadianDrivingSchool = () => {
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Enhanced header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold text-base mb-6">
-              <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold text-sm mb-4">
+              <Sparkles className="w-4 h-4 mr-1 animate-pulse" />
               Ready to Begin Your Journey?
             </div>
-            <h2 className="text-4xl md:text-6xl font-black mb-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold mb-3">
               Your{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 Driving Future
               </span>
               <br />Starts Here
             </h2>
-            <p className="text-xl text-white/90 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-base text-white/90 max-w-xl mx-auto leading-normal">
               Take the first step towards driving independence. Our expert team is ready to guide you through every mile of your learning journey.
             </p>
           </div>
@@ -659,26 +657,7 @@ const CanadianDrivingSchool = () => {
           </div>
 
           {/* Ultimate CTA */}
-          <div className="text-center">
-            <div className="mb-8">
-              <p className="text-xl text-white/90 font-medium mb-6 max-w-3xl mx-auto">
-                Join thousands of successful drivers who chose excellence. Your journey to driving confidence starts with a single click.
-              </p>
-            </div>
-            
-            <button className="group relative bg-gradient-to-r from-red-600 via-pink-600 to-orange-600 hover:from-red-700 hover:via-pink-700 hover:to-orange-700 text-white text-2xl px-16 py-6 font-black rounded-3xl shadow-2xl hover:shadow-red-500/30 transition-all duration-500 hover:scale-110 hover:-translate-y-3 overflow-hidden">
-              {/* Animated shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12" />
-              
-              <Calendar className="mr-4 h-8 w-8 inline relative z-10 group-hover:rotate-12 transition-transform duration-300" />
-              <span className="relative z-10">Book Your First Lesson Today</span>
-              <Sparkles className="ml-4 h-8 w-8 inline relative z-10 animate-pulse" />
-            </button>
-            
-            <p className="text-white/60 text-sm mt-4 max-w-md mx-auto">
-              ✨ Free consultation • Flexible scheduling • No commitment required
-            </p>
-          </div>
+          
         </div>
       </section>
 

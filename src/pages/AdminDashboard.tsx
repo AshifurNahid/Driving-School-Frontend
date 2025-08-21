@@ -53,6 +53,7 @@ import UserRoleEditModal from "@/components/admin/UserRoleEditModal";
 import ReactPaginate from "react-paginate";
 import AdminInstructors from './AdminInstructors';
 import RegionManagement from '@/components/admin/RegionManagement';
+import UserManagement from '@/components/admin/user/UserManagement';
 
 
 const AdminDashboard = () => {
@@ -460,147 +461,7 @@ const AdminDashboard = () => {
           )}
 
           {/* User Management Tab */}
-          {activeTab === 'users' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-foreground">User Management</h2>
-                <div className="flex space-x-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input placeholder="Search users..." className="pl-10 w-64" />
-                  </div>
-                  <Select>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Users</SelectItem>
-                      <SelectItem value="instructor">Instructors</SelectItem>
-                      <SelectItem value="student">Students</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    {usersLoading ? (
-                      <div className="p-6 text-center text-muted-foreground">Loading users...</div>
-                    ) : usersError ? (
-                      <div className="p-6 text-center text-red-600">{usersError}</div>
-                    ) : (
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left p-4 font-medium text-foreground">User</th>
-                            <th className="text-left p-4 font-medium text-foreground">Role</th>
-                            <th className="text-left p-4 font-medium text-foreground">Email</th>
-                            <th className="text-left p-4 font-medium text-foreground">Phone</th>
-                            <th className="text-left p-4 font-medium text-foreground">Status</th>
-                            <th className="text-left p-4 font-medium text-foreground">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {users && users.length > 0 ? (
-                            users.map((user: User) => (
-                              <tr key={user.id} className="border-b border-border">
-                                <td className="p-4">
-                                  <div className="flex items-center">
-                                    <Avatar className="h-10 w-10 mr-3">
-                                      <AvatarImage
-                                        src={
-                                          user.user_detail?.image_path ||
-                                          `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}`
-                                        }
-                                        alt={user.full_name}
-                                      />
-                                      <AvatarFallback>
-                                        {user.full_name
-                                          .split(" ")
-                                          .map((n) => n[0])
-                                          .join("")}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <div className="font-medium text-foreground">{user.full_name}</div>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="p-4">
-                                  <Badge variant={user.role.title === 'Instructor' ? 'default' : 'secondary'}>
-                                    {user.role.title}
-                                  </Badge>
-                                </td>
-                                <td className="p-4 text-muted-foreground">{user.email}</td>
-                                <td className="p-4 text-muted-foreground">{user.phone}</td>
-                                <td className="p-4">
-                                  <Badge
-                                    variant="outline"
-                                    className={
-                                      user.status === 1
-                                        ? "text-green-600 border-green-600"
-                                        : "text-orange-600 border-orange-600"
-                                    }
-                                  >
-                                    {user.status === 1 ? "Active" : "Inactive"}
-                                  </Badge>
-                                </td>
-                                <td className="p-4">
-                                  <div className="flex space-x-2">
-                                    <Button size="sm" variant="outline" onClick={() => handleViewUser(user.id)}>
-                                      <Eye className="h-3 w-3" />
-                                    </Button>
-                                    <Button size="sm" variant="outline" onClick={() => handleEditUser(user)}>
-                                      <Edit className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="text-red-600 hover:text-red-700"
-                                      onClick={() => handleDeleteUser(user.id)}
-                                      disabled={deleteLoading}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="p-6 text-center text-muted-foreground">
-                                No users found.
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Pagination */}
-              <div className="mt-4">
-                <ReactPaginate
-                  previousLabel={"← Previous"}
-                  nextLabel={"Next →"}
-                  breakLabel={"..."}
-                  pageCount={totalPages}
-                  marginPagesDisplayed={2}
-                  pageRangeDisplayed={3}
-                  onPageChange={(data) => dispatch(getAdminUsers(data.selected + 1, pageSize))}
-                  containerClassName={"pagination flex justify-center mt-4"}
-                  pageClassName={"mx-1"}
-                  activeClassName={"font-bold text-blue-600"}
-                  previousClassName={"mx-2"}
-                  nextClassName={"mx-2"}
-                  forcePage={page - 1}
-                />
-              </div>
-            </div>
-          )}
+          {activeTab === 'users' && <UserManagement />}
 
 
 
