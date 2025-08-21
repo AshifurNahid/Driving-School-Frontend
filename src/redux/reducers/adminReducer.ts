@@ -12,6 +12,18 @@ import {
   ROLE_UPDATE_REQUEST,
   ROLE_UPDATE_SUCCESS,
   ROLE_UPDATE_FAIL,
+  ADMIN_REGION_LIST_REQUEST,
+  ADMIN_REGION_LIST_SUCCESS,
+  ADMIN_REGION_LIST_FAIL,
+  ADMIN_REGION_CREATE_REQUEST,
+  ADMIN_REGION_CREATE_SUCCESS,
+  ADMIN_REGION_CREATE_FAIL,
+  ADMIN_REGION_UPDATE_REQUEST,
+  ADMIN_REGION_UPDATE_SUCCESS,
+  ADMIN_REGION_UPDATE_FAIL,
+  ADMIN_REGION_DELETE_REQUEST,
+  ADMIN_REGION_DELETE_SUCCESS,
+  ADMIN_REGION_DELETE_FAIL
 } from "../constants/adminConstants";
 import { User, UserRole } from "@/types/user";
 import { Region } from "@/types/region";
@@ -271,12 +283,40 @@ export const adminRegionListReducer = (
   action: any
 ): AdminRegionListState => {
   switch (action.type) {
-    case "ADMIN_REGION_LIST_REQUEST":
+    case ADMIN_REGION_LIST_REQUEST:
       return { ...state, loading: true, error: null };
-    case "ADMIN_REGION_LIST_SUCCESS":
-      return { ...state, loading: false, regions: action.payload, error: null };
-    case "ADMIN_REGION_LIST_FAIL":
+    case ADMIN_REGION_LIST_SUCCESS:
+      return { ...state, loading: false, regions: action.payload };
+    case ADMIN_REGION_LIST_FAIL:
       return { ...state, loading: false, error: action.payload };
+
+    case ADMIN_REGION_CREATE_REQUEST:
+    case ADMIN_REGION_UPDATE_REQUEST:
+    case ADMIN_REGION_DELETE_REQUEST:
+      return { ...state, loading: true };
+
+    case ADMIN_REGION_CREATE_SUCCESS:
+      return { ...state, loading: false, regions: [...state.regions, action.payload] };
+    case ADMIN_REGION_UPDATE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        regions: state.regions.map((region) =>
+          region.id === action.payload.id ? action.payload : region
+        ),
+      };
+    case ADMIN_REGION_DELETE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        regions: state.regions.filter((region) => region.id !== action.payload),
+      };
+
+    case ADMIN_REGION_CREATE_FAIL:
+    case ADMIN_REGION_UPDATE_FAIL:
+    case ADMIN_REGION_DELETE_FAIL:
+      return { ...state, loading: false, error: action.payload };
+
     default:
       return state;
   }

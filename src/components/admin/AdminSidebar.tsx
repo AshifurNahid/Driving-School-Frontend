@@ -73,7 +73,8 @@ const AdminSidebar = ({
     { id: 'users', label: 'Users', icon: Users },
     { id: 'course-list', label: 'Courses', icon: BookOpen },
     { id: 'appointments', label: 'Appointments', icon: Calendar },
-    { id: 'instructors', label: 'Instructors', icon: UserCheck }
+    { id: 'instructors', label: 'Instructors', icon: UserCheck },
+    { id: 'region', label: 'Regions', icon: Menu },
   ];
 
   const appointmentSubItems = [
