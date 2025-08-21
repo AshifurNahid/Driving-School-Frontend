@@ -52,6 +52,7 @@ import UserDetailsModal from "@/components/admin/UserDetailsModal";
 import UserRoleEditModal from "@/components/admin/UserRoleEditModal";
 import ReactPaginate from "react-paginate";
 import AdminInstructors from './AdminInstructors';
+import RegionManagement from '@/components/admin/RegionManagement';
 
 
 const AdminDashboard = () => {
@@ -642,7 +643,11 @@ const AdminDashboard = () => {
               <AdminInstructors/>
           )}
 
-
+{
+  activeTab==='region' && (
+    <RegionManagement />
+  )
+}
           {/* Quiz Management Tab */}
           {activeTab === 'quizzes' && (
             <QuizManagement courses={coursesForQuizzes} />

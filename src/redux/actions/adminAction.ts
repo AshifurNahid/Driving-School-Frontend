@@ -209,3 +209,44 @@ export const deleteAdminCourse = (courseId: number | string) => async (dispatch:
   }
 
 
+// Create Region
+export const createAdminRegion = (region: { region_name: string; description: string }) => async (dispatch: any) => {
+  try {
+    dispatch({ type: "ADMIN_REGION_CREATE_REQUEST" });
+    const { data } = await api.post("/regions", region);
+    dispatch({ type: "ADMIN_REGION_CREATE_SUCCESS", payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_REGION_CREATE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Update Region
+export const updateAdminRegion = (id: number, region: { region_name: string; description: string }) => async (dispatch: any) => {
+  try {
+    dispatch({ type: "ADMIN_REGION_UPDATE_REQUEST" });
+    const { data } = await api.put(`/regions/${id}`, region);
+    dispatch({ type: "ADMIN_REGION_UPDATE_SUCCESS", payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_REGION_UPDATE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Delete Region
+export const deleteAdminRegion = (id: number) => async (dispatch: any) => {
+  try {
+    dispatch({ type: "ADMIN_REGION_DELETE_REQUEST" });
+    await api.delete(`/regions/${id}`);
+    dispatch({ type: "ADMIN_REGION_DELETE_SUCCESS", payload: id });
+  } catch (error: any) {
+    dispatch({
+      type: "ADMIN_REGION_DELETE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
