@@ -88,7 +88,7 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
           <div className="flex items-center justify-between h-16 sm:h-[72px] px-3 sm:px-6 lg:px-8">
             
             {/* Logo - Left Corner */}
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 lg:flex-initial">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 lg:flex-initial justify-start">
               <NavLink 
                 to="/" 
                 className="flex items-center space-x-2 sm:space-x-3 group transition-all duration-300 hover:scale-[1.02] min-w-0"
@@ -114,31 +114,58 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
             {/* Desktop Navigation - Hidden on mobile/tablet */}
             <nav className="hidden xl:flex items-center">
               <div className="flex items-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-1 space-x-1">
+                
                 <Button 
                   variant="ghost" 
                   asChild 
-                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-white hover:shadow-sm dark:hover:bg-slate-700 transition-all duration-200 data-[active]:bg-white data-[active]:shadow-sm dark:data-[active]:bg-slate-700"
+                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 transition-all duration-200"
+                >
+                  <NavLink to="/" className="flex items-center space-x-2">
+                    <Home className="h-4 w-4" />
+                    <span>Home</span>
+                  </NavLink>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  asChild 
+                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 transition-all duration-200"
                 >
                   <NavLink to="/courses" className="flex items-center space-x-2">
                     <BookOpen className="h-4 w-4" />
                     <span>Courses</span>
                   </NavLink>
                 </Button>
-                
-                <Button 
+                 <Button 
                   variant="ghost" 
                   asChild 
-                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-white hover:shadow-sm dark:hover:bg-slate-700 transition-all duration-200"
+                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 transition-all duration-200"
                 >
-                  <NavLink to="/about">About</NavLink>
+                  <NavLink to="/appointments" className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>Appointments</span>
+                  </NavLink>
                 </Button>
                 
                 <Button 
                   variant="ghost" 
                   asChild 
-                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-white hover:shadow-sm dark:hover:bg-slate-700 transition-all duration-200"
+                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 transition-all duration-200"
                 >
-                  <NavLink to="/contact">Contact</NavLink>
+                  <NavLink to="/about" className="flex items-center space-x-2">
+                    <Info className="h-4 w-4" />
+                    <span>About</span>
+                  </NavLink>
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  asChild 
+                  className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 transition-all duration-200"
+                >
+                  <NavLink to="/contact" className="flex items-center space-x-2">
+                    <Mail className="h-4 w-4" />
+                    <span>Contact</span>
+                  </NavLink>
                 </Button>
 
                 {userInfo && userInfo.role?.title === 'Admin' && (
@@ -154,47 +181,16 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
                   </Button>
                 )}
 
-                {userInfo && userInfo.role?.title !== 'Admin' && (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      asChild 
-                      className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 transition-all duration-200"
-                    >
-                      <NavLink to="/learner/courses" className="flex items-center space-x-2">
-                        <BookOpen className="h-4 w-4" />
-                        <span>My Courses</span>
-                      </NavLink>
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      asChild 
-                      className="h-10 px-4 rounded-xl text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 transition-all duration-200"
-                    >
-                      <NavLink to="/appointments" className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>Appointments</span>
-                      </NavLink>
-                    </Button>
-                  </>
-                )}
+               
+
+                
               </div>
             </nav>
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
               {/* Role Badge - Hidden on small screens */}
-              {userInfo && (
-                <div className="hidden md:flex">
-                  <Badge 
-                    variant={isAdmin ? "default" : "secondary"} 
-                    className="h-8 px-3 bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 dark:from-slate-700 dark:to-slate-600 dark:text-slate-200 border-0 font-semibold text-xs tracking-wide"
-                  >
-                    <Shield className="w-3 h-3 mr-1.5" />
-                    {userInfo.role?.title === 'Admin' ? "ADMIN" : "LEARNER"}
-                  </Badge>
-                </div>
-              )}
+             
 
               {/* Theme Toggle */}
               <div className="p-1">
@@ -232,12 +228,12 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
                     </Button>
                   )}
                   
-                  {/* Logout Button */}
+                  {/* Logout Button - smaller */}
                   <Button
                     onClick={handleLogout}
-                    className="h-11 px-4 xl:px-6 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    className="h-9 px-3 xl:px-4 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 text-xs"
                   >
-                    <LogOut className="w-4 h-4 xl:mr-2" />
+                    <LogOut className="w-4 h-4 xl:mr-1" />
                     <span className="hidden xl:block">Sign Out</span>
                   </Button>
                 </div>
@@ -375,52 +371,29 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
               </Button>
             )}
 
-            {userInfo && userInfo.role?.title !== 'Admin' && (
-              <>
-                <Button 
-                  variant="ghost" 
-                  asChild 
-                  className="w-full h-12 justify-start text-base font-medium hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 rounded-xl"
-                  onClick={closeMobileMenu}
-                >
-                  <NavLink to="/learner/courses" className="flex items-center space-x-3">
-                    <BookOpen className="h-5 w-5" />
-                    <span>My Courses</span>
-                  </NavLink>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  asChild 
-                  className="w-full h-12 justify-start text-base font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 rounded-xl"
-                  onClick={closeMobileMenu}
-                >
-                  <NavLink to="/appointments" className="flex items-center space-x-3">
-                    <Calendar className="h-5 w-5" />
-                    <span>Appointments</span>
-                  </NavLink>
-                </Button>
-                <Button 
-                  variant="ghost"
-                  onClick={() => {
-                    navigate("/learner/profile");
-                    closeMobileMenu();
-                  }}
-                  className="w-full h-12 justify-start text-base font-medium hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
-                >
-                  <div className="flex items-center space-x-3">
-                    <img
-                      src={
-                        userInfo.user_detail?.image_path ||
-                        "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name) + "&background=6366f1&color=ffffff&size=20&rounded=true"
-                      }
-                      alt="Profile"
-                      className="w-5 h-5 rounded-lg"
-                    />
-                    <span>My Profile</span>
-                  </div>
-                </Button>
-              </>
-            )}
+            <Button 
+              variant="ghost" 
+              asChild 
+              className="w-full h-12 justify-start text-base font-medium hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 rounded-xl"
+              onClick={closeMobileMenu}
+            >
+              <NavLink to="/appointments" className="flex items-center space-x-3">
+                <Calendar className="h-5 w-5" />
+                <span>Appointments</span>
+              </NavLink>
+            </Button>
+
+            <Button 
+              variant="ghost" 
+              asChild 
+              className="w-full h-12 justify-start text-base font-medium hover:bg-white hover:shadow-sm dark:hover:bg-slate-700 transition-all duration-200"
+              onClick={closeMobileMenu}
+            >
+              <NavLink to="/" className="flex items-center space-x-3">
+                <Home className="h-5 w-5" />
+                <span>Home</span>
+              </NavLink>
+            </Button>
           </nav>
 
           {/* Authentication Section - Mobile */}

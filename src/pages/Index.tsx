@@ -2,59 +2,14 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, ArrowRight, Car, Award, TrendingUp, Monitor, CheckCircle, Star, Users, Clock, PlayCircle, Shield, MapPin, Phone, Mail, Calendar } from 'lucide-react';
 import { CourseCard } from '@/components/course/CourseCard';
 import { useCourses } from '@/hooks/useCourses';
+import { useRegions } from '@/hooks/useRegions';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 
-// Dummy course data using your provided images and structure
-/*const dummyCourses = [
-  {
-    id: 1,
-    title: "G1 to G2 License Program",
-    description: "Complete beginner driving course including classroom theory and in-car training. MTO approved curriculum.",
-    category: "Beginner Driver Education",
-    price: 599,
-    duration: 40, // hours as number
-    rating: 4.9,
-    thumbnail_photo_path: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=250&fit=crop",
-    course_reviews: Array(245)
-  },
-  {
-    id: 2,
-    title: "G2 to G License Program",
-    description: "Advanced highway driving skills and G license test preparation with experienced certified instructors.",
-    category: "Advanced Driving Skills",
-    price: 399,
-    duration: 20,
-    rating: 4.8,
-    thumbnail_photo_path: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=250&fit=crop",
-    course_reviews: Array(189)
-  },
-  {
-    id: 3,
-    title: "Winter Driving Mastery",
-    description: "Essential Canadian winter driving techniques. Learn to handle snow, ice, and challenging weather conditions.",
-    category: "Winter Driving",
-    price: 299,
-    duration: 12,
-    rating: 4.9,
-    thumbnail_photo_path: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop",
-    course_reviews: Array(156)
-  },
-  {
-    id: 4,
-    title: "Defensive Driving Course",
-    description: "Advanced safety techniques and hazard perception. Insurance discount eligible course.",
-    category: "Defensive Driving",
-    price: 249,
-    duration: 8,
-    rating: 4.7,
-    thumbnail_photo_path: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=250&fit=crop",
-    course_reviews: Array(203)
-  }
-];*/
+
 
 const heroImages = [
  "/hero/slide1.jpg",
@@ -65,7 +20,9 @@ const CanadianDrivingSchool = () => {
   // All hooks must be inside the component function
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedRegion, setSelectedRegion] = useState('all');
   const { courses, loading, error } = useCourses(1, 8); // Fetch 8 courses for the homepage
+  const { regions, loading: regionsLoading, error: regionsError } = useRegions();
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
@@ -94,11 +51,12 @@ const CanadianDrivingSchool = () => {
     const matchesSearch = course?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (course?.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || course?.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesRegion = selectedRegion === 'all' || String(course?.region_id) === String(selectedRegion);
+    return matchesSearch && matchesCategory && matchesRegion;
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors">
+    <div className="min-h-screen bg-white text-foreground transition-colors">
       <RoleBasedNavigation />
       {/* Hero Section */}
 
@@ -220,7 +178,7 @@ const CanadianDrivingSchool = () => {
             <select 
               value={selectedCategory} 
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-6 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-red-500/50 focus:border-red-400 text-base text-white hover:bg-white/25 transition-all duration-300"
+              className="w-full px-5 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-red-500/50 focus:border-red-400 text-base text-white hover:bg-white/25 transition-all duration-300"
             >
               <option value="all" className="bg-gray-800 text-white">All Course Types</option>
               {categories.map(category => (
@@ -228,10 +186,21 @@ const CanadianDrivingSchool = () => {
               ))}
             </select>
           </div>
-          
-          <button className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-base rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1">
-            <Search className="w-5 h-5 mr-3 inline" />
-            Search Courses
+          <div className="lg:w-80">
+            <select
+              value={selectedRegion}
+              onChange={e => setSelectedRegion(e.target.value)}
+              className="w-full px-6 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-400 text-base text-white hover:bg-white/25 transition-all duration-300"
+            >
+              <option value="all" className="bg-gray-800 text-white">All Regions</option>
+              {regions.map(region => (
+                <option key={region.id} value={region.id} className="bg-gray-800 text-white">{region.region_name}</option>
+              ))}
+            </select>
+          </div>
+          <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-base rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1">
+            <Search className="w-5 h-5 mr-2 inline" />
+            Search
           </button>
         </div>
       </div>
