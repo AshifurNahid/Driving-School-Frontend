@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, ArrowRight, Car, Award, TrendingUp, Monitor, CheckCircle, Star, Users, Clock, PlayCircle, Shield, MapPin, Phone, Mail, Calendar } from 'lucide-react';
+import { Search, Filter, ArrowRight, Car, Award, TrendingUp, Monitor, CheckCircle, Star, Users, Clock, PlayCircle, Shield, MapPin, Phone, Mail, Calendar,ChevronRight, Sparkles, Target, Zap, Heart, Globe, BookOpen } from 'lucide-react';
 import { CourseCard } from '@/components/course/CourseCard';
 import { useCourses } from '@/hooks/useCourses';
 import { useRegions } from '@/hooks/useRegions';
@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
+
 
 
 
@@ -462,145 +463,308 @@ const CanadianDrivingSchool = () => {
 
       
 {/* Why Choose Us Section - Mobile Optimized */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-background dark:bg-[#181830] transition-colors">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
-              Why Choose DriveCanada Pro?
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 relative overflow-hidden">
+        {/* Background animation */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto">
+          {/* Enhanced header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-base mb-6">
+              <Zap className="w-5 h-5 mr-2" />
+              The DriveCanada Advantage
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black text-gray-900 dark:text-white mb-6">
+              Why Students{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                Choose Us
+              </span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto px-2">
-              As NL's premier driving school, we combine professional instruction with modern teaching methods 
-              to ensure your success on the road.
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
+              Experience the difference that comes from decades of excellence, innovation, and unwavering commitment to your success.
             </p>
           </div>
 
-          {/* Mobile: 2 cards per row, Tablet: 2 cards, Desktop: 3 cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+          {/* Revolutionary features grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                icon: <Award className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-red-600" />,
-                title: "MTO Certified Instructors",
-                description: "All our instructors are Ministry of Transportation certified with years of professional teaching experience."
+                icon: <Award className="w-8 h-8" />,
+                title: "MTO Certified Excellence",
+                description: "All instructors are Ministry-certified professionals with extensive teaching experience and proven track records.",
+                gradient: "from-yellow-400 to-orange-500",
+                bgGradient: "from-yellow-500/10 to-orange-500/10"
               },
               {
-                icon: <Shield className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-green-600" />,
-                title: "Modern Safety Features",
-                description: "Our training vehicles are equipped with dual controls and latest safety technology for secure learning."
+                icon: <Shield className="w-8 h-8" />,
+                title: "Advanced Safety Technology",
+                description: "Our fleet features dual-control systems, modern safety equipment, and regular maintenance for optimal learning conditions.",
+                gradient: "from-green-400 to-emerald-500",
+                bgGradient: "from-green-500/10 to-emerald-500/10"
               },
               {
-                icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-blue-600" />,
-                title: "Flexible Scheduling",
-                description: "Book lessons at your convenience with morning, afternoon, evening, and weekend availability."
+                icon: <Clock className="w-8 h-8" />,
+                title: "Ultimate Flexibility",
+                description: "Schedule lessons around your life with 24/7 online booking, weekend availability, and pick-up services.",
+                gradient: "from-blue-400 to-cyan-500",
+                bgGradient: "from-blue-500/10 to-cyan-500/10"
               },
               {
-                icon: <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-purple-600" />,
-                title: "Personalized Training",
-                description: "One-on-one instruction tailored to your learning pace and driving goals."
+                icon: <Users className="w-8 h-8" />,
+                title: "Personalized Learning",
+                description: "One-on-one instruction tailored to your pace, learning style, and specific goals for maximum effectiveness.",
+                gradient: "from-purple-400 to-pink-500",
+                bgGradient: "from-purple-500/10 to-pink-500/10"
               },
               {
-                icon: <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-orange-600" />,
-                title: "High Pass Rate",
-                description: "98% of our students pass their driving test on the first attempt with our proven methods."
+                icon: <TrendingUp className="w-8 h-8" />,
+                title: "Proven Success Rate",
+                description: "98.7% first-attempt pass rate speaks to our effective teaching methodology and comprehensive preparation.",
+                gradient: "from-indigo-400 to-purple-500",
+                bgGradient: "from-indigo-500/10 to-purple-500/10"
               },
               {
-                icon: <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-indigo-600" />,
-                title: "Multiple Locations",
-                description: "Convenient pickup locations across the GTA with door-to-door service available."
+                icon: <MapPin className="w-8 h-8" />,
+                title: "Convenient Locations",
+                description: "25+ locations across provinces with door-to-door pickup service for maximum convenience.",
+                gradient: "from-red-400 to-pink-500",
+                bgGradient: "from-red-500/10 to-pink-500/10"
               }
-            ].map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-card dark:bg-[#23235b] text-card-foreground">
-                <CardContent className="p-3 sm:p-4 lg:p-8">
-                  <div className="flex justify-center mb-3 sm:mb-4 lg:mb-6">
-                    <div className="p-2 sm:p-2.5 lg:p-3 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-[#23235b] dark:to-[#181830] rounded-full">
-                      {feature.icon}
+            ].map((feature, idx) => (
+              <div key={idx} className="group relative">
+                {/* Hover glow */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700 scale-110`} />
+                
+                {/* Main card */}
+                <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/50 dark:border-gray-700/50 h-full">
+                  {/* Icon */}
+                  <div className="flex justify-center mb-6">
+                    <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                      <div className="text-white">{feature.icon}</div>
                     </div>
                   </div>
-                  <h3 className="text-sm sm:text-base lg:text-xl font-bold text-foreground dark:text-white mb-2 sm:mb-3 lg:mb-4 leading-tight">
-                    {feature.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm lg:text-base text-muted-foreground leading-relaxed hidden sm:block">
-                    {feature.description}
-                  </p>
-                  {/* Shortened description for mobile */}
-                  <p className="text-xs text-muted-foreground leading-relaxed sm:hidden">
-                    {feature.description.split('.')[0]}.
-                  </p>
-                </CardContent>
-              </Card>
+                  
+                  {/* Content */}
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                  
+                  {/* Animated accent line */}
+                  <div className={`h-1 bg-gradient-to-r ${feature.gradient} rounded-full mx-auto mt-6 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500`} style={{width: '50%'}} />
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-2000" />
+        </div>
 
-      {/* Contact Section - Mobile Optimized */}
-      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white" id="contact">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
-              Ready to Start Driving?
+        <div className="relative z-10 max-w-7xl mx-auto">
+          {/* Enhanced header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold text-base mb-6">
+              <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
+              Ready to Begin Your Journey?
+            </div>
+            <h2 className="text-4xl md:text-6xl font-black mb-6">
+              Your{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                Driving Future
+              </span>
+              <br />Starts Here
             </h2>
-            <p className="text-sm sm:text-base lg:text-xl text-gray-300 max-w-3xl mx-auto px-2">
-              Contact us today to book your first lesson or get more information about our programs.
+            <p className="text-xl text-white/90 max-w-4xl mx-auto leading-relaxed">
+              Take the first step towards driving independence. Our expert team is ready to guide you through every mile of your learning journey.
             </p>
           </div>
 
-          {/* Mobile: Stack vertically, Tablet+: 3 columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
-            <div className="text-center">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Phone className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+          {/* Revolutionary contact cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {[
+              {
+                icon: <Phone className="w-8 h-8" />,
+                title: "Call Us Now",
+                subtitle: "Instant Support",
+                action: "+1 (709) 351-6738",
+                href: "tel:+17093516738",
+                gradient: "from-green-500 to-emerald-600",
+                hoverGradient: "from-green-600 to-emerald-700"
+              },
+              {
+                icon: <Mail className="w-8 h-8" />,
+                title: "Email Direct",
+                subtitle: "Quick Response",
+                action: "info@nldriversacademy.ca",
+                href: "mailto:info@nldriversacademy.ca",
+                gradient: "from-blue-500 to-cyan-600",
+                hoverGradient: "from-blue-600 to-cyan-700"
+              },
+              {
+                icon: <MapPin className="w-8 h-8" />,
+                title: "Visit Our Campus",
+                subtitle: "Modern Facilities",
+                action: "411 Torbay Rd, St. John's, NL",
+                href: "https://maps.google.com/?q=411+Torbay+Rd,+St.+John's,+NL+A1A+5C9",
+                gradient: "from-purple-500 to-pink-600",
+                hoverGradient: "from-purple-600 to-pink-700"
+              }
+            ].map((contact, idx) => (
+              <div key={idx} className="group relative">
+                {/* Hover glow */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${contact.gradient} opacity-20 rounded-3xl blur-xl group-hover:opacity-40 transition-all duration-500 scale-110`} />
+                
+                {/* Main card */}
+                <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/20 group-hover:border-white/40">
+                  {/* Icon */}
+                  <div className="flex justify-center mb-3">
+                    <div className={`w-16 h-16 bg-gradient-to-br ${contact.gradient} group-hover:${contact.hoverGradient} rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                      <div className="text-white">{contact.icon}</div>
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold mb-2 group-hover:text-blue-400 transition-colors duration-300">
+                      {contact.title}
+                    </h3>
+                    <p className="text-white/70 text-sm mb-4">{contact.subtitle}</p>
+                    
+                    <a
+                      href={contact.href}
+                      target={contact.href.startsWith('http') ? '_blank' : undefined}
+                      rel={contact.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                      className={`inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${contact.gradient} hover:${contact.hoverGradient} rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg`}
+                    >
+                      <span className="text-sm break-all sm:break-normal">{contact.action}</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-2">Call Us</h3>
-              <a 
-                href="tel:+17093516738" 
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors duration-200"
-              >
-                <span className="text-sm sm:text-base">+1 (709) 351-6738</span>
-                <Phone className="w-3 h-3 text-gray-400" />
-              </a>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Mail className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-2">Email Us</h3>
-              <a 
-                href="mailto:info@nldriversacademy.ca" 
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors duration-200"
-              >
-                <span className="text-sm sm:text-base break-all sm:break-normal">info@nldriversacademy.ca</span>
-                <Mail className="w-3 h-3 text-gray-400" />
-              </a>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold mb-2">Visit Us</h3>
-              <a 
-                href="https://maps.google.com/?q=411+Torbay+Rd,+St.+John's,+NL+A1A+5C9" 
-                target="_blank"
-                rel="noopener noreferrer" 
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors duration-200"
-              >
-                <span className="text-sm sm:text-base">411 Torbay Rd, St. John's, NL</span>
-                <MapPin className="w-3 h-3 text-gray-400" />
-              </a>
-            </div>
+            ))}
           </div>
 
+          {/* Ultimate CTA */}
           <div className="text-center">
-            <Link to="/appointments">
-              <button className="bg-red-600 hover:bg-red-700 text-white text-base sm:text-lg lg:text-xl px-6 sm:px-8 lg:px-12 py-3 sm:py-3.5 lg:py-4 font-bold rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all w-full sm:w-auto">
-                <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 inline" />
-                <span className="text-sm sm:text-base lg:text-xl">Book Your First Lesson Today</span>
-              </button>
-            </Link>
+            <div className="mb-8">
+              <p className="text-xl text-white/90 font-medium mb-6 max-w-3xl mx-auto">
+                Join thousands of successful drivers who chose excellence. Your journey to driving confidence starts with a single click.
+              </p>
+            </div>
+            
+            <button className="group relative bg-gradient-to-r from-red-600 via-pink-600 to-orange-600 hover:from-red-700 hover:via-pink-700 hover:to-orange-700 text-white text-2xl px-16 py-6 font-black rounded-3xl shadow-2xl hover:shadow-red-500/30 transition-all duration-500 hover:scale-110 hover:-translate-y-3 overflow-hidden">
+              {/* Animated shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12" />
+              
+              <Calendar className="mr-4 h-8 w-8 inline relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="relative z-10">Book Your First Lesson Today</span>
+              <Sparkles className="ml-4 h-8 w-8 inline relative z-10 animate-pulse" />
+            </button>
+            
+            <p className="text-white/60 text-sm mt-4 max-w-md mx-auto">
+              ✨ Free consultation • Flexible scheduling • No commitment required
+            </p>
           </div>
         </div>
       </section>
-      
-      <Footer />
+
+      {/* Enhanced Footer */}
+      <footer className="bg-gray-900 text-white py-16 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Logo and description */}
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center mb-4">
+                <Car className="w-10 h-10 text-blue-500 mr-3" />
+                <span className="text-2xl font-bold">DriveCanada Pro</span>
+              </div>
+              <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
+                Newfoundland's premier driving education provider. Building confident, safe drivers since 1999 with professional instruction and modern teaching methods.
+              </p>
+              <div className="flex space-x-4">
+                {['facebook', 'instagram', 'youtube', 'twitter'].map((social) => (
+                  <button key={social} className="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors duration-300">
+                    <Globe className="w-5 h-5" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-lg font-bold mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-gray-400">
+                {['Our Courses', 'Book Lesson', 'Instructors', 'Locations', 'About Us', 'Contact'].map((link) => (
+                  <li key={link}>
+                    <button className="hover:text-white transition-colors duration-300">{link}</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            {/* Contact Info */}
+            <div>
+              <h3 className="text-lg font-bold mb-4">Get in Touch</h3>
+              <div className="space-y-3 text-gray-400">
+                <div className="flex items-center">
+                  <Phone className="w-4 h-4 mr-3 text-blue-500" />
+                  <span className="text-sm">+1 (709) 351-6738</span>
+                </div>
+                <div className="flex items-center">
+                  <Mail className="w-4 h-4 mr-3 text-blue-500" />
+                  <span className="text-sm">info@nldriversacademy.ca</span>
+                </div>
+                <div className="flex items-start">
+                  <MapPin className="w-4 h-4 mr-3 text-blue-500 mt-0.5" />
+                  <span className="text-sm">411 Torbay Rd<br />St. John's, NL A1A 5C9</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bottom bar */}
+          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-400 text-sm">
+              © 2025 DriveCanada Pro. All rights reserved. MTO Licensed & Insured.
+            </p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              {['Privacy Policy', 'Terms of Service', 'Accessibility'].map((link) => (
+                <button key={link} className="text-gray-400 hover:text-white text-sm transition-colors duration-300">
+                  {link}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Custom animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+          }
+          @keyframes scaleX {
+            0%, 100% { transform: scaleX(0); }
+            50% { transform: scaleX(1); }
+          }
+        `
+      }} />
     </div>
   );
 };
