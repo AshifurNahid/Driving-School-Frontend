@@ -23,6 +23,7 @@ import {
   adminAppointmentStatusUpdateReducer,
   adminAppointmentCancelReducer
 } from "./appointmentReducer";
+import { bookGuestAppointmentReducer } from "./guestBookingReducer";
 import { instructorListReducer } from "./instructorReducers";
 import {
   slotPricingListReducer,
@@ -50,6 +51,7 @@ const rootReducer = combineReducers({
   appointmentSlotUpdate: appointmentSlotUpdateReducer,
   appointmentSlotDelete: appointmentSlotDeleteReducer,
   bookDirectAppointment: bookDirectAppointmentReducer,
+  bookGuestAppointment: bookGuestAppointmentReducer,
   userAppointments: userAppointmentsReducer,
   adminPreviousAppointments: adminPreviousAppointmentsReducer,
   adminUpcomingAppointments: adminUpcomingAppointmentsReducer,
