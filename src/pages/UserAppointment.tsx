@@ -24,25 +24,41 @@ import {
   ArrowRight,
   AlertCircle
 } from 'lucide-react';
+import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
+import BookingModal from '@/components/appointments/BookingModal';
+import BookingStatusModal from '@/components/appointments/BookingStatusModal';
+import GuestBookingModal from '@/components/appointments/GuestBookingModal';
 import { 
   getAppointmentSlotsByDate,
   bookDirectAppointment,
   bookDirectAppointmentReset,
-  BookDirectAppointmentPayload
+  BookDirectAppointmentPayload,
+  bookGuestAppointment,
+  bookGuestAppointmentReset,
+  BookGuestAppointmentPayload
 } from '@/redux/actions/appointmentAction';
 import { AppointmentSlot } from '@/redux/reducers/appointmentReducer';
-import BookingModal from '@/components/appointments/BookingModal';
-import BookingStatusModal from '@/components/appointments/BookingStatusModal';
-import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 
 // Define RootState type - adjust according to your store structure
 interface RootState {
+  auth: {
+    loading: boolean;
+    userInfo: any | null;
+    error?: string | null;
+  };
   appointmentSlots: {
     loading: boolean;
     appointmentSlots: AppointmentSlot[];
     error: string | null;
   };
   bookDirectAppointment: {
+    loading: boolean;
+    success: boolean;
+    message: string | null;
+    error: string | null;
+    data: any;
+  };
+  bookGuestAppointment: {
     loading: boolean;
     success: boolean;
     message: string | null;
@@ -58,10 +74,14 @@ const UserAppointment: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isGuestBookingModalOpen, setIsGuestBookingModalOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Redux state
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+  const isAuthenticated = !!userInfo;
+  
   const { 
     loading: slotsLoading, 
     appointmentSlots: slots, 
@@ -69,6 +89,14 @@ const UserAppointment: React.FC = () => {
   } = useSelector((state: RootState) => state.appointmentSlots);
 
   const defaultBookDirectAppointment = {
+    loading: false,
+    success: false,
+    message: null,
+    error: null,
+    data: null
+  };
+
+  const defaultGuestAppointment = {
     loading: false,
     success: false,
     message: null,
@@ -84,6 +112,16 @@ const UserAppointment: React.FC = () => {
     data: bookingData = null
   } = useSelector((state: RootState) =>
     state.bookDirectAppointment ?? defaultBookDirectAppointment
+  );
+  
+  const {
+    loading: guestBookingLoading = false,
+    success: guestBookingSuccess = false,
+    message: guestBookingMessage = null,
+    error: guestBookingError = null,
+    data: guestBookingData = null
+  } = useSelector((state: RootState) =>
+    state.bookGuestAppointment ?? defaultGuestAppointment
   );
 
   // Fetch slots when date changes
@@ -106,15 +144,38 @@ const UserAppointment: React.FC = () => {
       }
     }
   }, [bookingSuccess, bookingError, dispatch, selectedDate]);
+  
+  // Handle guest booking success/error
+  useEffect(() => {
+    if (guestBookingSuccess || guestBookingError) {
+      setIsGuestBookingModalOpen(false);
+      setIsStatusModalOpen(true);
+      
+      if (guestBookingSuccess && selectedDate) {
+        const dateStr = format(selectedDate, 'yyyy-MM-dd');
+        dispatch(getAppointmentSlotsByDate(dateStr) as any);
+      }
+    }
+  }, [guestBookingSuccess, guestBookingError, dispatch, selectedDate]);
 
   const handleBookNow = (slot: AppointmentSlot) => {
     setSelectedSlot(slot);
-    dispatch(bookDirectAppointmentReset());
-    setIsBookingModalOpen(true);
+    
+    if (isAuthenticated) {
+      dispatch(bookDirectAppointmentReset());
+      setIsBookingModalOpen(true);
+    } else {
+      dispatch(bookGuestAppointmentReset());
+      setIsGuestBookingModalOpen(true);
+    }
   };
 
   const handleBookingSubmit = (payload: BookDirectAppointmentPayload) => {
     dispatch(bookDirectAppointment(payload) as any);
+  };
+  
+  const handleGuestBookingSubmit = (payload: BookGuestAppointmentPayload) => {
+    dispatch(bookGuestAppointment(payload) as any);
   };
 
   const handleCloseModal = () => {
@@ -122,11 +183,21 @@ const UserAppointment: React.FC = () => {
     setSelectedSlot(null);
     dispatch(bookDirectAppointmentReset());
   };
+  
+  const handleCloseGuestModal = () => {
+    setIsGuestBookingModalOpen(false);
+    setSelectedSlot(null);
+    dispatch(bookGuestAppointmentReset());
+  };
 
   const handleCloseStatusModal = () => {
     setIsStatusModalOpen(false);
     setSelectedSlot(null);
-    dispatch(bookDirectAppointmentReset());
+    if (guestBookingSuccess || guestBookingError) {
+      dispatch(bookGuestAppointmentReset());
+    } else {
+      dispatch(bookDirectAppointmentReset());
+    }
   };
 
   // Filter only available slots (status === 1) and slots with price available
@@ -457,7 +528,7 @@ const UserAppointment: React.FC = () => {
         )}
       </div>
 
-      {/* Booking Modal */}
+      {/* Booking Modal for Logged in Users */}
       <BookingModal
         isOpen={isBookingModalOpen}
         onClose={handleCloseModal}
@@ -465,27 +536,42 @@ const UserAppointment: React.FC = () => {
         slot={selectedSlot}
         loading={bookingLoading}
       />
+      
+      {/* Guest Booking Modal for Non-Logged in Users */}
+      <GuestBookingModal
+        isOpen={isGuestBookingModalOpen}
+        onClose={handleCloseGuestModal}
+        onSubmit={handleGuestBookingSubmit}
+        slot={selectedSlot}
+        loading={guestBookingLoading}
+      />
 
       {/* Booking Status Modal */}
       <BookingStatusModal
         isOpen={isStatusModalOpen}
         onClose={handleCloseStatusModal}
-        success={bookingSuccess}
-        message={bookingMessage || (bookingSuccess ? "Appointment booked successfully!" : "Booking failed")}
-        errorMessage={bookingError}
-        appointmentData={bookingData || (selectedSlot ? {
-          id: 0,
-          status: "Booking...",
-          createdAt: new Date().toISOString(),
-          appointmentSlot: {
-            date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : "",
-            startTime: selectedSlot?.startTime || "",
-            endTime: selectedSlot?.endTime || "",
-            instructorName: selectedSlot?.instructorName || `Instructor ${selectedSlot?.instructorId}`,
-            location: selectedSlot?.location || "School Location",
-            price: selectedSlot?.pricePerSlot || 0
-          }
-        } : null)}
+        success={bookingSuccess || guestBookingSuccess}
+        message={
+          guestBookingSuccess 
+            ? "Appointment booked successfully and your account has been created!" 
+            : (bookingMessage || (bookingSuccess ? "Appointment booked successfully!" : "Booking failed"))
+        }
+        errorMessage={guestBookingError || bookingError}
+        appointmentData={
+          guestBookingData || bookingData || (selectedSlot ? {
+            id: 0,
+            status: "Booking...",
+            createdAt: new Date().toISOString(),
+            appointmentSlot: {
+              date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : "",
+              startTime: selectedSlot?.startTime || "",
+              endTime: selectedSlot?.endTime || "",
+              instructorName: selectedSlot?.instructorName || `Instructor ${selectedSlot?.instructorId}`,
+              location: selectedSlot?.location || "School Location",
+              price: selectedSlot?.pricePerSlot || 0
+            }
+          } : null)
+        }
       />
     </div>
   );
