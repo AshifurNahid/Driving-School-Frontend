@@ -17,10 +17,12 @@ const LearnerCourses = () => {
     if (userId) {
       dispatch(getUserCourses(userId) as any);
     }
+    
   }, [dispatch, userId]);
 
   // Map API data to LearnerCourseList props
   const mappedCourses = courses.map((uc: any) => ({
+    user_course: uc?.id,
     id: uc.course?.id,
     title: uc.course?.title,
     instructor: uc.course?.instructor || "Instructor", // fallback if not present
@@ -33,6 +35,7 @@ const LearnerCourses = () => {
     lastAccessed: uc.updated_at,
     completed: uc.progress_percentage === 100,
   }));
+console.log("Mapped Courses: ", mappedCourses);
 
   return (
     <div className="min-h-screen bg-background">
