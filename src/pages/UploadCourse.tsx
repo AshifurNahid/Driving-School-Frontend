@@ -45,7 +45,7 @@ interface Quiz {
   questions: Question[];
   passPercentage: number;
   timeLimit?: number;
-  allowRetakes: boolean;
+  max_attempts: string;
 }
 
 interface ModuleMaterial {
@@ -158,7 +158,7 @@ function quizToModalFormat(quiz: Quiz | undefined): ModalQuizDto | undefined {
     title: quiz.title,
     description: quiz.description,
     passing_score: quiz.passPercentage,
-    max_attempts: quiz.allowRetakes ? 99 : 1,
+    max_attempts: Number(quiz.max_attempts),
     questions: (quiz.questions || []).map((q): ModalQuizQuestionDto => ({
       question: q.question,
       type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
@@ -176,7 +176,7 @@ function modalToQuizFormat(modalQuiz: ModalQuizDto): Quiz {
     title: modalQuiz.title,
     description: modalQuiz.description,
     passPercentage: Number(modalQuiz.passing_score),
-    allowRetakes: Number(modalQuiz.max_attempts) > 1,
+    max_attempts: modalQuiz.max_attempts?.toString() || "1",
     questions: (modalQuiz.questions || []).map((q: ModalQuizQuestionDto) => ({
       question: q.question,
       type: q.type === 0 ? 'mcq' : q.type === 1 ? 'true-false' : 'short-answer',
@@ -279,7 +279,8 @@ const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Cour
       }) || [],
       passPercentage: module.quizzes[0].passing_score || 60,
       timeLimit: module.quizzes[0].time_limit,
-      allowRetakes: module.quizzes[0].max_attempts > 1,
+      max_attempts: module.quizzes[0].max_attempts.toString(),
+      
     } : undefined,
     isExpanded: false,
     isQuizExpanded: false,
@@ -735,7 +736,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                         title: mod.quiz.title,
                         description: mod.quiz.description,
                         passing_score: mod.quiz.passPercentage,
-                        max_attempts: mod.quiz.allowRetakes ? 99 : 1,
+                        max_attempts: Number(mod.quiz.max_attempts) || 1,
                         quiz_questions: mod.quiz.questions.map((q, qIdx) => ({
                           question: q.question,
                           type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
@@ -778,7 +779,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
       setIsLoading(false);
     }
   };
-
+    
   // Show loading state
   if (isLoading || loading) {
     return (
@@ -965,10 +966,14 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                       <Label htmlFor="price">Price (CAD)</Label>
                       <Input
                         id="price"
-                        type="text"
+                        type="number"
+                          step="0.01"
+                          inputMode="decimal"
                         value={course?.price || ''}
-                        onChange={(e) => setCourse({ ...course, price: Number(e.target.value) || 0 })}
-                        placeholder={course?.courseType === 'physical' ? "550" : "99.99"}
+                        onChange={(e) => {
+                          setCourse({ ...course, price: parseFloat(e.target.value) || 0 });
+                        }}
+                        placeholder="e.g. 99.99"
                       />
                     </div>
                     {(course?.courseType === 'online' || course?.courseType === 'hybrid') && (

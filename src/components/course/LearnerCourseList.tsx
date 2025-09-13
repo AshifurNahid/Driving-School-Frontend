@@ -7,6 +7,7 @@ import { Play, BookOpen } from 'lucide-react';
 
 interface Course {
   id: number;
+  user_course?: number; // Optional for learner courses
   title: string;
   instructor: string;
   thumbnail: string;
@@ -53,7 +54,7 @@ const LearnerCourseList = ({ courses }: LearnerCourseListProps) => {
               </div>
               <div className="flex space-x-2">
                 <Button asChild className="flex-1">
-                  <Link to={`/course/${course?.id}/learn`}>
+                  <Link to={`/course/${course?.user_course}/learn`}>
                     <Play className="h-4 w-4 mr-2" />
                     {course?.completed ? "Review" : "Continue"}
                   </Link>

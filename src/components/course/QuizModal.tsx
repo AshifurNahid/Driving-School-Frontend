@@ -13,23 +13,31 @@ export function QuizModal({ open, onClose, quiz, onSave }) {
   const [localQuiz, setLocalQuiz] = useState(quiz || {
     title: "",
     description: "",
-    passing_score: 70,
-    max_attempts: 1,
+    passing_score: "",
+    max_attempts: "",
     questions: [],
   });
 
   const [expandedQuestions, setExpandedQuestions] = useState<number[]>([]);
 
   useEffect(() => {
-    setLocalQuiz(
-      quiz || {
+    if (quiz) {
+      setLocalQuiz({
+        title: quiz.title || "",
+        description: quiz.description || "",
+        passing_score: quiz.passing_score || "",
+        max_attempts: quiz.max_attempts?.toString() || "",
+        questions: quiz.questions || [],
+      });
+    } else {
+      setLocalQuiz({
         title: "",
         description: "",
-        passing_score: 70,
-        max_attempts: 1,
+        passing_score: "",
+        max_attempts: "",
         questions: [],
-      }
-    );
+      });
+    }
     setExpandedQuestions([]);
   }, [quiz, open]);
 
@@ -60,6 +68,7 @@ export function QuizModal({ open, onClose, quiz, onSave }) {
     }));
     setExpandedQuestions((prev) => [...prev, localQuiz.questions.length]);
   };
+console.log(localQuiz.max_attempts);
 
   // Update a question field
   const updateQuestion = (idx, field, value) => {
