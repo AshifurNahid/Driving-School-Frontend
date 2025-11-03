@@ -28,7 +28,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="eduplatform-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="NL Driver's Academy-ui-theme">
       <UserProvider>
         <AppointmentProvider>
           <TooltipProvider>

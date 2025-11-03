@@ -105,8 +105,7 @@ const CanadianDrivingSchool = () => {
       <div className="inline-flex items-center px-6 py-3 rounded-full mb-8 bg-white/15 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/20 transition-all duration-300">
         <Award className="w-5 h-5 text-yellow-400 mr-3 drop-shadow-lg" />
         <span className="font-bold text-white text-base tracking-wide">
-          MTO Approved • 25+ Years Experience • 98% Pass Rate
-        </span>
+        Government Recognized Curriculum • Experienced Instructors • Focused on Safety & Confidence        </span>
       </div>
       
       {/* Enhanced headline with better typography */}
@@ -119,7 +118,7 @@ const CanadianDrivingSchool = () => {
       
       {/* Refined description */}
       <p className="text-lg md:text-xl text-white/95 font-medium mb-12 max-w-4xl mx-auto leading-relaxed drop-shadow-lg">
-        Professional driving instruction across Newfoundland and Labrador. From learner's license (Level I) to full Class 5 license, 
+        Professional driving instruction across St. John’s and  Corner Brook. From learner's license (Level I) to full Class 5 license, 
         we'll get you road-ready with confidence and safety.
       </p>
 
@@ -130,8 +129,8 @@ const CanadianDrivingSchool = () => {
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-2xl font-black text-white">50,000+</div>
-            <div className="text-white/80 font-medium text-sm">Drivers Trained</div>
+            <div className="text-2xl font-black text-white">Personalized Training </div>
+            <div className="text-white/80 font-medium text-sm">For Every Student</div>
           </div>
         </div>
         <div className="flex items-center group">

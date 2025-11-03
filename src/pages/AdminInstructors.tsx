@@ -342,7 +342,7 @@ const AdminInstructors = () => {
                                         <TableRow className="bg-gray-50 dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800">
                                             <TableHead className="font-semibold text-gray-900 dark:text-white">Name</TableHead>
                                             <TableHead className="font-semibold text-gray-900 dark:text-white">Description</TableHead>
-                                            <TableHead className="font-semibold text-gray-900 dark:text-white">Course</TableHead>
+                                            {/* <TableHead className="font-semibold text-gray-900 dark:text-white">Course</TableHead> */}
                                             <TableHead className="font-semibold text-gray-900 dark:text-white text-right">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -370,7 +370,7 @@ const AdminInstructors = () => {
                                                             )}
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell className="py-3 sm:py-4">
+                                                    {/* <TableCell className="py-3 sm:py-4">
                                                         {assignedCourse ? (
                                                             <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800">
                                                                 {assignedCourse.title}
@@ -380,7 +380,7 @@ const AdminInstructors = () => {
                                                                 Not assigned
                                                             </Badge>
                                                         )}
-                                                    </TableCell>
+                                                    </TableCell> */}
                                                     <TableCell className="py-3 sm:py-4 text-right">
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>

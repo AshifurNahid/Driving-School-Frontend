@@ -624,7 +624,7 @@ const AdminDashboard = () => {
                   <CardContent className="space-y-4">
                     <div>
                       <label className="text-sm font-medium text-foreground">Site Name</label>
-                      <Input defaultValue="EduPlatform" className="mt-1" />
+                      <Input defaultValue="NL Driver's Academy" className="mt-1" />
                     </div>
                     <div>
                       <label className="text-sm font-medium text-foreground">Site Description</label>
@@ -632,7 +632,7 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-foreground">Contact Email</label>
-                      <Input defaultValue="contact@eduplatform.com" className="mt-1" />
+                      <Input defaultValue="contact@NL Driver's Academy.com" className="mt-1" />
                     </div>
                   </CardContent>
                 </Card>

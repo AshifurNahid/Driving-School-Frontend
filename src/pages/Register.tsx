@@ -85,8 +85,7 @@ const { userInfo, loading, error } = useAuth();
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            EduPlatform
-          </Link>
+            NL Driving          </Link>
           <p className="text-gray-600 mt-2">Start your learning journey today</p>
         </div>
 

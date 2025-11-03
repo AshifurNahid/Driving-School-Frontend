@@ -43,11 +43,23 @@ export function QuizModal({ open, onClose, quiz, onSave }) {
 
   // Parse options JSON or fallback to default
   const parseOptions = (optionsStr) => {
+    if (!optionsStr) {
+      return { ...defaultOptions };
+    }
     try {
       const parsed = JSON.parse(optionsStr);
       return { ...defaultOptions, ...parsed };
     } catch {
-      return { ...defaultOptions };
+      // Try CSV fallback: "optA,optB,optC,optD"
+      const parts = String(optionsStr)
+        .split(',')
+        .map((s) => s.trim());
+      return {
+        a: parts[0] || '',
+        b: parts[1] || '',
+        c: parts[2] || '',
+        d: parts[3] || '',
+      };
     }
   };
 
@@ -59,10 +71,12 @@ export function QuizModal({ open, onClose, quiz, onSave }) {
         ...q.questions,
         {
           question: "",
-          type: 1, // 1 = Single Choice, 0 = Multiple Choice
+          type: 0, // 0 = MCQ, 1 = True/False, 2 = Fill in the Blank
           options: JSON.stringify(defaultOptions),
           correct_answers: "",
           points: 1,
+          // local-only flag to control MCQ selection mode; not persisted
+          allowMultiple: false,
         },
       ],
     }));
@@ -100,18 +114,27 @@ console.log(localQuiz.max_attempts);
 
   // Handle correct answer selection
   const handleCorrectAnswer = (idx, key, checked, type, prevCorrect) => {
-    if (type === 1) {
-      // Single choice: only one answer
-      updateQuestion(idx, 'correct_answers', key);
-    } else {
-      // Multiple choice: toggle in array
-      let arr = prevCorrect ? prevCorrect.split(',').filter(Boolean) : [];
-      if (checked) {
-        if (!arr.includes(key)) arr.push(key);
+    if (type === 0) {
+      // MCQ: honor allowMultiple flag
+      const questions = [...localQuiz.questions];
+      const isMultiple = questions[idx]?.allowMultiple || false;
+      if (isMultiple) {
+        let arr = prevCorrect ? prevCorrect.split(',').filter(Boolean) : [];
+        if (checked) {
+          if (!arr.includes(key)) arr.push(key);
+        } else {
+          arr = arr.filter((k) => k !== key);
+        }
+        updateQuestion(idx, 'correct_answers', arr.join(','));
       } else {
-        arr = arr.filter((k) => k !== key);
+        updateQuestion(idx, 'correct_answers', key);
       }
-      updateQuestion(idx, 'correct_answers', arr.join(','));
+    } else if (type === 1) {
+      // True/False
+      updateQuestion(idx, 'correct_answers', key);
+    } else if (type === 2) {
+      // Fill in the Blank handled via input field
+      updateQuestion(idx, 'correct_answers', key);
     }
   };
 
@@ -174,7 +197,7 @@ console.log(localQuiz.max_attempts);
                     )}
                     <span className="font-medium">Question {idx + 1}</span>
                     <span className="text-xs text-muted-foreground ml-2">
-                      {q.type === 0 ? "Multiple Choice" : "Single Choice"}
+                      {q.type === 0 ? "Multiple Choice" : q.type === 1 ? "True/False" : "Fill in the Blank"}
                     </span>
                   </div>
                   <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); removeQuestion(idx); }}>
@@ -186,14 +209,43 @@ console.log(localQuiz.max_attempts);
                     <div className="flex gap-2 items-center">
                       <Select
                         value={q.type.toString()}
-                        onValueChange={(value) => updateQuestion(idx, "type", parseInt(value))}
+                        onValueChange={(value) => {
+                          const nextType = parseInt(value);
+                          // Reset fields appropriately when changing type
+                          if (nextType === 0) {
+                            // MCQ
+                            updateQuestion(idx, "type", nextType);
+                            updateQuestion(idx, "options", { ...defaultOptions });
+                            updateQuestion(idx, "correct_answers", "");
+                            const qs = [...localQuiz.questions];
+                            qs[idx].allowMultiple = qs[idx]?.allowMultiple || false;
+                            setLocalQuiz((qq) => ({ ...qq, questions: qs }));
+                          } else if (nextType === 1) {
+                            // True/False
+                            updateQuestion(idx, "type", nextType);
+                            updateQuestion(idx, "options", "");
+                            updateQuestion(idx, "correct_answers", "");
+                            const qs = [...localQuiz.questions];
+                            qs[idx].allowMultiple = false;
+                            setLocalQuiz((qq) => ({ ...qq, questions: qs }));
+                          } else {
+                            // Fill in the Blank
+                            updateQuestion(idx, "type", nextType);
+                            updateQuestion(idx, "options", "");
+                            updateQuestion(idx, "correct_answers", "");
+                            const qs = [...localQuiz.questions];
+                            qs[idx].allowMultiple = false;
+                            setLocalQuiz((qq) => ({ ...qq, questions: qs }));
+                          }
+                        }}
                       >
                         <SelectTrigger className="w-36">
                           <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="0">Multiple Choice</SelectItem>
-                          <SelectItem value="1">Single Choice</SelectItem>
+                          <SelectItem value="1">True / False</SelectItem>
+                          <SelectItem value="2">Fill in the Blank</SelectItem>
                         </SelectContent>
                       </Select>
                       <label htmlFor="points">Points</label>
@@ -210,49 +262,104 @@ console.log(localQuiz.max_attempts);
                       value={q.question}
                       onChange={(e) => updateQuestion(idx, "question", e.target.value)}
                     />
-                    {/* Four options: a, b, c, d */}
-                    <div className="grid grid-cols-2 gap-2">
-                      {['a', 'b', 'c', 'd'].map((key) => (
+                    {/* Options editor based on type */}
+                    {q.type === 0 && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <input
+                            id={`allow-multiple-${idx}`}
+                            type="checkbox"
+                            checked={!!localQuiz.questions[idx]?.allowMultiple}
+                            onChange={(e) => {
+                              const qs = [...localQuiz.questions];
+                              qs[idx].allowMultiple = e.target.checked;
+                              // clear current answers if switching mode
+                              qs[idx].correct_answers = "";
+                              setLocalQuiz((qq) => ({ ...qq, questions: qs }));
+                            }}
+                          />
+                          <label htmlFor={`allow-multiple-${idx}`} className="text-sm">Allow multiple correct answers</label>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {['a', 'b', 'c', 'd'].map((key) => (
+                            <Input
+                              key={key}
+                              placeholder={`Option ${key.toUpperCase()}`}
+                              value={optionsObj[key]}
+                              onChange={e => {
+                                const newOptions = { ...optionsObj, [key]: e.target.value };
+                                updateQuestion(idx, 'options', newOptions);
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    {q.type === 1 && (
+                      <div className="text-sm text-muted-foreground">
+                        Select whether the correct answer is True or False.
+                      </div>
+                    )}
+                    {q.type === 2 && (
+                      <div className="space-y-1">
+                        <div className="text-sm text-muted-foreground">
+                          Enter the correct answer text. For multiple acceptable answers, separate with commas.
+                        </div>
                         <Input
-                          key={key}
-                          placeholder={`Option ${key.toUpperCase()}`}
-                          value={optionsObj[key]}
-                          onChange={e => {
-                            const newOptions = { ...optionsObj, [key]: e.target.value };
-                            updateQuestion(idx, 'options', newOptions);
-                          }}
+                          placeholder="Correct answer(s)"
+                          value={q.correct_answers || ''}
+                          onChange={(e) => updateQuestion(idx, 'correct_answers', e.target.value)}
                         />
-                      ))}
-                    </div>
+                      </div>
+                    )}
                     {/* Correct answer selection */}
                     <div className="mt-2">
                       <span className="text-sm font-medium">Correct Answer(s):</span>
                       <div className="flex gap-4 mt-1">
-                        {q.type === 1 ? (
-                          // Single Choice: radio
-                          ['a', 'b', 'c', 'd'].map((key) => (
+                        {q.type === 0 && (
+                          (localQuiz.questions[idx]?.allowMultiple ? (
+                            ['a', 'b', 'c', 'd'].map((key) => (
+                              <label key={key} className="flex items-center gap-1 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={correctArr.includes(key)}
+                                  onChange={(e) => handleCorrectAnswer(idx, key, e.target.checked, 0, q.correct_answers)}
+                                />
+                                <span>{optionsObj[key] || key.toUpperCase()}</span>
+                              </label>
+                            ))
+                          ) : (
+                            ['a', 'b', 'c', 'd'].map((key) => (
+                              <label key={key} className="flex items-center gap-1 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name={`single-correct-${idx}`}
+                                  checked={q.correct_answers === key}
+                                  onChange={() => handleCorrectAnswer(idx, key, true, 0, q.correct_answers)}
+                                />
+                                <span>{optionsObj[key] || key.toUpperCase()}</span>
+                              </label>
+                            ))
+                          ))
+                        )}
+                        {q.type === 1 && (
+                          [
+                            { key: 'true', label: 'True' },
+                            { key: 'false', label: 'False' },
+                          ].map(({ key, label }) => (
                             <label key={key} className="flex items-center gap-1 cursor-pointer">
                               <input
                                 type="radio"
-                                name={`single-correct-${idx}`}
+                                name={`tf-correct-${idx}`}
                                 checked={q.correct_answers === key}
                                 onChange={() => handleCorrectAnswer(idx, key, true, 1, q.correct_answers)}
                               />
-                              <span>{optionsObj[key] || key.toUpperCase()}</span>
+                              <span>{label}</span>
                             </label>
                           ))
-                        ) : (
-                          // Multiple Choice: checkbox
-                          ['a', 'b', 'c', 'd'].map((key) => (
-                            <label key={key} className="flex items-center gap-1 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={correctArr.includes(key)}
-                                onChange={e => handleCorrectAnswer(idx, key, e.target.checked, 0, q.correct_answers)}
-                              />
-                              <span>{optionsObj[key] || key.toUpperCase()}</span>
-                            </label>
-                          ))
+                        )}
+                        {q.type === 2 && (
+                          <span className="text-xs text-muted-foreground">Set above in the answer field</span>
                         )}
                       </div>
                     </div>
@@ -270,16 +377,23 @@ console.log(localQuiz.max_attempts);
             onClick={() => {
               // Save: ensure options/correct_answers are in correct format
               const questions = localQuiz.questions.map(q => {
-                // Ensure options is a JSON string with a,b,c,d
-                const optionsObj = parseOptions(q.options);
-                const optionsStr = JSON.stringify(optionsObj);
-                // correct_answers: single = 'a', multiple = 'a,b,c'
-                const correct = q.correct_answers || '';
-                return {
-                  ...q,
-                  options: optionsStr,
-                  correct_answers: correct,
+                const base: any = {
+                  question: q.question,
+                  type: q.type,
+                  points: q.points,
                 };
+                if (q.type === 0) {
+                  const optionsObj = parseOptions(q.options);
+                  base.options = ['a','b','c','d'].map((k) => optionsObj[k] || '').join(',');
+                  base.correct_answers = q.correct_answers || '';
+                } else if (q.type === 1) {
+                  base.options = '';
+                  base.correct_answers = q.correct_answers === 'true' ? 'true' : q.correct_answers === 'false' ? 'false' : '';
+                } else if (q.type === 2) {
+                  base.options = '';
+                  base.correct_answers = q.correct_answers || '';
+                }
+                return base;
               });
               onSave({
                 title: localQuiz.title,

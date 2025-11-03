@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h4 className="text-xl font-bold mb-4">EduPlatform</h4>
+            <h4 className="text-xl font-bold mb-4">NL Driver's Academy</h4>
             <p className="text-gray-400 mb-4">
               Empowering learners worldwide with quality education and expert instruction.
             </p>
@@ -51,7 +51,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 EduPlatform. All rights reserved.</p>
+          <p>&copy; 2025 NL Driver's Academy. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -101,8 +101,6 @@ const steps = [
   { key: 'type', label: 'Course Type' },
   { key: 'info', label: 'Course Info' },
   { key: 'content', label: 'Content' },
-  { key: 'materials', label: 'Course Materials' },
-
   { key: 'preview', label: 'Preview & Publish' },
 ];
 
@@ -407,8 +405,6 @@ console.log(course);
     (course?.courseType === 'online' ? course?.duration > 0 : true) &&
     (course?.courseType !== 'online' ? course?.region_id && course?.offline_training_hours : true);
 
-  const isMaterialsStepValid = true; // Materials are optional, so always valid
-
   const isContentStepValid =
     course?.courseType === 'online'
       ? (course?.modules.length > 0 &&
@@ -420,7 +416,6 @@ console.log(course);
     const stepKey = computedSteps[currentStep]?.key;
     if (stepKey === 'type') return isTypeStepValid;
     if (stepKey === 'info') return isInfoStepValid;
-    if (stepKey === 'materials') return isMaterialsStepValid;
     if (stepKey === 'content') return isContentStepValid;
     return true;
   };
@@ -453,24 +448,6 @@ console.log(course);
       if (missingFields.length > 0) {
         alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
         return;
-      }
-    } else if (stepKey === 'materials') {
-      // Materials are optional, but if added, they must have both title and file path
-      if (course?.materials && course.materials.length > 0) {
-        const missingFields = [];
-        course.materials.forEach((material, index) => {
-          if (!material.name?.trim()) {
-            missingFields.push(`Material ${index + 1} Title`);
-          }
-          if (!material.url?.trim()) {
-            missingFields.push(`Material ${index + 1} File Path`);
-          }
-        });
-        
-        if (missingFields.length > 0) {
-          alert(`Please fill in the following required fields:\n\n${missingFields.join('\n')}`);
-          return;
-        }
       }
     } else if (stepKey === 'content') {
       if (!course?.modules || course?.modules.length === 0) {
@@ -808,8 +785,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                EduPlatform
-              </Link>
+                NL Driving              </Link>
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
@@ -1116,143 +1092,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
               </Card>
             )}
 
-            {/* Step 3: Course Materials */}
-            {computedSteps[currentStep]?.key === 'materials' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BookOpen className="h-5 w-5 mr-2" />
-                    Course Materials
-                  </CardTitle>
-                  <CardDescription>
-                    Add supplementary materials like PDFs, documents, or other resources for your students.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-medium">Course Materials</h4>
-                      <Button
-                        onClick={() => {
-                          setCourse(prev => ({
-                            ...prev,
-                            materials: [...(prev.materials || []), { name: '', url: '' }]
-                          }));
-                        }}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Material
-                      </Button>
-                    </div>
-                    
-                    {course?.materials && course.materials.length > 0 ? (
-                      <div className="space-y-3">
-                        {course.materials.map((material, index) => (
-                          <Card key={index} className="p-4">
-                            <div className="flex items-start space-x-3">
-                              <div className="flex-1 space-y-3">
-                                <div>
-                                  <Label htmlFor={`material-title-${index}`}>Material Title</Label>
-                                  <Input
-                                    id={`material-title-${index}`}
-                                    value={material.name}
-                                    onChange={(e) => {
-                                      const newMaterials = [...course.materials];
-                                      newMaterials[index].name = e.target.value;
-                                      setCourse({ ...course, materials: newMaterials });
-                                    }}
-                                    placeholder="e.g., Course Handbook, Study Guide"
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor={`material-file-${index}`}>File Path</Label>
-                                  <Input
-                                    id={`material-file-${index}`}
-                                    type="text"
-                                    value={material.url}
-                                    onChange={(e) => {
-                                      const newMaterials = [...course.materials];
-                                      newMaterials[index].url = e.target.value;
-                                      setCourse({ ...course, materials: newMaterials });
-                                    }}
-                                    placeholder="e.g., /uploads/materials/handbook.pdf"
-                                  />
-                                  {/* Commented out base64 conversion logic
-                                  <Input
-                                    id={`material-file-${index}`}
-                                    type="file"
-                                    accept=".pdf,.doc,.docx,.txt,.zip,.rar"
-                                    onChange={async (e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) {
-                                        // Validate file size (max 10MB)
-                                        if (file.size > 10 * 1024 * 1024) {
-                                          alert('File size must be less than 10MB');
-                                          return;
-                                        }
-                                        
-                                        // Convert file to base64 for upload
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                          const result = reader.result as string;
-                                          if (result && result.startsWith('data:')) {
-                                            const newMaterials = [...course.materials];
-                                            newMaterials[index].url = result; // Store base64 data
-                                            setCourse({ ...course, materials: newMaterials });
-                                          }
-                                        };
-                                        reader.readAsDataURL(file);
-                                      }
-                                    }}
-                                  />
-                                  */}
-                                  {material.url && (
-                                    <div className="mt-2 text-xs text-muted-foreground">
-                                      File path: {material.url}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  const newMaterials = course.materials.filter((_, i) => i !== index);
-                                  setCourse({ ...course, materials: newMaterials });
-                                }}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
-                        <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <h3 className="text-lg font-medium mb-2">No materials added yet</h3>
-                        <p className="mb-4">Add supplementary materials to enhance your course.</p>
-                        <Button
-                          onClick={() => {
-                            setCourse(prev => ({
-                              ...prev,
-                              materials: [{ name: '', url: '' }]
-                            }));
-                          }}
-                          variant="outline"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add First Material
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Course Materials section is commented out for all course types */}
 
             {/* Step 4: Content */}
             {computedSteps[currentStep]?.key === 'content'  && (
@@ -1735,27 +1575,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                     )}
                   </div>
                   <Separator />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-3">Materials</h4>
-                    <ul>
-                      {course?.materials.map((mat, idx) => (
-                        <li key={idx} className="text-xs text-muted-foreground flex items-center">
-                          <span className="mr-2">•</span>
-                          <span>{mat.name || `Material ${idx + 1}`}</span>
-                          {mat.url && (
-                            <span className="ml-2 text-xs opacity-75">
-                              ({mat.url})
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                    {course?.materials.length === 0 && (
-                      <div className="text-muted-foreground text-sm">
-                        No materials added yet.
-                      </div>
-                    )}
-                  </div>
+                  {/* Materials preview is commented out */}
                 </CardContent>
               </Card>
             </div>
