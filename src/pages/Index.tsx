@@ -138,8 +138,8 @@ const CanadianDrivingSchool = () => {
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-2xl font-black text-white">100%</div>
-            <div className="text-white/80 font-medium text-sm">MTO Certified</div>
+            <div className="text-2xl font-black text-white">Fully Licensed & Certified Instructors</div>
+            {/* <div className="text-white/80 font-medium text-sm">MTO Certified</div> */}
           </div>
         </div>
         <div className="flex items-center group">
@@ -147,8 +147,8 @@ const CanadianDrivingSchool = () => {
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-2xl font-black text-white">24/7</div>
-            <div className="text-white/80 font-medium text-sm">Flexible Booking</div>
+            <div className="text-2xl font-black text-white">Easy Online Scheduling</div>
+            {/* <div className="text-white/80 font-medium text-sm">Flexible Booking</div> */}
           </div>
         </div>
       </div>
@@ -295,108 +295,7 @@ const CanadianDrivingSchool = () => {
     </div>
 
     {/* Statistics grid */}
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-      
-      {/* Passing Students */}
-      <div className="group relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 dark:from-blue-600/30 dark:to-cyan-600/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100" />
-        <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl hover:shadow-blue-500/25 dark:hover:shadow-blue-400/25 transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/20 dark:border-gray-700/50">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3L1 9L12 15L21 10.09V17H23V9L12 3M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-              87,654
-            </div>
-            <div className="text-blue-600 dark:text-blue-400 font-bold text-sm tracking-wide">
-              Passing Students
-            </div>
-            <div className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-              Success stories
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Present Students */}
-      <div className="group relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 dark:from-green-600/30 dark:to-emerald-600/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100" />
-        <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl hover:shadow-green-500/25 dark:hover:shadow-green-400/25 transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/20 dark:border-gray-700/50">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M16 4C16.88 4 17.67 4.25 18.31 4.69C17.5 5.26 17 6.09 17 7C17 8.66 18.34 10 20 10C20.34 10 20.67 9.95 21 9.84V10C21 10.55 20.55 11 20 11H16V13C16 13.55 15.55 14 15 14H9C8.45 14 8 13.55 8 13V11H4C3.45 11 3 10.55 3 10V4C3 3.45 3.45 3 4 3H15C15.55 3 16 3.45 16 4M20 5.5C19.45 5.5 19 5.95 19 6.5S19.45 7.5 20 7.5 21 7.05 21 6.5 20.55 5.5 20 5.5M5 16H19V18H5V16M5 20H19V22H5V20Z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-2 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-300">
-              1,543
-            </div>
-            <div className="text-green-600 dark:text-green-400 font-bold text-sm tracking-wide">
-              Active Students
-            </div>
-            <div className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-              Currently learning
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* All Instructors */}
-      <div className="group relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-600/30 dark:to-pink-600/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100" />
-        <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl hover:shadow-purple-500/25 dark:hover:shadow-purple-400/25 transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/20 dark:border-gray-700/50">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2A3 3 0 0 1 15 5A3 3 0 0 1 12 8A3 3 0 0 1 9 5A3 3 0 0 1 12 2M21 9V7H15L13.5 7.5C13.1 7.4 12.6 7.5 12 7.5S10.9 7.4 10.5 7.5L9 7H3V9H9L10.5 9.5C10.9 9.6 11.4 9.5 12 9.5S13.1 9.6 13.5 9.5L15 9H21M21 10H15L13.5 10.5C13.1 10.4 12.6 10.5 12 10.5S10.9 10.4 10.5 10.5L9 10H3V12H9L10.5 12.5C10.9 12.6 11.4 12.5 12 12.5S13.1 12.6 13.5 12.5L15 12H21V10Z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
-              45+
-            </div>
-            <div className="text-purple-600 dark:text-purple-400 font-bold text-sm tracking-wide">
-              Expert Instructors
-            </div>
-            <div className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-              Certified professionals
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Our Branches */}
-      <div className="group relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 dark:from-orange-600/30 dark:to-red-600/30 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100" />
-        <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl hover:shadow-orange-500/25 dark:hover:shadow-orange-400/25 transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/20 dark:border-gray-700/50">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C15.31 2 18 4.66 18 7.95C18 12.41 12 19 12 19S6 12.41 6 7.95C6 4.66 8.69 2 12 2M12 6C10.9 6 10 6.9 10 8S10.9 10 12 10 14 9.1 14 8 13.1 6 12 6M20 19C20 21.21 16.42 23 12 23S4 21.21 4 19C4 17.71 5.22 16.56 7.11 15.94L7.75 16.9C6.67 17.19 6 17.81 6 18.5C6 19.88 8.69 21 12 21S18 19.88 18 18.5C18 17.81 17.33 17.19 16.25 16.9L16.89 15.94C18.78 16.56 20 17.71 20 19Z" />
-              </svg>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300">
-              25+
-            </div>
-            <div className="text-orange-600 dark:text-orange-400 font-bold text-sm tracking-wide">
-              Locations
-            </div>
-            <div className="text-gray-500 dark:text-gray-400 text-xs mt-1">
-              Across provinces
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+ 
 
     {/* Bottom CTA */}
     <div className="text-center mt-10">
@@ -413,7 +312,7 @@ const CanadianDrivingSchool = () => {
 </section>
 
       {/* Featured Courses Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background dark:bg-[#181830] transition-colors" id="courses">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#f2f7fe] dark:bg-[#181830] transition-colors" id="courses">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 mb-4 dark:bg-blue-900/30 dark:text-blue-200">
