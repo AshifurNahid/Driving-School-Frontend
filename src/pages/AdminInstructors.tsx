@@ -1,33 +1,32 @@
-import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, Search, Users, BookOpen, FileText, MoreVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Users, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import api from '@/utils/axios';
-import { RootState } from '@/redux/store';
 
 const instructorSchema = z.object({
     instructor_name: z.string().min(1, 'Name is required'),
     description: z.string().optional(),
-    course_id: z.string().optional()
+    email: z.preprocess(
+        (val) => val === '' ? undefined : val,
+        z.string().email('Invalid email address').optional()
+    ),
+    cell_no: z.string().optional()
 });
 
 type InstructorFormData = z.infer<typeof instructorSchema>;
 
 const AdminInstructors = () => {
-    const courses = useSelector((state: RootState) => state.adminCourseList.courses);
     const [instructors, setInstructors] = useState<any[]>([]);
     const [filteredInstructors, setFilteredInstructors] = useState<any[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,7 +41,8 @@ const AdminInstructors = () => {
         defaultValues: {
             instructor_name: '',
             description: '',
-            course_id: 'unassigned'
+            email: '',
+            cell_no: ''
         }
     });
 
@@ -67,10 +67,11 @@ const AdminInstructors = () => {
         const filtered = instructors.filter(instructor =>
             instructor.instructor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             instructor.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            courses.find(c => c.id === instructor.course_id)?.title.toLowerCase().includes(searchTerm.toLowerCase())
+            instructor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            instructor.cell_no?.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredInstructors(filtered);
-    }, [searchTerm, instructors, courses]);
+    }, [searchTerm, instructors]);
 
     const createInstructor = async (instructor: InstructorFormData) => {
         const { data } = await api.post('/instructors', instructor);
@@ -90,16 +91,10 @@ const AdminInstructors = () => {
 
     const onSubmit = async (data: InstructorFormData) => {
         try {
-            // Convert "unassigned" back to empty string or undefined for API
-            const submitData = {
-                ...data,
-                course_id: data.course_id === "unassigned" ? undefined : data.course_id
-            };
-            
             if (editingInstructor) {
-                await updateInstructor(editingInstructor.id, submitData);
+                await updateInstructor(editingInstructor.id, data);
             } else {
-                await createInstructor(submitData);
+                await createInstructor(data);
             }
             handleCloseDialog();
         } catch (error) {
@@ -112,7 +107,8 @@ const AdminInstructors = () => {
         form.reset({
             instructor_name: instructor.instructor_name,
             description: instructor.description || '',
-            course_id: instructor.course_id ? instructor.course_id.toString() : 'unassigned'
+            email: instructor.email || '',
+            cell_no: instructor.cell_no || ''
         });
         setIsDialogOpen(true);
     };
@@ -213,10 +209,7 @@ const AdminInstructors = () => {
 
     const getInstructorStats = () => {
         const totalInstructors = instructors.length;
-        const assignedInstructors = instructors.filter(i => i.course_id).length;
-        const unassignedInstructors = instructors.filter(i => !i.course_id).length;
-        
-        return { totalInstructors, assignedInstructors, unassignedInstructors };
+        return { totalInstructors };
     };
 
     const stats = getInstructorStats();
@@ -231,7 +224,7 @@ const AdminInstructors = () => {
                             Instructor Management
                         </h1>
                         <p className="text-gray-600 dark:text-gray-300">
-                            Manage instructors and their course assignments
+                            Manage instructors and their contact information
                         </p>
                     </div>
                     <Button onClick={openAddDialog} className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2">
@@ -257,38 +250,6 @@ const AdminInstructors = () => {
                             </div>
                         </CardContent>
                     </Card>
-
-                    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-                        <CardContent className="p-4 sm:p-6">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                                        <BookOpen className="w-5 h-5 text-green-600 dark:text-green-300" />
-                                    </div>
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Assigned</p>
-                                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.assignedInstructors}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-                        <CardContent className="p-4 sm:p-6">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                                        <FileText className="w-5 h-5 text-orange-600 dark:text-orange-300" />
-                                    </div>
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Unassigned</p>
-                                    <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.unassignedInstructors}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
 
                 {/* Main Table Card */}
@@ -300,7 +261,7 @@ const AdminInstructors = () => {
                                     All Instructors
                                 </CardTitle>
                                 <CardDescription className="text-gray-600 dark:text-gray-300 mt-1">
-                                    Manage instructor profiles and course assignments
+                                    Manage instructor profiles and contact information
                                 </CardDescription>
                             </div>
                             <div className="relative w-full sm:w-80">
@@ -341,14 +302,14 @@ const AdminInstructors = () => {
                                     <TableHeader>
                                         <TableRow className="bg-gray-50 dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800">
                                             <TableHead className="font-semibold text-gray-900 dark:text-white">Name</TableHead>
+                                            <TableHead className="font-semibold text-gray-900 dark:text-white">Email</TableHead>
+                                            <TableHead className="font-semibold text-gray-900 dark:text-white">Cell No</TableHead>
                                             <TableHead className="font-semibold text-gray-900 dark:text-white">Description</TableHead>
-                                            {/* <TableHead className="font-semibold text-gray-900 dark:text-white">Course</TableHead> */}
                                             <TableHead className="font-semibold text-gray-900 dark:text-white text-right">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredInstructors.map((instructor: any, index) => {
-                                            const assignedCourse = courses.find(c => c.id === instructor.course_id);
                                             return (
                                                 <TableRow key={instructor.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                                                     <TableCell className="py-3 sm:py-4">
@@ -362,6 +323,16 @@ const AdminInstructors = () => {
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="py-3 sm:py-4">
+                                                        <div className="text-sm text-gray-900 dark:text-white">
+                                                            {instructor.email || <span className="text-gray-400 dark:text-gray-500 italic">No email</span>}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-3 sm:py-4">
+                                                        <div className="text-sm text-gray-900 dark:text-white">
+                                                            {instructor.cell_no || <span className="text-gray-400 dark:text-gray-500 italic">No cell number</span>}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-3 sm:py-4">
                                                         <div className="text-sm text-gray-900 dark:text-white max-w-xs">
                                                             {instructor.description ? (
                                                                 <span className="line-clamp-2">{instructor.description}</span>
@@ -370,17 +341,6 @@ const AdminInstructors = () => {
                                                             )}
                                                         </div>
                                                     </TableCell>
-                                                    {/* <TableCell className="py-3 sm:py-4">
-                                                        {assignedCourse ? (
-                                                            <Badge className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800">
-                                                                {assignedCourse.title}
-                                                            </Badge>
-                                                        ) : (
-                                                            <Badge variant="outline" className="text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-700">
-                                                                Not assigned
-                                                            </Badge>
-                                                        )}
-                                                    </TableCell> */}
                                                     <TableCell className="py-3 sm:py-4 text-right">
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
@@ -455,6 +415,48 @@ const AdminInstructors = () => {
 
                                 <FormField
                                     control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                                Email
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    type="email"
+                                                    placeholder="instructor@example.com" 
+                                                    className="border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-900 dark:text-white" 
+                                                    {...field} 
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="cell_no"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                                Cell Phone Number
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input 
+                                                    type="tel"
+                                                    placeholder="(709) 123-4567" 
+                                                    className="border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-900 dark:text-white" 
+                                                    {...field} 
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
                                     name="description"
                                     render={({ field }) => (
                                         <FormItem>
@@ -469,34 +471,6 @@ const AdminInstructors = () => {
                                                     {...field} 
                                                 />
                                             </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="course_id"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                                Course Assignment
-                                            </FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-900 dark:text-white">
-                                                        <SelectValue placeholder="Select a course" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent className="dark:bg-gray-900 dark:text-white">
-                                                    <SelectItem value="unassigned">No course assigned</SelectItem>
-                                                    {courses.map(course => (
-                                                        <SelectItem key={course.id} value={course.id.toString()}>
-                                                            {course.title}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}

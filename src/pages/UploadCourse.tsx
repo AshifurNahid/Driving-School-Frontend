@@ -25,8 +25,9 @@ type CourseType = 'online' | 'physical' | 'hybrid';
 interface Subsection {
   title: string;
   description?: string;
-  duration?: number;
+  duration?: number | string;
   videoUrl: string;
+  pdfUrl?: string;
 }
 
 interface Question {
@@ -1239,6 +1240,33 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                                         placeholder="Video URL (YouTube, Vimeo, or direct link)"
                                         className="bg-background"
                                       />
+                                      {/* PDF upload input */}
+                                      <div>
+                                        <label className="block text-sm font-medium mb-1" htmlFor={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}>Lesson PDF (optional)</label>
+                                        <Input
+                                          id={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}
+                                          type="file"
+                                          accept="application/pdf"
+                                          onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              const reader = new FileReader();
+                                              reader.onloadend = () => {
+                                                const base64 = reader.result as string;
+                                                updateSubsection(moduleIndex, subsectionIndex, 'pdfUrl', base64);
+                                              };
+                                              reader.readAsDataURL(file);
+                                            } else {
+                                              updateSubsection(moduleIndex, subsectionIndex, 'pdfUrl', '');
+                                            }
+                                          }}
+                                          className="bg-background"
+                                        />
+                                        {/* Show selected file name if a file is chosen */}
+                                        {subsection.pdfUrl && (
+                                          <div className="text-xs text-muted-foreground mt-1">PDF selected</div>
+                                        )}
+                                      </div>
                                     </div>
                                   </CardContent>
                                 </Card>

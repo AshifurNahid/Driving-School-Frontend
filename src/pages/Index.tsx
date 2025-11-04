@@ -129,8 +129,7 @@ const CanadianDrivingSchool = () => {
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-2xl font-black text-white">Personalized Training </div>
-            <div className="text-white/80 font-medium text-sm">For Every Student</div>
+            <div className="text-2xl font-black text-white">Personalized Training for Every Student</div>
           </div>
         </div>
         <div className="flex items-center group">
@@ -139,7 +138,6 @@ const CanadianDrivingSchool = () => {
           </div>
           <div className="text-left">
             <div className="text-2xl font-black text-white">Fully Licensed & Certified Instructors</div>
-            {/* <div className="text-white/80 font-medium text-sm">MTO Certified</div> */}
           </div>
         </div>
         <div className="flex items-center group">
@@ -148,7 +146,6 @@ const CanadianDrivingSchool = () => {
           </div>
           <div className="text-left">
             <div className="text-2xl font-black text-white">Easy Online Scheduling</div>
-            {/* <div className="text-white/80 font-medium text-sm">Flexible Booking</div> */}
           </div>
         </div>
       </div>
@@ -292,6 +289,54 @@ const CanadianDrivingSchool = () => {
       <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
         Join the ranks of successful drivers who chose excellence
       </p>
+    </div>
+
+    {/* Features Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div className="text-3xl">🎓</div>
+        <div>
+          <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+            Student-Centered Learning
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Personalized lessons for every skill level
+          </p>
+        </div>
+      </div>
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div className="text-3xl">🚗</div>
+        <div>
+          <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+            Certified Instructors
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Experienced professionals focused on safety
+          </p>
+        </div>
+      </div>
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div className="text-3xl">📅</div>
+        <div>
+          <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+            Flexible Scheduling
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Easy booking for weekdays and weekends
+          </p>
+        </div>
+      </div>
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div className="text-3xl">📍</div>
+        <div>
+          <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
+            Serving Newfoundland & Labrador
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Proudly teaching local drivers
+          </p>
+        </div>
+      </div>
     </div>
 
     {/* Statistics grid */}
