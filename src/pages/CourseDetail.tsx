@@ -186,7 +186,11 @@ const CourseDetail = () => {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-xl font-semibold mb-4">About This Course</h3>
-                    <p className="text-muted-foreground leading-relaxed">{course?.content}</p>
+                    {/* <p className="text-muted-foreground leading-relaxed">{course?.content}</p> */}
+                    <p
+  className="text-muted-foreground leading-relaxed"
+  dangerouslySetInnerHTML={{ __html: course?.content }}
+/>
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-4">Prerequisites</h3>
