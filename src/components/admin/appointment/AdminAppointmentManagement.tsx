@@ -475,6 +475,7 @@ const AdminAppointmentManagement = () => {
             onCancel={handleFormCancel}
             loading={createLoading || updateLoading}
             editingAppointment={editingAppointment}
+            selectedDate={selectedDate}
           />
         </DialogContent>
       </Dialog>

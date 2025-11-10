@@ -181,6 +181,7 @@ const AppointmentForm = ({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
+                            type="button"
                             variant="outline"
                             className={cn(
                               "w-full h-11 justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700",
@@ -196,7 +197,12 @@ const AppointmentForm = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" align="start">
+                      <PopoverContent 
+                        className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-[60]" 
+                        align="start"
+                        side="bottom"
+                        sideOffset={4}
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value}
