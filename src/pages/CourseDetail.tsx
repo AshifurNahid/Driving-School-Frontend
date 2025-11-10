@@ -15,7 +15,7 @@ import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/re
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
-
+import "react-quill/dist/quill.snow.css";
 const CourseDetail = () => {
   const { userInfo } = useAuth();
   const { id } = useParams();
@@ -185,9 +185,15 @@ const CourseDetail = () => {
               <TabsContent value="overview" className="p-6">
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold mb-4">About This Course</h3>
-                    <p className="text-muted-foreground leading-relaxed">{course?.content}</p>
-                  </div>
+          <div>
+  <h3 className="text-xl font-semibold mb-4">About This Course</h3>
+  <div
+  className="ql-editor text-muted-foreground leading-relaxed [&>ol]:list-decimal [&>ol]:pl-5 [&>ul]:list-disc [&>ul]:pl-5 space-y-2"
+  dangerouslySetInnerHTML={{ __html: course?.content }}
+/>
+
+</div>
+      </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-4">Prerequisites</h3>
                     <p className="text-muted-foreground leading-relaxed">{course?.prerequisites}</p>

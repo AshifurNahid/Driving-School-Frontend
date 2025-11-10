@@ -19,7 +19,8 @@ import { MaterialModal } from '@/components/course/MaterialModal';
 import { createAdminCourse, getAdminCourseDetails, updateAdminCourse, getAdminRegionList } from '@/redux/actions/adminAction';
 import { toast } from '@/components/ui/use-toast';
 import { RootState, AppDispatch } from '@/redux/store';
-
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 type CourseType = 'online' | 'physical' | 'hybrid';
 
 interface Subsection {
@@ -369,6 +370,16 @@ console.log(course);
     }
   }, [initialCourse]);
 
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ align: [] }], // 👈 enables alignment (left, center, right, justify)
+      ['link', 'image', 'clean'],
+    ],
+  };
+  
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [quizModal, setQuizModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
@@ -913,7 +924,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                       rows={4}
                     />
                   </div>
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="content">Course Content Summary</Label>
                     <Textarea
                       id="content"
@@ -922,7 +933,28 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                       placeholder="Brief summary of the course content"
                       rows={2}
                     />
-                  </div>
+                  </div> */}
+
+                  <div className="space-y-2">
+      <Label htmlFor="content">Course Content Summary</Label>
+
+      <ReactQuill
+        id="content"
+        theme="snow"
+        value={course?.content || ""}
+        onChange={(value) => setCourse({ ...course, content: value })}
+        placeholder="Brief summary of the course content"
+        className="rounded-lg border bg-white"
+        modules={modules}
+        formats={[
+          'header',
+          'bold', 'italic', 'underline', 'strike',
+          'list', 'bullet',
+          'align', // 👈 allow alignment
+          'link', 'image',
+        ]}
+      />
+    </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
