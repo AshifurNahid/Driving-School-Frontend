@@ -9,22 +9,12 @@ import {
 
 } from '../constants/appointmentConstants';
 
-const API_BASE_URL = 'http://localhost:5241';
-
 // List all instructors
 export const listInstructors = () => async (dispatch: any, getState: any) => {
   try {
     dispatch({ type: INSTRUCTORS_REQUEST });
 
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        // Add authorization header if needed
-        // 'Authorization': `Bearer ${userInfo.token}`,
-      },
-    };
-
-    const { data } = await api.get(`${API_BASE_URL}/instructors`, config);
+    const { data } = await api.get('/instructors');
 
     dispatch({
       type: INSTRUCTORS_SUCCESS,
