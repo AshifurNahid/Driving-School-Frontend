@@ -370,6 +370,16 @@ console.log(course);
     }
   }, [initialCourse]);
 
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ align: [] }], // 👈 enables alignment (left, center, right, justify)
+      ['link', 'image', 'clean'],
+    ],
+  };
+  
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [quizModal, setQuizModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
@@ -935,6 +945,14 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         onChange={(value) => setCourse({ ...course, content: value })}
         placeholder="Brief summary of the course content"
         className="rounded-lg border bg-white"
+        modules={modules}
+        formats={[
+          'header',
+          'bold', 'italic', 'underline', 'strike',
+          'list', 'bullet',
+          'align', // 👈 allow alignment
+          'link', 'image',
+        ]}
       />
     </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -11,6 +11,7 @@ import { refreshTokenOnStart } from "@/utils/auth";
 import { Provider } from "react-redux";
 import { store } from "./redux/store.ts";
 import { logout } from "@/redux/actions/authAction";
+import "react-quill/dist/quill.snow.css";
 
 async function start() {
   const ok = await refreshTokenOnStart();
