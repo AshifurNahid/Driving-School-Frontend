@@ -1,4 +1,4 @@
-// components/ui/InstructorDropdown.jsx
+// components/ui/InstructorDropdown.tsx
 
 import React from 'react';
 import { User, ChevronDown, Loader2 } from 'lucide-react';
@@ -11,7 +11,20 @@ import {
 } from '@/components/ui/select';
 import { FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
-const InstructorDropdown = ({ 
+interface InstructorDropdownProps {
+  instructors?: Array<{ id: number; instructor_name: string; description?: string }>;
+  loading?: boolean;
+  error?: string | null;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+  label?: string;
+  className?: string;
+  disabled?: boolean;
+}
+
+const InstructorDropdown: React.FC<InstructorDropdownProps> = ({ 
   instructors = [], 
   loading = false, 
   error = null, 
@@ -20,7 +33,8 @@ const InstructorDropdown = ({
   placeholder = "Select an instructor",
   required = true,
   label = "Instructor",
-  className = ""
+  className = "",
+  disabled = false
 }) => {
   return (
     <FormItem className={className}>
@@ -30,7 +44,7 @@ const InstructorDropdown = ({
         {required && <span className="text-red-500">*</span>}
       </FormLabel>
       <FormControl>
-        <Select value={value} onValueChange={onChange} disabled={loading}>
+        <Select value={value} onValueChange={onChange} disabled={loading || disabled}>
           <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20">
             <SelectValue placeholder={
               loading 

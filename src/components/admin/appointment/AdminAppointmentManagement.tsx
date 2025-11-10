@@ -452,12 +452,12 @@ const AdminAppointmentManagement = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <DialogTitle>
               {editingAppointment ? 'Edit Appointment Slot' : 'Create New Appointment Slot'}
             </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
+            <DialogDescription>
               {editingAppointment 
                 ? 'Update the appointment slot details below'
                 : 'Fill in the details to create a new appointment slot'
