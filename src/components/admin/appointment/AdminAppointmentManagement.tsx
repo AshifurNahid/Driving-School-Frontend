@@ -17,7 +17,6 @@ import {
   updateAppointmentSlot,
   deleteAppointmentSlot
 } from '@/redux/actions/appointmentAction';
-import { getCourses } from '@/redux/actions/courseAction';
 import { listInstructors } from '@/redux/actions/instructorActions';
 import { 
   APPOINTMENT_SLOT_CREATE_RESET,
@@ -66,7 +65,6 @@ const AdminAppointmentManagement = () => {
 
   // Fetch data on component mount
   useEffect(() => {
-    dispatch(getCourses());
     dispatch(listInstructors());
   }, [dispatch]);
 
@@ -148,7 +146,6 @@ const AdminAppointmentManagement = () => {
   const handleFormSubmit = (data: any) => {
     const appointmentData = {
       instructorId: data.instructorId,
-      courseId: data.courseId,
       date: data.date,
       startTime: data.startTime,
       endTime: data.endTime,
@@ -233,11 +230,7 @@ const AdminAppointmentManagement = () => {
     return instructor ? instructor.instructor_name : 'Unknown Instructor';
   };
 
-  // Get course name by ID
-  const getCourseName = (courseId: number) => {
-    const course = courses.find(c => c.id === courseId);
-    return course ? course.title : 'Unknown Course';
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
@@ -408,7 +401,6 @@ const AdminAppointmentManagement = () => {
                               </div>
                               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                                 <Calendar className="w-4 h-4" />
-                                <span>Course: {slot.courseId ? getCourseName(slot.courseId) : 'Not specified'}</span>
                               </div>
                               {slot.location && (
                                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 md:col-span-2">
@@ -469,8 +461,6 @@ const AdminAppointmentManagement = () => {
             instructors={instructors}
             instructorsLoading={instructorsLoading}
             instructorsError={instructorsError}
-            courses={courses}
-            coursesLoading={coursesLoading}
             onSubmit={handleFormSubmit}
             onCancel={handleFormCancel}
             loading={createLoading || updateLoading}

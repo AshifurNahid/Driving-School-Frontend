@@ -18,8 +18,6 @@ import InstructorDropdown from './InstructorDropdown';
 
 // Validation schema
 const appointmentSchema = z.object({
-  instructorId: z.string().min(1, 'Instructor is required'),
-  courseId: z.string().min(1, 'Course is required'),
   date: z.date({ required_error: 'Date is required' }),
   startTime: z.string().min(1, 'Start time is required'),
   endTime: z.string().min(1, 'End time is required'),
@@ -55,8 +53,6 @@ const AppointmentForm = ({
   instructors = [],
   instructorsLoading = false,
   instructorsError = null,
-  courses = [],
-  coursesLoading = false,
   onSubmit,
   onCancel,
   loading = false,
@@ -71,7 +67,6 @@ const AppointmentForm = ({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       instructorId: editingAppointment?.instructorId?.toString() || '',
-      courseId: editingAppointment?.courseId?.toString() || '',
       date: editingAppointment?.date ? new Date(editingAppointment.date) : selectedDate || undefined,
       startTime: editingAppointment?.startTime || '',
       endTime: editingAppointment?.endTime || '',
@@ -83,7 +78,6 @@ const AppointmentForm = ({
     const formattedData = {
       ...data,
       instructorId: parseInt(data.instructorId),
-      courseId: parseInt(data.courseId),
       date: format(data.date, 'yyyy-MM-dd'),
     };
     onSubmit(formattedData);
@@ -115,53 +109,14 @@ const AppointmentForm = ({
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="Select an instructor"
-                    required={true}
+                    required={false}
                     label="Instructor"
                   />
                 )}
               />
 
               {/* Course Selection */}
-              <FormField
-                control={form.control}
-                name="courseId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4" />
-                      Course
-                      <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange} disabled={coursesLoading}>
-                        <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20">
-                          <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                          <SelectItem value="0" className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <span className="font-medium text-blue-600 dark:text-blue-400">All Courses</span>
-                          </SelectItem>
-                          {courses.map((course) => (
-                            <SelectItem 
-                              key={course?.id} 
-                              value={course?.id?.toString()} 
-                              className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
-                              <div className="flex flex-col items-start">
-                                <span className="font-medium text-gray-900 dark:text-gray-100">
-                                  {course?.title}
-                                </span>
-                             
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              
             </div>
 
             {/* Date and Time Selection */}
