@@ -42,7 +42,6 @@ import {
 export interface AppointmentSlot {
   id: number;
   instructorId: number;
-  courseId?: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -54,7 +53,6 @@ export interface AppointmentSlot {
   updatedAt: string;
   pricePerSlot?: number;
   instructorName?: string;
-  courseTitle?: string;
 }
 
 // Interface for appointment slots state
