@@ -188,7 +188,7 @@ const CourseDetail = () => {
           <div>
   <h3 className="text-xl font-semibold mb-4">About This Course</h3>
   <div
-  className="ql-editor text-muted-foreground leading-relaxed [&>ol]:list-decimal [&>ol]:pl-5 [&>ul]:list-disc [&>ul]:pl-5 space-y-2"
+  className="ql-editor  leading-relaxed [&>ol]:list-decimal [&>ol]:pl-5 [&>ul]:list-disc [&>ul]:pl-5 space-y-2"
   dangerouslySetInnerHTML={{ __html: course?.content }}
 />
 
