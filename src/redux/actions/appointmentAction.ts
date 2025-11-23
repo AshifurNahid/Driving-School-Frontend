@@ -223,7 +223,7 @@ export const assignInstructorToSlot = (slotId: number, instructorId: number) => 
   try {
     dispatch({ type: APPOINTMENT_SLOT_ASSIGN_REQUEST });
 
-    const { data } = await api.post('/appointment-slots/assign-instructor', {
+    const { data } = await api.put('/appointment-slots/assign-instructor', {
       slotId,
       instructorId,
     });
