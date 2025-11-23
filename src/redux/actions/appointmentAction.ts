@@ -89,6 +89,26 @@ export interface BookGuestAppointmentPayload {
   isLicenceFromAnotherCountry: boolean;
 }
 
+const getAppointmentErrorMessage = (error: any) => {
+  if (error?.response?.data) {
+    const data = error.response.data;
+
+    if (typeof data === 'string') {
+      return data;
+    }
+
+    if (data.status?.message) {
+      return data.status.message;
+    }
+
+    if (data.message) {
+      return data.message;
+    }
+  }
+
+  return error?.message || 'An unexpected error occurred';
+};
+
 // Get appointment slots by date
 export const getAppointmentSlotsByDate = (date: string) => async (dispatch: any) => {
   try {
@@ -107,10 +127,7 @@ export const getAppointmentSlotsByDate = (date: string) => async (dispatch: any)
   } catch (error: any) {
     dispatch({
       type: APPOINTMENT_SLOTS_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: getAppointmentErrorMessage(error),
     });
   }
 };
@@ -141,10 +158,7 @@ export const createAppointmentSlot = (appointmentData: {
   } catch (error: any) {
     dispatch({
       type: APPOINTMENT_SLOT_CREATE_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: getAppointmentErrorMessage(error),
     });
   }
 };
@@ -178,10 +192,7 @@ export const updateAppointmentSlot = (
   } catch (error: any) {
     dispatch({
       type: APPOINTMENT_SLOT_UPDATE_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: getAppointmentErrorMessage(error),
     });
   }
 };
@@ -200,10 +211,7 @@ export const deleteAppointmentSlot = (id: number) => async (dispatch: any) => {
   } catch (error: any) {
     dispatch({
       type: APPOINTMENT_SLOT_DELETE_FAIL,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: getAppointmentErrorMessage(error),
     });
   }
 };

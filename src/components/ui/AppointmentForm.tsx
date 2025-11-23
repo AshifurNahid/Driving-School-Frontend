@@ -1,6 +1,6 @@
 // components/ui/AppointmentForm.tsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Clock, MapPin, Save, X, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -63,16 +63,24 @@ const AppointmentForm = ({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const timeOptions = generateTimeOptions();
 
+  const defaultValues = {
+    instructorId: editingAppointment?.instructorId?.toString() || '',
+    date: editingAppointment?.date ? new Date(editingAppointment.date) : selectedDate || undefined,
+    startTime: editingAppointment?.startTime || '',
+    endTime: editingAppointment?.endTime || '',
+    location: editingAppointment?.location || '',
+  };
+
   const form = useForm({
     resolver: zodResolver(appointmentSchema),
-    defaultValues: {
-      instructorId: editingAppointment?.instructorId?.toString() || '',
-      date: editingAppointment?.date ? new Date(editingAppointment.date) : selectedDate || undefined,
-      startTime: editingAppointment?.startTime || '',
-      endTime: editingAppointment?.endTime || '',
-      location: editingAppointment?.location || '',
-    },
+    defaultValues,
   });
+
+  useEffect(() => {
+    form.reset({
+      ...defaultValues,
+    });
+  }, [editingAppointment, selectedDate, form]);
 
   const handleSubmit = (data: any) => {
     const formattedData = {
