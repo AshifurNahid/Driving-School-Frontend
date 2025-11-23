@@ -17,6 +17,7 @@ import { z } from 'zod';
 
 // Validation schema
 const appointmentSchema = z.object({
+  instructorId: z.string().optional(),
   date: z.date({ required_error: 'Date is required' }),
   startTime: z.string().min(1, 'Start time is required'),
   endTime: z.string().min(1, 'End time is required'),
