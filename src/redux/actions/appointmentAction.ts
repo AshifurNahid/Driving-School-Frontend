@@ -43,7 +43,6 @@ import {
 export interface AppointmentSlot {
   id: number;
   instructorId: number;
-  courseId?: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -55,7 +54,6 @@ export interface AppointmentSlot {
   updatedAt: string;
   pricePerSlot?: number;
   instructorName?: string;
-  courseTitle?: string;
 }
 
 export interface BookDirectAppointmentPayload {
@@ -120,7 +118,6 @@ export const getAppointmentSlotsByDate = (date: string) => async (dispatch: any)
 // Create appointment slot
 export const createAppointmentSlot = (appointmentData: {
   instructorId: number;
-  courseId: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -157,7 +154,6 @@ export const updateAppointmentSlot = (
   id: number,
   appointmentData: {
     instructorId: number;
-    courseId: number;
     date: string;
     startTime: string;
     endTime: string;

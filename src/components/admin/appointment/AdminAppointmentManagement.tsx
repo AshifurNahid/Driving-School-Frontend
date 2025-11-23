@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Calendar, Clock, Plus, Edit, Trash2, ChevronLeft, ChevronRight, User, MapPin, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Plus, Edit, Trash2, User, MapPin, AlertCircle, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -23,7 +23,8 @@ import {
   APPOINTMENT_SLOT_UPDATE_RESET,
   APPOINTMENT_SLOT_DELETE_RESET
 } from '@/redux/constants/appointmentConstants';
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import AppointmentForm from '../../ui/AppointmentForm';
 
 const AdminAppointmentManagement = () => {
@@ -57,11 +58,12 @@ const AdminAppointmentManagement = () => {
   
   // Local state
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -190,25 +192,13 @@ const AdminAppointmentManagement = () => {
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 0:
-        return { 
-          component: <Badge variant="destructive" className="text-xs bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">Deleted</Badge>,
-          color: 'red'
-        };
+        return <Badge className="text-xs px-4 py-1.5 bg-red-100 text-red-700 hover:bg-red-100 border border-red-200">Deleted</Badge>;
       case 1:
-        return { 
-          component: <Badge variant="outline" className="text-xs bg-green-100 text-green-800 border-green-600 dark:bg-green-900/20 dark:text-green-400 dark:border-green-600">Available</Badge>,
-          color: 'green'
-        };
+        return <Badge className="text-xs px-4 py-1.5 bg-green-100 text-green-700 hover:bg-green-100 border border-green-200">Open</Badge>;
       case 2:
-        return { 
-          component: <Badge variant="default" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">Booked</Badge>,
-          color: 'blue'
-        };
+        return <Badge className="text-xs px-4 py-1.5 bg-orange-100 text-orange-700 hover:bg-orange-100 border border-orange-200">Booked</Badge>;
       default:
-        return { 
-          component: <Badge variant="outline" className="text-xs">Unknown</Badge>,
-          color: 'gray'
-        };
+        return <Badge variant="outline" className="text-xs px-4 py-1.5">Unknown</Badge>;
     }
   };
 
@@ -230,65 +220,52 @@ const AdminAppointmentManagement = () => {
     return instructor ? instructor.instructor_name : 'Unknown Instructor';
   };
 
-
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Appointment Slot Management
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Create and manage appointment slots for instructors
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Manage Appointments</h1>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Left Panel - Calendar */}
-          <div className="xl:col-span-1">
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 sticky top-6">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-xl text-gray-900 dark:text-gray-100">
-                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  Calendar
-                </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Select a date to view or create appointment slots
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Custom Calendar Header */}
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                    className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 h-9 w-9 p-0"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <span className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                    {format(currentMonth, 'MMMM yyyy')}
+        {/* Top Bar with Search, Date Selector, and Add Button */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 flex items-center justify-between gap-4 flex-wrap">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[300px] max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Date Selector */}
+            <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 h-11 px-4 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {selectedDate ? format(selectedDate, 'dd MMM yyyy') : 'Select Date'}
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                    className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 h-9 w-9 p-0"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-                
+                  <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700" align="end">
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  month={currentMonth}
-                  onMonthChange={setCurrentMonth}
-                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-0"
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setShowDatePicker(false);
+                  }}
+                  className="bg-white dark:bg-gray-800"
                   modifiers={{
                     hasAppointment: appointmentSlots.map(app => parseISO(app.date)),
                   }}
@@ -300,145 +277,114 @@ const AdminAppointmentManagement = () => {
                     },
                   }}
                 />
-                
-                {/* Legend */}
-       
-              </CardContent>
-            </Card>
+              </PopoverContent>
+            </Popover>
+
+            {/* Add Appointment Button */}
+            <Button
+              onClick={handleAddNewSlot}
+              className="h-11 bg-purple-600 hover:bg-purple-700 text-white font-medium px-6"
+              disabled={!selectedDate || createLoading || updateLoading}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Appointment
+            </Button>
           </div>
+        </div>
 
-          {/* Right Panel - Time Slots */}
-          <div className="xl:col-span-2">
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-xl text-gray-900 dark:text-gray-100">
-                      Appointment Slots - {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Select a date'}
-                    </CardTitle>
-                    <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
-                      {visibleAppointments.length} slots available on this date
-                    </CardDescription>
-                  </div>
-                  <Button
-                    onClick={handleAddNewSlot}
-                    className="h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6"
-                    disabled={!selectedDate || createLoading || updateLoading}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add New Slot
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {/* Loading State */}
-                {slotsLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="ml-3 text-gray-600 dark:text-gray-400">Loading slots...</span>
-                  </div>
-                ) : slotsError ? (
-                  /* Error State */
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error Loading Slots</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-center">{slotsError}</p>
-                    <Button
-                      onClick={reloadAppointments}
-                      variant="outline"
-                      className="mt-4"
-                    >
-                      Try Again
-                    </Button>
-                  </div>
-                ) : visibleAppointments.length === 0 ? (
-                  /* Empty State */
-                  <div className="flex flex-col items-center justify-center py-16">
-                    <Clock className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                      No Appointment Slots
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
-                      {selectedDate 
-                        ? `No slots created for ${format(selectedDate, 'MMMM d, yyyy')} yet.`
-                        : 'Select a date to view or create appointment slots.'
-                      }
-                    </p>
-                    {selectedDate && (
-                      <Button
-                        onClick={handleAddNewSlot}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create First Slot
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  /* Slots List */
-                  <div className="space-y-4">
-                    {visibleAppointments.map((slot, index) => (
-                      <div
-                        key={slot.id}
-                        className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-900/70 transition-colors"
-                      >
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                          <div className="flex-1 space-y-3">
-                            <div className="flex flex-wrap items-center gap-4">
-                              <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                                <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                <span className="font-medium">
-                                  {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
-                                </span>
-                              </div>
-                              {getStatusBadge(slot.status).component}
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                <User className="w-4 h-4" />
-                                <span>Instructor: {getInstructorName(slot.instructorId)}</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                <Calendar className="w-4 h-4" />
-                              </div>
-                              {slot.location && (
-                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 md:col-span-2">
-                                  <MapPin className="w-4 h-4" />
-                                  <span>Location: {slot.location}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(slot)}
-                              disabled={createLoading || updateLoading || deleteLoading}
-                              className="h-9 px-3 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteClick(slot)}
-                              disabled={createLoading || updateLoading || deleteLoading}
-                              className="h-9 px-3 text-red-600 dark:text-red-400 border-red-300 dark:border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
+        {/* Appointments Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+          {slotsLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="ml-3 text-gray-600 dark:text-gray-400">Loading slots...</span>
+            </div>
+          ) : slotsError ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error Loading Slots</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-center">{slotsError}</p>
+              <Button onClick={reloadAppointments} variant="outline" className="mt-4">
+                Try Again
+              </Button>
+            </div>
+          ) : visibleAppointments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Clock className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No Appointment Slots
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
+                {selectedDate 
+                  ? `No slots created for ${format(selectedDate, 'MMMM d, yyyy')} yet.`
+                  : 'Select a date to view or create appointment slots.'
+                }
+              </p>
+              {selectedDate && (
+                <Button onClick={handleAddNewSlot} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create First Slot
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Instructor Name</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Location</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="flex items-center gap-1">
+                        Appointment Date & Time
+                        <ChevronDown className="w-4 h-4" />
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {visibleAppointments.map((slot) => (
+                    <tr key={slot.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                        {getInstructorName(slot.instructorId)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                        {slot.location || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                        {format(parseISO(slot.date), 'dd-MMM-yyyy')} at {formatTime(slot.startTime)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {getStatusBadge(slot.status)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => handleEdit(slot)}
+                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg"
+                            disabled={createLoading || updateLoading || deleteLoading}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteClick(slot)}
+                            variant="outline"
+                            className="p-2 text-red-600 dark:text-red-400 border-red-300 dark:border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            disabled={createLoading || updateLoading || deleteLoading}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, MapPin, Save, X, Loader2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, Save, X, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import InstructorDropdown from './InstructorDropdown';
 
 // Validation schema
 const appointmentSchema = z.object({
@@ -89,115 +88,140 @@ const AppointmentForm = ({
   };
 
   return (
-    <Card className={cn("bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700", className)}>
-      
-      
-      <CardContent className="space-y-6">
+    <Card className={cn("bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-800/50 border-gray-200/50 dark:border-gray-700/50 shadow-xl", className)}>
+      <CardContent className="space-y-6 p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Instructor and Course Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-              {/* Instructor Dropdown */}
-              <FormField
-                control={form.control}
-                name="instructorId"
-                render={({ field }) => (
-                  <InstructorDropdown
-                    instructors={instructors}
-                    loading={instructorsLoading}
-                    error={instructorsError}
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Select an instructor"
-                    required={false}
-                    label="Instructor"
-                  />
-                )}
-              />
+            
+            {/* Instructor Selection */}
+            <FormField
+              control={form.control}
+              name="instructorId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                    <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
+                      <User className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    Instructor
+                  </FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full h-12 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all">
+                        <SelectValue placeholder="Select an instructor" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 max-h-60 shadow-xl z-[70]">
+                        {instructorsLoading ? (
+                          <div className="p-4 text-center text-gray-500 flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Loading instructors...
+                          </div>
+                        ) : instructorsError ? (
+                          <div className="p-4 text-center text-red-500">Error loading instructors</div>
+                        ) : instructors.length === 0 ? (
+                          <div className="p-4 text-center text-gray-500">No instructors available</div>
+                        ) : (
+                          instructors.map((instructor) => (
+                            <SelectItem 
+                              key={instructor.id} 
+                              value={instructor.id.toString()}
+                              className="hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
+                            >
+                              {instructor.instructor_name || `Instructor ${instructor.id}`}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* Course Selection */}
-              
-            </div>
+            {/* Date Selection - Full Width */}
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                    <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
+                      <CalendarIcon className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    Date
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            "w-full h-12 justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all",
+                            !field.value && "text-gray-500 dark:text-gray-400"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-[60] shadow-xl" 
+                      align="start"
+                      side="bottom"
+                      sideOffset={4}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setCalendarOpen(false);
+                        }}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                        className="bg-white dark:bg-gray-800 rounded-lg"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Date and Time Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Date Selection */}
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4" />
-                      Date
-                      <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className={cn(
-                              "w-full h-11 justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700",
-                              !field.value && "text-gray-500 dark:text-gray-400"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent 
-                        className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-[60]" 
-                        align="start"
-                        side="bottom"
-                        sideOffset={4}
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            setCalendarOpen(false);
-                          }}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                          className="bg-white dark:bg-gray-800"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+            {/* Time Selection - Two Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Start Time */}
               <FormField
                 control={form.control}
                 name="startTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                    <FormLabel className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
+                        <Clock className="w-3.5 h-3.5 text-white" />
+                      </div>
                       Start Time
                       <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20">
+                        <SelectTrigger className="w-full h-12 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all">
                           <SelectValue placeholder="Select start time" />
                         </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 max-h-60">
+                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 max-h-60 shadow-xl z-[70]">
                           {timeOptions.slice(0, -1).map((time) => (
                             <SelectItem 
                               key={time.value} 
                               value={time.value}
-                              className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                              className="hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
                             >
                               {time.label}
                             </SelectItem>
@@ -216,22 +240,24 @@ const AppointmentForm = ({
                 name="endTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                    <FormLabel className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                      <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
+                        <Clock className="w-3.5 h-3.5 text-white" />
+                      </div>
                       End Time
                       <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20">
+                        <SelectTrigger className="w-full h-12 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all">
                           <SelectValue placeholder="Select end time" />
                         </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 max-h-60">
+                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 max-h-60 shadow-xl z-[70]">
                           {timeOptions.slice(1).map((time) => (
                             <SelectItem 
                               key={time.value} 
                               value={time.value}
-                              className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                              className="hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
                             >
                               {time.label}
                             </SelectItem>
@@ -251,8 +277,10 @@ const AppointmentForm = ({
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
+                  <FormLabel className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                    <div className="p-1.5 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg">
+                      <MapPin className="w-3.5 h-3.5 text-white" />
+                    </div>
                     Location
                     <span className="text-gray-400 text-xs ml-1">(Optional)</span>
                   </FormLabel>
@@ -260,10 +288,10 @@ const AppointmentForm = ({
                     <Input
                       placeholder="Enter location (e.g., Room 101, Building A, Online)"
                       {...field}
-                      className="h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20"
+                      className="h-12 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all"
                     />
                   </FormControl>
-                  <FormDescription className="text-xs text-gray-500 dark:text-gray-400">
+                  <FormDescription className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                     Specify where the appointment will take place
                   </FormDescription>
                   <FormMessage />
@@ -275,7 +303,7 @@ const AppointmentForm = ({
             <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
               <Button 
                 type="submit" 
-                className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium text-base"
+                className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-base shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all"
                 disabled={loading}
               >
                 {loading ? (
@@ -294,7 +322,7 @@ const AppointmentForm = ({
                 type="button" 
                 variant="outline" 
                 onClick={handleCancel}
-                className="h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="h-12 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-all"
                 disabled={loading}
               >
                 <X className="w-5 h-5 mr-2" />
