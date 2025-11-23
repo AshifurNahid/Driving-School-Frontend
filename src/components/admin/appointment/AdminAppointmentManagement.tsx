@@ -327,14 +327,19 @@ const AdminAppointmentManagement = () => {
       return;
     }
 
-    const formattedStartTime = bulkFormData.startTime.includes('Z')
-      ? bulkFormData.startTime
-      : `${bulkFormData.startTime}:00Z`;
+    const normalizedStartTime = (() => {
+      if (bulkFormData.startTime.includes('Z')) return bulkFormData.startTime;
+
+      const hasSeconds = bulkFormData.startTime.split(':').length > 2;
+      const timeWithSeconds = hasSeconds ? bulkFormData.startTime : `${bulkFormData.startTime}:00`;
+
+      return `${timeWithSeconds}.000Z`;
+    })();
 
     const payload = {
       startDate: bulkFormData.startDate,
       endDate: bulkFormData.endDate,
-      startTime: formattedStartTime,
+      startTime: normalizedStartTime,
       slotDurationMinutes: Number(bulkFormData.slotDurationMinutes) || 0,
       slotNumber: Number(bulkFormData.slotNumber) || 0,
       slotIntervalMinutes: Number(bulkFormData.slotIntervalMinutes) || 0,
