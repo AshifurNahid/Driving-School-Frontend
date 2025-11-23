@@ -127,7 +127,7 @@ const AppointmentForm = ({
                               value={instructor.id.toString()}
                               className="hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer"
                             >
-                              {instructor.instructor_name || `Instructor ${instructor.id}`}
+                              { instructor.instructor_name || `Instructor ${instructor.id}`}
                             </SelectItem>
                           ))
                         )}
