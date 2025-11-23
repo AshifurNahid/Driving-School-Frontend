@@ -328,13 +328,27 @@ const AdminAppointmentManagement = () => {
     }
 
     const normalizedStartTime = (() => {
-      if (bulkFormData.startTime.includes('Z')) return bulkFormData.startTime;
-
+      const baseDate = bulkFormData.startDate || format(selectedDate || new Date(), 'yyyy-MM-dd');
       const hasSeconds = bulkFormData.startTime.split(':').length > 2;
       const timeWithSeconds = hasSeconds ? bulkFormData.startTime : `${bulkFormData.startTime}:00`;
+      const combined = `${baseDate}T${timeWithSeconds}`;
+      const parsed = new Date(combined);
 
-      return `${timeWithSeconds}.000Z`;
+      if (Number.isNaN(parsed.getTime())) {
+        return null;
+      }
+
+      return parsed.toISOString();
     })();
+
+    if (!normalizedStartTime) {
+      toast({
+        title: "Invalid time",
+        description: "Please provide a valid start time",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const payload = {
       startDate: bulkFormData.startDate,
