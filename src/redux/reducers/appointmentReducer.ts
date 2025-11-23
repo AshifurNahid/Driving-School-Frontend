@@ -16,6 +16,10 @@ import {
   APPOINTMENT_SLOT_DELETE_SUCCESS,
   APPOINTMENT_SLOT_DELETE_FAIL,
   APPOINTMENT_SLOT_DELETE_RESET,
+  APPOINTMENT_SLOT_ASSIGN_REQUEST,
+  APPOINTMENT_SLOT_ASSIGN_SUCCESS,
+  APPOINTMENT_SLOT_ASSIGN_FAIL,
+  APPOINTMENT_SLOT_ASSIGN_RESET,
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
@@ -242,6 +246,36 @@ export const appointmentSlotDeleteReducer = (
       return { ...state, loading: false, success: false, error: action.payload };
     case APPOINTMENT_SLOT_DELETE_RESET:
       return initialAppointmentSlotDeleteState;
+    default:
+      return state;
+  }
+};
+
+interface AppointmentSlotAssignState {
+  loading: boolean;
+  success: boolean;
+  error: string | null;
+}
+
+const initialAppointmentSlotAssignState: AppointmentSlotAssignState = {
+  loading: false,
+  success: false,
+  error: null,
+};
+
+export const appointmentSlotAssignReducer = (
+  state = initialAppointmentSlotAssignState,
+  action: any
+): AppointmentSlotAssignState => {
+  switch (action.type) {
+    case APPOINTMENT_SLOT_ASSIGN_REQUEST:
+      return { ...state, loading: true, error: null };
+    case APPOINTMENT_SLOT_ASSIGN_SUCCESS:
+      return { ...state, loading: false, success: true, error: null };
+    case APPOINTMENT_SLOT_ASSIGN_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload };
+    case APPOINTMENT_SLOT_ASSIGN_RESET:
+      return initialAppointmentSlotAssignState;
     default:
       return state;
   }
