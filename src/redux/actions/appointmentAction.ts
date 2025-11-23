@@ -37,7 +37,11 @@ import {
   ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL,
   ADMIN_APPOINTMENT_CANCEL_REQUEST,
   ADMIN_APPOINTMENT_CANCEL_SUCCESS,
-  ADMIN_APPOINTMENT_CANCEL_FAIL
+  ADMIN_APPOINTMENT_CANCEL_FAIL,
+  APPOINTMENT_SLOT_BULK_REQUEST,
+  APPOINTMENT_SLOT_BULK_SUCCESS,
+  APPOINTMENT_SLOT_BULK_FAIL,
+  APPOINTMENT_SLOT_BULK_RESET
 } from "../constants/appointmentConstants";
 
 
@@ -90,6 +94,17 @@ export interface BookGuestAppointmentPayload {
     phone: string;
   };
   isLicenceFromAnotherCountry: boolean;
+}
+
+export interface BulkAppointmentSlotPayload {
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  slotDurationMinutes: number;
+  slotNumber: number;
+  slotIntervalMinutes: number;
+  instructorId?: number | null;
+  location?: string;
 }
 
 const getAppointmentErrorMessage = (error: any) => {
@@ -235,6 +250,29 @@ export const assignInstructorToSlot = (slotId: number, instructorId: number) => 
   } catch (error: any) {
     dispatch({
       type: APPOINTMENT_SLOT_ASSIGN_FAIL,
+      payload: getAppointmentErrorMessage(error),
+    });
+  }
+};
+
+export const createBulkAppointmentSlots = (payload: BulkAppointmentSlotPayload) => async (dispatch: any) => {
+  try {
+    dispatch({ type: APPOINTMENT_SLOT_BULK_REQUEST });
+
+    const sanitizedPayload = {
+      ...payload,
+      instructorId: payload.instructorId ?? 0,
+    };
+
+    const { data } = await api.post('/appointment-slots/bulk', sanitizedPayload);
+
+    dispatch({
+      type: APPOINTMENT_SLOT_BULK_SUCCESS,
+      payload: data,
+    });
+  } catch (error: any) {
+    dispatch({
+      type: APPOINTMENT_SLOT_BULK_FAIL,
       payload: getAppointmentErrorMessage(error),
     });
   }

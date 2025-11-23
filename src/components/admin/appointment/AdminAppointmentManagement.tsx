@@ -1,6 +1,6 @@
 // components/AdminAppointmentManagement.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Calendar, Clock, Plus, Edit, Trash2, User, MapPin, AlertCircle, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,23 +16,27 @@ import {
   createAppointmentSlot,
   updateAppointmentSlot,
   deleteAppointmentSlot,
-  assignInstructorToSlot
+  assignInstructorToSlot,
+  createBulkAppointmentSlots
 } from '@/redux/actions/appointmentAction';
 import { listInstructors } from '@/redux/actions/instructorActions';
 import {
   APPOINTMENT_SLOT_CREATE_RESET,
   APPOINTMENT_SLOT_UPDATE_RESET,
   APPOINTMENT_SLOT_DELETE_RESET,
-  APPOINTMENT_SLOT_ASSIGN_RESET
+  APPOINTMENT_SLOT_ASSIGN_RESET,
+  APPOINTMENT_SLOT_BULK_RESET
 } from '@/redux/constants/appointmentConstants';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppointmentForm from '../../ui/AppointmentForm';
+import { Input } from '@/components/ui/input';
 
 const AdminAppointmentManagement = () => {
   const { toast } = useToast();
   const dispatch = useDispatch<AppDispatch>();
+  const defaultFormattedDate = format(new Date(), 'yyyy-MM-dd');
   
   // Redux state selectors
   const { appointmentSlots: slotsData, loading: slotsLoading, error: slotsError } = useSelector(
@@ -61,7 +65,10 @@ const AdminAppointmentManagement = () => {
   const { success: assignSuccess, error: assignError, loading: assignLoading } = useSelector(
     (state: RootState) => state.appointmentSlotAssign
   );
-  
+  const { success: bulkSuccess, error: bulkError, loading: bulkLoading } = useSelector(
+    (state: RootState) => state.appointmentSlotBulkCreate
+  );
+
   // Local state
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,6 +80,16 @@ const AdminAppointmentManagement = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [slotToAssign, setSlotToAssign] = useState<any>(null);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
+  const [bulkFormData, setBulkFormData] = useState({
+    startDate: defaultFormattedDate,
+    endDate: defaultFormattedDate,
+    startTime: '',
+    slotDurationMinutes: 60,
+    slotNumber: 1,
+    slotIntervalMinutes: 0,
+    location: '',
+  });
 
   // Fetch data on component mount
   useEffect(() => {
@@ -86,12 +103,23 @@ const AdminAppointmentManagement = () => {
     }
   }, [selectedDate, dispatch]);
 
+  useEffect(() => {
+    if (selectedDate) {
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      setBulkFormData((prev) => ({
+        ...prev,
+        startDate: formattedDate,
+        endDate: prev.endDate || formattedDate,
+      }));
+    }
+  }, [selectedDate]);
+
   // Reload appointments after CRUD operations
-  const reloadAppointments = () => {
+  const reloadAppointments = useCallback(() => {
     if (selectedDate) {
       dispatch(getAppointmentSlotsByDate(format(selectedDate, 'yyyy-MM-dd')));
     }
-  };
+  }, [dispatch, selectedDate]);
 
   // Handle create success
   useEffect(() => {
@@ -184,6 +212,26 @@ const AdminAppointmentManagement = () => {
     }
   }, [assignDialogOpen, dispatch]);
 
+  useEffect(() => {
+    if (bulkSuccess) {
+      toast({
+        title: "Success",
+        description: "Appointment slots created successfully",
+      });
+      resetBulkForm();
+      setIsBulkDialogOpen(false);
+      reloadAppointments();
+    }
+
+    if (bulkError) {
+      toast({
+        title: "Error",
+        description: bulkError,
+        variant: "destructive",
+      });
+    }
+  }, [bulkSuccess, bulkError, toast, reloadAppointments, resetBulkForm]);
+
   const handleFormSubmit = (data: any) => {
     const appointmentData = {
       instructorId: data.instructorId,
@@ -238,6 +286,63 @@ const AdminAppointmentManagement = () => {
     if (slotToAssign && selectedInstructorId) {
       dispatch(assignInstructorToSlot(Number(slotToAssign.id), Number(selectedInstructorId)));
     }
+  };
+
+  const resetBulkForm = useCallback(() => {
+    const defaultDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+    setBulkFormData({
+      startDate: defaultDate,
+      endDate: defaultDate,
+      startTime: '',
+      slotDurationMinutes: 60,
+      slotNumber: 1,
+      slotIntervalMinutes: 0,
+      location: '',
+    });
+    dispatch({ type: APPOINTMENT_SLOT_BULK_RESET });
+  }, [dispatch, selectedDate]);
+
+  const handleBulkInputChange = (field: string, value: string | number) => {
+    setBulkFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBulkSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!bulkFormData.startDate || !bulkFormData.endDate || !bulkFormData.startTime) {
+      toast({
+        title: "Missing information",
+        description: "Start date, end date, and start time are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (Number(bulkFormData.slotDurationMinutes) <= 0 || Number(bulkFormData.slotNumber) <= 0) {
+      toast({
+        title: "Invalid slot configuration",
+        description: "Slot duration and number of slots must be greater than zero",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const formattedStartTime = bulkFormData.startTime.includes('Z')
+      ? bulkFormData.startTime
+      : `${bulkFormData.startTime}:00Z`;
+
+    const payload = {
+      startDate: bulkFormData.startDate,
+      endDate: bulkFormData.endDate,
+      startTime: formattedStartTime,
+      slotDurationMinutes: Number(bulkFormData.slotDurationMinutes) || 0,
+      slotNumber: Number(bulkFormData.slotNumber) || 0,
+      slotIntervalMinutes: Number(bulkFormData.slotIntervalMinutes) || 0,
+      instructorId: 0,
+      location: bulkFormData.location || undefined,
+    };
+
+    dispatch(createBulkAppointmentSlots(payload));
   };
 
   const getStatusBadge = (status: number) => {
@@ -339,6 +444,18 @@ const AdminAppointmentManagement = () => {
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Appointment
+            </Button>
+            <Button
+              onClick={() => {
+                resetBulkForm();
+                setIsBulkDialogOpen(true);
+              }}
+              variant="outline"
+              className="h-11 border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-200 dark:hover:bg-purple-900/30"
+              disabled={bulkLoading || slotsLoading}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Bulk Create Slots
             </Button>
           </div>
         </div>
@@ -451,6 +568,129 @@ const AdminAppointmentManagement = () => {
           )}
         </div>
       </div>
+
+      <Dialog
+        open={isBulkDialogOpen}
+        onOpenChange={(open) => {
+          setIsBulkDialogOpen(open);
+          if (!open) {
+            resetBulkForm();
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Bulk Create Appointment Slots
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              Generate multiple appointment slots between the selected dates.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleBulkSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                <Input
+                  type="date"
+                  value={bulkFormData.startDate}
+                  onChange={(e) => handleBulkInputChange('startDate', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                <Input
+                  type="date"
+                  value={bulkFormData.endDate}
+                  onChange={(e) => handleBulkInputChange('endDate', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
+                <Input
+                  type="time"
+                  value={bulkFormData.startTime}
+                  onChange={(e) => handleBulkInputChange('startTime', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Slot Duration (minutes)</label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={bulkFormData.slotDurationMinutes}
+                  onChange={(e) => handleBulkInputChange('slotDurationMinutes', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Number of Slots</label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={bulkFormData.slotNumber}
+                  onChange={(e) => handleBulkInputChange('slotNumber', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Slot Interval (minutes)</label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={bulkFormData.slotIntervalMinutes}
+                  onChange={(e) => handleBulkInputChange('slotIntervalMinutes', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Location (optional)</label>
+                <Input
+                  type="text"
+                  value={bulkFormData.location}
+                  onChange={(e) => handleBulkInputChange('location', e.target.value)}
+                  placeholder="Enter location"
+                />
+              </div>
+            </div>
+
+            {bulkError && (
+              <p className="text-sm text-red-600 dark:text-red-400">{bulkError}</p>
+            )}
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsBulkDialogOpen(false);
+                  resetBulkForm();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                disabled={bulkLoading}
+              >
+                {bulkLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Creating...
+                  </div>
+                ) : (
+                  'Create Slots'
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
