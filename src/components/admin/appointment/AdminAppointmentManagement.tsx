@@ -212,6 +212,20 @@ const AdminAppointmentManagement = () => {
     }
   }, [assignDialogOpen, dispatch]);
 
+  const resetBulkForm = useCallback(() => {
+    const defaultDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+    setBulkFormData({
+      startDate: defaultDate,
+      endDate: defaultDate,
+      startTime: '',
+      slotDurationMinutes: 60,
+      slotNumber: 1,
+      slotIntervalMinutes: 0,
+      location: '',
+    });
+    dispatch({ type: APPOINTMENT_SLOT_BULK_RESET });
+  }, [dispatch, selectedDate]);
+
   useEffect(() => {
     if (bulkSuccess) {
       toast({
@@ -287,20 +301,6 @@ const AdminAppointmentManagement = () => {
       dispatch(assignInstructorToSlot(Number(slotToAssign.id), Number(selectedInstructorId)));
     }
   };
-
-  const resetBulkForm = useCallback(() => {
-    const defaultDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-    setBulkFormData({
-      startDate: defaultDate,
-      endDate: defaultDate,
-      startTime: '',
-      slotDurationMinutes: 60,
-      slotNumber: 1,
-      slotIntervalMinutes: 0,
-      location: '',
-    });
-    dispatch({ type: APPOINTMENT_SLOT_BULK_RESET });
-  }, [dispatch, selectedDate]);
 
   const handleBulkInputChange = (field: string, value: string | number) => {
     setBulkFormData((prev) => ({ ...prev, [field]: value }));
