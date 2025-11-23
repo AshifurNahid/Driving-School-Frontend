@@ -11,20 +11,23 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/redux/store';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  getAppointmentSlotsByDate, 
-  createAppointmentSlot, 
+import {
+  getAppointmentSlotsByDate,
+  createAppointmentSlot,
   updateAppointmentSlot,
-  deleteAppointmentSlot
+  deleteAppointmentSlot,
+  assignInstructorToSlot
 } from '@/redux/actions/appointmentAction';
 import { listInstructors } from '@/redux/actions/instructorActions';
-import { 
+import {
   APPOINTMENT_SLOT_CREATE_RESET,
   APPOINTMENT_SLOT_UPDATE_RESET,
-  APPOINTMENT_SLOT_DELETE_RESET
+  APPOINTMENT_SLOT_DELETE_RESET,
+  APPOINTMENT_SLOT_ASSIGN_RESET
 } from '@/redux/constants/appointmentConstants';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppointmentForm from '../../ui/AppointmentForm';
 
 const AdminAppointmentManagement = () => {
@@ -55,6 +58,9 @@ const AdminAppointmentManagement = () => {
   const { success: deleteSuccess, error: deleteError, loading: deleteLoading } = useSelector(
     (state: RootState) => state.appointmentSlotDelete
   );
+  const { success: assignSuccess, error: assignError, loading: assignLoading } = useSelector(
+    (state: RootState) => state.appointmentSlotAssign
+  );
   
   // Local state
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -64,6 +70,9 @@ const AdminAppointmentManagement = () => {
   const [appointmentToDelete, setAppointmentToDelete] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [slotToAssign, setSlotToAssign] = useState<any>(null);
+  const [selectedInstructorId, setSelectedInstructorId] = useState('');
 
   // Fetch data on component mount
   useEffect(() => {
@@ -145,6 +154,36 @@ const AdminAppointmentManagement = () => {
     }
   }, [deleteSuccess, deleteError, toast, dispatch]);
 
+  useEffect(() => {
+    if (assignSuccess) {
+      toast({
+        title: "Success",
+        description: "Instructor assigned successfully",
+      });
+      dispatch({ type: APPOINTMENT_SLOT_ASSIGN_RESET });
+      setAssignDialogOpen(false);
+      setSlotToAssign(null);
+      setSelectedInstructorId('');
+      reloadAppointments();
+    }
+
+    if (assignError) {
+      toast({
+        title: "Error",
+        description: assignError,
+        variant: "destructive",
+      });
+    }
+  }, [assignSuccess, assignError, toast, dispatch]);
+
+  useEffect(() => {
+    if (!assignDialogOpen) {
+      setSlotToAssign(null);
+      setSelectedInstructorId('');
+      dispatch({ type: APPOINTMENT_SLOT_ASSIGN_RESET });
+    }
+  }, [assignDialogOpen, dispatch]);
+
   const handleFormSubmit = (data: any) => {
     const appointmentData = {
       instructorId: data.instructorId,
@@ -171,6 +210,12 @@ const AdminAppointmentManagement = () => {
     setDeleteDialogOpen(true);
   };
 
+  const handleAssignClick = (slot: any) => {
+    setSlotToAssign(slot);
+    setSelectedInstructorId('');
+    setAssignDialogOpen(true);
+  };
+
   const confirmDelete = () => {
     if (appointmentToDelete) {
       dispatch(deleteAppointmentSlot(Number(appointmentToDelete.id)));
@@ -187,6 +232,12 @@ const AdminAppointmentManagement = () => {
   const handleFormCancel = () => {
     setIsDialogOpen(false);
     setEditingAppointment(null);
+  };
+
+  const handleAssignInstructor = () => {
+    if (slotToAssign && selectedInstructorId) {
+      dispatch(assignInstructorToSlot(Number(slotToAssign.id), Number(selectedInstructorId)));
+    }
   };
 
   const getStatusBadge = (status: number) => {
@@ -284,7 +335,7 @@ const AdminAppointmentManagement = () => {
             <Button
               onClick={handleAddNewSlot}
               className="h-11 bg-purple-600 hover:bg-purple-700 text-white font-medium px-6"
-              disabled={!selectedDate || createLoading || updateLoading}
+              disabled={!selectedDate || createLoading || updateLoading || assignLoading}
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Appointment
@@ -348,7 +399,20 @@ const AdminAppointmentManagement = () => {
                   {visibleAppointments.map((slot) => (
                     <tr key={slot.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                        {getInstructorName(slot.instructorId)}
+                        {slot.instructorId ? (
+                          getInstructorName(slot.instructorId)
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAssignClick(slot)}
+                            disabled={assignLoading}
+                            className="text-purple-700 border-purple-200 hover:bg-purple-50 dark:text-purple-200 dark:border-purple-700 dark:hover:bg-purple-900/30"
+                          >
+                            <User className="w-4 h-4 mr-2" />
+                            Assign Instructor
+                          </Button>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                         {slot.location || '-'}
@@ -364,7 +428,7 @@ const AdminAppointmentManagement = () => {
                           <Button
                             onClick={() => handleEdit(slot)}
                             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg"
-                            disabled={createLoading || updateLoading || deleteLoading}
+                            disabled={createLoading || updateLoading || deleteLoading || assignLoading}
                           >
                             <Edit className="w-4 h-4 mr-1" />
                             Edit
@@ -373,7 +437,7 @@ const AdminAppointmentManagement = () => {
                             onClick={() => handleDeleteClick(slot)}
                             variant="outline"
                             className="p-2 text-red-600 dark:text-red-400 border-red-300 dark:border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            disabled={createLoading || updateLoading || deleteLoading}
+                            disabled={createLoading || updateLoading || deleteLoading || assignLoading}
                           >
                             <Trash2 className="w-5 h-5" />
                           </Button>
@@ -413,6 +477,74 @@ const AdminAppointmentManagement = () => {
             editingAppointment={editingAppointment}
             selectedDate={selectedDate}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Assign Instructor
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              Choose an instructor to assign to this appointment slot.
+            </DialogDescription>
+          </DialogHeader>
+
+          {slotToAssign && (
+            <div className="mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/40 text-sm text-gray-800 dark:text-gray-200">
+              <p className="font-semibold">{format(parseISO(slotToAssign.date), 'dd-MMM-yyyy')} • {formatTime(slotToAssign.startTime)}</p>
+              <p className="text-gray-600 dark:text-gray-400">Location: {slotToAssign.location || 'N/A'}</p>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Instructor</label>
+            <Select value={selectedInstructorId} onValueChange={setSelectedInstructorId}>
+              <SelectTrigger className="w-full h-11">
+                <SelectValue placeholder="Select instructor" />
+              </SelectTrigger>
+              <SelectContent>
+                {instructors.map((instructor) => (
+                  <SelectItem key={instructor.id} value={instructor.id.toString()}>
+                    {instructor.instructor_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {assignError && (
+              <p className="text-sm text-red-600 dark:text-red-400">{assignError}</p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAssignDialogOpen(false);
+                setSlotToAssign(null);
+                setSelectedInstructorId('');
+                dispatch({ type: APPOINTMENT_SLOT_ASSIGN_RESET });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAssignInstructor}
+              disabled={!selectedInstructorId || assignLoading}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {assignLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Assigning...
+                </div>
+              ) : (
+                'Assign Instructor'
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

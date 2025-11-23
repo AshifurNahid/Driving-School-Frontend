@@ -12,6 +12,9 @@ import {
   APPOINTMENT_SLOT_DELETE_REQUEST,
   APPOINTMENT_SLOT_DELETE_SUCCESS,
   APPOINTMENT_SLOT_DELETE_FAIL,
+  APPOINTMENT_SLOT_ASSIGN_REQUEST,
+  APPOINTMENT_SLOT_ASSIGN_SUCCESS,
+  APPOINTMENT_SLOT_ASSIGN_FAIL,
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
@@ -211,6 +214,27 @@ export const deleteAppointmentSlot = (id: number) => async (dispatch: any) => {
   } catch (error: any) {
     dispatch({
       type: APPOINTMENT_SLOT_DELETE_FAIL,
+      payload: getAppointmentErrorMessage(error),
+    });
+  }
+};
+
+export const assignInstructorToSlot = (slotId: number, instructorId: number) => async (dispatch: any) => {
+  try {
+    dispatch({ type: APPOINTMENT_SLOT_ASSIGN_REQUEST });
+
+    const { data } = await api.put('/appointment-slots/assign-instructor', {
+      slotId,
+      instructorId,
+    });
+
+    dispatch({
+      type: APPOINTMENT_SLOT_ASSIGN_SUCCESS,
+      payload: data,
+    });
+  } catch (error: any) {
+    dispatch({
+      type: APPOINTMENT_SLOT_ASSIGN_FAIL,
       payload: getAppointmentErrorMessage(error),
     });
   }
