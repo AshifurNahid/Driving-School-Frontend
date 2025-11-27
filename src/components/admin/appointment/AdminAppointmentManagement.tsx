@@ -1,6 +1,6 @@
 // components/AdminAppointmentManagement.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Calendar, Clock, Plus, Edit, Trash2, User, MapPin, AlertCircle, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,9 +33,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppointmentForm from '../../ui/AppointmentForm';
 import { Input } from '@/components/ui/input';
 
+const generateTimeOptions = () => {
+  const times = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute of ['00', '30']) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
+      const displayTime = new Date(`1970-01-01T${timeString}:00`).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      times.push({ value: timeString, label: displayTime });
+    }
+  }
+  return times;
+};
+
 const AdminAppointmentManagement = () => {
   const { toast } = useToast();
   const dispatch = useDispatch<AppDispatch>();
+  const timeOptions = useMemo(() => generateTimeOptions(), []);
   
   // Redux state selectors
   const { appointmentSlots: slotsData, loading: slotsLoading, error: slotsError } = useSelector(
@@ -520,7 +537,7 @@ const AdminAppointmentManagement = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Location</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
                       <div className="flex items-center gap-1">
-                        Appointment Date & Time
+                        Appointment Time
                         <ChevronDown className="w-4 h-4" />
                       </div>
                     </th>
@@ -551,7 +568,7 @@ const AdminAppointmentManagement = () => {
                         {slot.location || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                        {format(parseISO(slot.date), 'dd-MMM-yyyy')} at {formatTime(slot.startTime)}
+                        {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                       </td>
                       <td className="px-6 py-4">
                         {getStatusBadge(slot.status)}
@@ -654,12 +671,21 @@ const AdminAppointmentManagement = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
-                <Input
-                  type="time"
+                <Select
                   value={bulkFormData.startTime}
-                  onChange={(e) => handleBulkInputChange('startTime', e.target.value)}
-                  required
-                />
+                  onValueChange={(value) => handleBulkInputChange('startTime', value)}
+                >
+                  <SelectTrigger className="w-full h-11">
+                    <SelectValue placeholder="Select start time" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {timeOptions.slice(0, -1).map((time) => (
+                      <SelectItem key={time.value} value={time.value}>
+                        {time.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Slot Duration (minutes)</label>
