@@ -36,7 +36,6 @@ import { Input } from '@/components/ui/input';
 const AdminAppointmentManagement = () => {
   const { toast } = useToast();
   const dispatch = useDispatch<AppDispatch>();
-  const defaultFormattedDate = format(new Date(), 'yyyy-MM-dd');
   
   // Redux state selectors
   const { appointmentSlots: slotsData, loading: slotsLoading, error: slotsError } = useSelector(
@@ -82,8 +81,8 @@ const AdminAppointmentManagement = () => {
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [bulkFormData, setBulkFormData] = useState({
-    startDate: defaultFormattedDate,
-    endDate: defaultFormattedDate,
+    startDate: selectedDate || new Date(),
+    endDate: selectedDate || new Date(),
     startTime: '',
     slotDurationMinutes: 60,
     slotNumber: 1,
@@ -105,11 +104,10 @@ const AdminAppointmentManagement = () => {
 
   useEffect(() => {
     if (selectedDate) {
-      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
       setBulkFormData((prev) => ({
         ...prev,
-        startDate: formattedDate,
-        endDate: prev.endDate || formattedDate,
+        startDate: selectedDate,
+        endDate: prev.endDate || selectedDate,
       }));
     }
   }, [selectedDate]);
@@ -213,7 +211,7 @@ const AdminAppointmentManagement = () => {
   }, [assignDialogOpen, dispatch]);
 
   const resetBulkForm = useCallback(() => {
-    const defaultDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+    const defaultDate = selectedDate || new Date();
     setBulkFormData({
       startDate: defaultDate,
       endDate: defaultDate,
@@ -302,7 +300,7 @@ const AdminAppointmentManagement = () => {
     }
   };
 
-  const handleBulkInputChange = (field: string, value: string | number) => {
+  const handleBulkInputChange = (field: string, value: string | number | Date | null) => {
     setBulkFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -328,17 +326,16 @@ const AdminAppointmentManagement = () => {
     }
 
     const normalizedStartTime = (() => {
-      const baseDate = bulkFormData.startDate || format(selectedDate || new Date(), 'yyyy-MM-dd');
-      const hasSeconds = bulkFormData.startTime.split(':').length > 2;
-      const timeWithSeconds = hasSeconds ? bulkFormData.startTime : `${bulkFormData.startTime}:00`;
-      const combined = `${baseDate}T${timeWithSeconds}`;
-      const parsed = new Date(combined);
+      if (!bulkFormData.startTime) return null;
 
-      if (Number.isNaN(parsed.getTime())) {
+      const timeParts = bulkFormData.startTime.split(':');
+
+      if (timeParts.length < 2) {
         return null;
       }
 
-      return parsed.toISOString();
+      const [hours, minutes, seconds = '00'] = timeParts;
+      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
     })();
 
     if (!normalizedStartTime) {
@@ -351,8 +348,8 @@ const AdminAppointmentManagement = () => {
     }
 
     const payload = {
-      startDate: bulkFormData.startDate,
-      endDate: bulkFormData.endDate,
+      startDate: format(bulkFormData.startDate, 'yyyy-MM-dd'),
+      endDate: format(bulkFormData.endDate, 'yyyy-MM-dd'),
       startTime: normalizedStartTime,
       slotDurationMinutes: Number(bulkFormData.slotDurationMinutes) || 0,
       slotNumber: Number(bulkFormData.slotNumber) || 0,
@@ -611,21 +608,49 @@ const AdminAppointmentManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                <Input
-                  type="date"
-                  value={bulkFormData.startDate}
-                  onChange={(e) => handleBulkInputChange('startDate', e.target.value)}
-                  required
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {bulkFormData.startDate ? format(bulkFormData.startDate, 'PPP') : 'Select start date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <CalendarComponent
+                      mode="single"
+                      selected={bulkFormData.startDate}
+                      onSelect={(date) => handleBulkInputChange('startDate', date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                <Input
-                  type="date"
-                  value={bulkFormData.endDate}
-                  onChange={(e) => handleBulkInputChange('endDate', e.target.value)}
-                  required
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {bulkFormData.endDate ? format(bulkFormData.endDate, 'PPP') : 'Select end date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                    <CalendarComponent
+                      mode="single"
+                      selected={bulkFormData.endDate}
+                      onSelect={(date) => handleBulkInputChange('endDate', date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
