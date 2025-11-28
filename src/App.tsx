@@ -24,7 +24,6 @@ import CoursesPage from "./pages/CoursesPage";
 import AdminInstructors from "./pages/AdminInstructors";
 import UserAppointment from '@/pages/UserAppointment';
 import DrivingSchoolLearnerProfile from "./pages/DrivingSchoolLearnerProfile";
-import AdminAppointmentUserInfo from "./pages/AdminAppointmentUserInfo";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -45,7 +44,6 @@ const App = () => (
                 <Route path="/register" element={<Register />} />
                 {/* <Route path="/dashboard" element={<Dashboard />} /> */}
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/appointments/:slotId/user-info" element={<AdminAppointmentUserInfo />} />
                 <Route path="/admin/instructors" element={<AdminInstructors/>} />
                 <Route path="/upload-course" element={<UploadCourse mode="add" />} />
                 <Route path="/course/:id/edit" element={<UploadCourse mode="edit" />} />
