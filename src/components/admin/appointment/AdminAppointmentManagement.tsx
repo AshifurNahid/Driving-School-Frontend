@@ -1,8 +1,8 @@
 // components/AdminAppointmentManagement.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Calendar, Clock, Plus, Edit, Trash2, User, MapPin, AlertCircle, Search, ChevronDown } from 'lucide-react';
+import { Calendar, Clock, Plus, Edit, Trash2, User, AlertCircle, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -16,19 +16,22 @@ import {
   createAppointmentSlot,
   updateAppointmentSlot,
   deleteAppointmentSlot,
-  assignInstructorToSlot
+  assignInstructorToSlot,
+  createBulkAppointmentSlots
 } from '@/redux/actions/appointmentAction';
 import { listInstructors } from '@/redux/actions/instructorActions';
 import {
   APPOINTMENT_SLOT_CREATE_RESET,
   APPOINTMENT_SLOT_UPDATE_RESET,
   APPOINTMENT_SLOT_DELETE_RESET,
-  APPOINTMENT_SLOT_ASSIGN_RESET
+  APPOINTMENT_SLOT_ASSIGN_RESET,
+  APPOINTMENT_SLOT_BULK_RESET
 } from '@/redux/constants/appointmentConstants';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppointmentForm from '../../ui/AppointmentForm';
+import BulkAppointmentForm from '@/components/ui/BulkAppointmentForm';
 
 const AdminAppointmentManagement = () => {
   const { toast } = useToast();
@@ -61,7 +64,10 @@ const AdminAppointmentManagement = () => {
   const { success: assignSuccess, error: assignError, loading: assignLoading } = useSelector(
     (state: RootState) => state.appointmentSlotAssign
   );
-  
+  const { success: bulkSuccess, error: bulkError, loading: bulkLoading } = useSelector(
+    (state: RootState) => state.appointmentSlotBulkCreate
+  );
+
   // Local state
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -73,6 +79,8 @@ const AdminAppointmentManagement = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [slotToAssign, setSlotToAssign] = useState<any>(null);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
+  const [bulkFormKey, setBulkFormKey] = useState(0);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -87,11 +95,11 @@ const AdminAppointmentManagement = () => {
   }, [selectedDate, dispatch]);
 
   // Reload appointments after CRUD operations
-  const reloadAppointments = () => {
+  const reloadAppointments = useCallback(() => {
     if (selectedDate) {
       dispatch(getAppointmentSlotsByDate(format(selectedDate, 'yyyy-MM-dd')));
     }
-  };
+  }, [dispatch, selectedDate]);
 
   // Handle create success
   useEffect(() => {
@@ -184,6 +192,31 @@ const AdminAppointmentManagement = () => {
     }
   }, [assignDialogOpen, dispatch]);
 
+  const resetBulkForm = useCallback(() => {
+    setBulkFormKey((prev) => prev + 1);
+    dispatch({ type: APPOINTMENT_SLOT_BULK_RESET });
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (bulkSuccess) {
+      toast({
+        title: "Success",
+        description: "Appointment slots created successfully",
+      });
+      resetBulkForm();
+      setIsBulkDialogOpen(false);
+      reloadAppointments();
+    }
+
+    if (bulkError) {
+      toast({
+        title: "Error",
+        description: bulkError,
+        variant: "destructive",
+      });
+    }
+  }, [bulkSuccess, bulkError, toast, reloadAppointments, resetBulkForm]);
+
   const handleFormSubmit = (data: any) => {
     const appointmentData = {
       instructorId: data.instructorId,
@@ -240,6 +273,32 @@ const AdminAppointmentManagement = () => {
     }
   };
 
+  const handleBulkSubmit = (data: {
+    startDate: Date;
+    endDate: Date;
+    startTime: string;
+    slotDurationMinutes: number;
+    slotNumber: number;
+    slotIntervalMinutes: number;
+    location?: string;
+  }) => {
+    const [hours = '', minutes = '', seconds = '00'] = data.startTime.split(':');
+    const normalizedStartTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+
+    const payload = {
+      startDate: format(data.startDate, 'yyyy-MM-dd'),
+      endDate: format(data.endDate, 'yyyy-MM-dd'),
+      startTime: normalizedStartTime,
+      slotDurationMinutes: data.slotDurationMinutes,
+      slotNumber: data.slotNumber,
+      slotIntervalMinutes: data.slotIntervalMinutes,
+      instructorId: null,
+      location: data.location || undefined,
+    };
+
+    dispatch(createBulkAppointmentSlots(payload));
+  };
+
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 0:
@@ -256,13 +315,10 @@ const AdminAppointmentManagement = () => {
   // Filter out soft-deleted appointments (status=0) from the display
   const visibleAppointments = appointmentSlots.filter(slot => slot.status !== 0);
 
-  // Format time to 12-hour format
+  // Format time to 24-hour HH:mm
   const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    const [hours = '', minutes = ''] = time.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
   };
 
   // Get instructor name by ID
@@ -340,6 +396,18 @@ const AdminAppointmentManagement = () => {
               <Plus className="w-5 h-5 mr-2" />
               Add Appointment
             </Button>
+            <Button
+              onClick={() => {
+                resetBulkForm();
+                setIsBulkDialogOpen(true);
+              }}
+              variant="outline"
+              className="h-11 border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-200 dark:hover:bg-purple-900/30"
+              disabled={bulkLoading || slotsLoading}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Bulk Create Slots
+            </Button>
           </div>
         </div>
 
@@ -387,7 +455,7 @@ const AdminAppointmentManagement = () => {
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Location</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">
                       <div className="flex items-center gap-1">
-                        Appointment Date & Time
+                        Appointment Time
                         <ChevronDown className="w-4 h-4" />
                       </div>
                     </th>
@@ -418,7 +486,7 @@ const AdminAppointmentManagement = () => {
                         {slot.location || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                        {format(parseISO(slot.date), 'dd-MMM-yyyy')} at {formatTime(slot.startTime)}
+                        {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                       </td>
                       <td className="px-6 py-4">
                         {getStatusBadge(slot.status)}
@@ -451,6 +519,49 @@ const AdminAppointmentManagement = () => {
           )}
         </div>
       </div>
+
+      <Dialog
+        open={isBulkDialogOpen}
+        onOpenChange={(open) => {
+          setIsBulkDialogOpen(open);
+          if (!open) {
+            resetBulkForm();
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Bulk Create Appointment Slots
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              Generate multiple appointment slots between the selected dates.
+            </DialogDescription>
+          </DialogHeader>
+
+
+          <BulkAppointmentForm
+            key={bulkFormKey}
+            defaultValues={{
+              startDate: selectedDate || new Date(),
+              endDate: selectedDate || new Date(),
+              startTime: '',
+              slotDurationMinutes: 60,
+              slotNumber: 1,
+              slotIntervalMinutes: 0,
+              location: '',
+            }}
+            loading={bulkLoading}
+            errorMessage={bulkError || ''}
+            onSubmit={handleBulkSubmit}
+            onCancel={() => {
+              resetBulkForm();
+              setIsBulkDialogOpen(false);
+            }}
+          />
+
+        </DialogContent>
+      </Dialog>
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

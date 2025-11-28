@@ -20,6 +20,10 @@ import {
   APPOINTMENT_SLOT_ASSIGN_SUCCESS,
   APPOINTMENT_SLOT_ASSIGN_FAIL,
   APPOINTMENT_SLOT_ASSIGN_RESET,
+  APPOINTMENT_SLOT_BULK_REQUEST,
+  APPOINTMENT_SLOT_BULK_SUCCESS,
+  APPOINTMENT_SLOT_BULK_FAIL,
+  APPOINTMENT_SLOT_BULK_RESET,
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
@@ -111,6 +115,20 @@ const initialAppointmentSlotCreateState: AppointmentSlotCreateState = {
   error: null,
 };
 
+interface AppointmentSlotBulkState {
+  loading: boolean;
+  success: boolean;
+  data: any | null;
+  error: string | null;
+}
+
+const initialAppointmentSlotBulkState: AppointmentSlotBulkState = {
+  loading: false,
+  success: false,
+  data: null,
+  error: null,
+};
+
 // User Appointments State Interface
 interface UserAppointmentsState {
   loading: boolean;
@@ -167,6 +185,24 @@ export const appointmentSlotCreateReducer = (
       return { ...state, loading: false, success: false, error: action.payload };
     case APPOINTMENT_SLOT_CREATE_RESET:
       return initialAppointmentSlotCreateState;
+    default:
+      return state;
+  }
+};
+
+export const appointmentSlotBulkReducer = (
+  state = initialAppointmentSlotBulkState,
+  action: any
+): AppointmentSlotBulkState => {
+  switch (action.type) {
+    case APPOINTMENT_SLOT_BULK_REQUEST:
+      return { ...state, loading: true, error: null, success: false };
+    case APPOINTMENT_SLOT_BULK_SUCCESS:
+      return { ...state, loading: false, success: true, data: action.payload, error: null };
+    case APPOINTMENT_SLOT_BULK_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload };
+    case APPOINTMENT_SLOT_BULK_RESET:
+      return initialAppointmentSlotBulkState;
     default:
       return state;
   }

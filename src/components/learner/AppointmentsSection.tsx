@@ -112,11 +112,8 @@ const AppointmentsSection = ({
   };
 
   const formatTime = (timeString: string) => {
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+    const [hours = '', minutes = ''] = timeString.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
   };
 
   const downloadPDF = (appointment: AppointmentType) => {
