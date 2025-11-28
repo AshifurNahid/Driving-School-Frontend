@@ -261,7 +261,7 @@ export const createBulkAppointmentSlots = (payload: BulkAppointmentSlotPayload) 
 
     const sanitizedPayload = {
       ...payload,
-      instructorId: payload.instructorId ?? 0,
+      instructorId: payload.instructorId ?? null,
     };
 
     const { data } = await api.post('/appointment-slots/bulk', sanitizedPayload);
