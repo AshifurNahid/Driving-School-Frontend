@@ -1,8 +1,8 @@
 // components/AdminAppointmentManagement.tsx
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Calendar, Clock, Plus, Edit, Trash2, User, MapPin, AlertCircle, Search, ChevronDown } from 'lucide-react';
+import { Calendar, Clock, Plus, Edit, Trash2, User, AlertCircle, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -31,23 +31,11 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppointmentForm from '../../ui/AppointmentForm';
-import { Input } from '@/components/ui/input';
-
-const generateTimeOptions = () => {
-  const times = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute of ['00', '30']) {
-      const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
-      times.push({ value: timeString, label: timeString });
-    }
-  }
-  return times;
-};
+import BulkAppointmentForm from '@/components/ui/BulkAppointmentForm';
 
 const AdminAppointmentManagement = () => {
   const { toast } = useToast();
   const dispatch = useDispatch<AppDispatch>();
-  const timeOptions = useMemo(() => generateTimeOptions(), []);
   
   // Redux state selectors
   const { appointmentSlots: slotsData, loading: slotsLoading, error: slotsError } = useSelector(
@@ -92,15 +80,7 @@ const AdminAppointmentManagement = () => {
   const [slotToAssign, setSlotToAssign] = useState<any>(null);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
-  const [bulkFormData, setBulkFormData] = useState({
-    startDate: selectedDate || new Date(),
-    endDate: selectedDate || new Date(),
-    startTime: '',
-    slotDurationMinutes: 60,
-    slotNumber: 1,
-    slotIntervalMinutes: 0,
-    location: '',
-  });
+  const [bulkFormKey, setBulkFormKey] = useState(0);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -113,16 +93,6 @@ const AdminAppointmentManagement = () => {
       dispatch(getAppointmentSlotsByDate(format(selectedDate, 'yyyy-MM-dd')));
     }
   }, [selectedDate, dispatch]);
-
-  useEffect(() => {
-    if (selectedDate) {
-      setBulkFormData((prev) => ({
-        ...prev,
-        startDate: selectedDate,
-        endDate: prev.endDate || selectedDate,
-      }));
-    }
-  }, [selectedDate]);
 
   // Reload appointments after CRUD operations
   const reloadAppointments = useCallback(() => {
@@ -223,18 +193,9 @@ const AdminAppointmentManagement = () => {
   }, [assignDialogOpen, dispatch]);
 
   const resetBulkForm = useCallback(() => {
-    const defaultDate = selectedDate || new Date();
-    setBulkFormData({
-      startDate: defaultDate,
-      endDate: defaultDate,
-      startTime: '',
-      slotDurationMinutes: 60,
-      slotNumber: 1,
-      slotIntervalMinutes: 0,
-      location: '',
-    });
+    setBulkFormKey((prev) => prev + 1);
     dispatch({ type: APPOINTMENT_SLOT_BULK_RESET });
-  }, [dispatch, selectedDate]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (bulkSuccess) {
@@ -312,62 +273,27 @@ const AdminAppointmentManagement = () => {
     }
   };
 
-  const handleBulkInputChange = (field: string, value: string | number | Date | null) => {
-    setBulkFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleBulkSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!bulkFormData.startDate || !bulkFormData.endDate || !bulkFormData.startTime) {
-      toast({
-        title: "Missing information",
-        description: "Start date, end date, and start time are required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (Number(bulkFormData.slotDurationMinutes) <= 0 || Number(bulkFormData.slotNumber) <= 0) {
-      toast({
-        title: "Invalid slot configuration",
-        description: "Slot duration and number of slots must be greater than zero",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const normalizedStartTime = (() => {
-      if (!bulkFormData.startTime) return null;
-
-      const timeParts = bulkFormData.startTime.split(':');
-
-      if (timeParts.length < 2) {
-        return null;
-      }
-
-      const [hours, minutes, seconds = '00'] = timeParts;
-      return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
-    })();
-
-    if (!normalizedStartTime) {
-      toast({
-        title: "Invalid time",
-        description: "Please provide a valid start time",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleBulkSubmit = (data: {
+    startDate: Date;
+    endDate: Date;
+    startTime: string;
+    slotDurationMinutes: number;
+    slotNumber: number;
+    slotIntervalMinutes: number;
+    location?: string;
+  }) => {
+    const [hours = '', minutes = '', seconds = '00'] = data.startTime.split(':');
+    const normalizedStartTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
 
     const payload = {
-      startDate: format(bulkFormData.startDate, 'yyyy-MM-dd'),
-      endDate: format(bulkFormData.endDate, 'yyyy-MM-dd'),
+      startDate: format(data.startDate, 'yyyy-MM-dd'),
+      endDate: format(data.endDate, 'yyyy-MM-dd'),
       startTime: normalizedStartTime,
-      slotDurationMinutes: Number(bulkFormData.slotDurationMinutes) || 0,
-      slotNumber: Number(bulkFormData.slotNumber) || 0,
-      slotIntervalMinutes: Number(bulkFormData.slotIntervalMinutes) || 0,
-      instructorId: 0,
-      location: bulkFormData.location || undefined,
+      slotDurationMinutes: data.slotDurationMinutes,
+      slotNumber: data.slotNumber,
+      slotIntervalMinutes: data.slotIntervalMinutes,
+      instructorId: null,
+      location: data.location || undefined,
     };
 
     dispatch(createBulkAppointmentSlots(payload));
@@ -613,144 +539,27 @@ const AdminAppointmentManagement = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleBulkSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {bulkFormData.startDate ? format(bulkFormData.startDate, 'PPP') : 'Select start date'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                    <CalendarComponent
-                      mode="single"
-                      selected={bulkFormData.startDate}
-                      onSelect={(date) => handleBulkInputChange('startDate', date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {bulkFormData.endDate ? format(bulkFormData.endDate, 'PPP') : 'Select end date'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                    <CalendarComponent
-                      mode="single"
-                      selected={bulkFormData.endDate}
-                      onSelect={(date) => handleBulkInputChange('endDate', date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Time</label>
-                <Select
-                  value={bulkFormData.startTime}
-                  onValueChange={(value) => handleBulkInputChange('startTime', value)}
-                >
-                  <SelectTrigger className="w-full h-11">
-                    <SelectValue placeholder="Select start time" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {timeOptions.slice(0, -1).map((time) => (
-                      <SelectItem key={time.value} value={time.value}>
-                        {time.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Slot Duration (minutes)</label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={bulkFormData.slotDurationMinutes}
-                  onChange={(e) => handleBulkInputChange('slotDurationMinutes', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Number of Slots</label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={bulkFormData.slotNumber}
-                  onChange={(e) => handleBulkInputChange('slotNumber', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Slot Interval (minutes)</label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={bulkFormData.slotIntervalMinutes}
-                  onChange={(e) => handleBulkInputChange('slotIntervalMinutes', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Location (optional)</label>
-                <Input
-                  type="text"
-                  value={bulkFormData.location}
-                  onChange={(e) => handleBulkInputChange('location', e.target.value)}
-                  placeholder="Enter location"
-                />
-              </div>
-            </div>
 
-            {bulkError && (
-              <p className="text-sm text-red-600 dark:text-red-400">{bulkError}</p>
-            )}
+          <BulkAppointmentForm
+            key={bulkFormKey}
+            defaultValues={{
+              startDate: selectedDate || new Date(),
+              endDate: selectedDate || new Date(),
+              startTime: '',
+              slotDurationMinutes: 60,
+              slotNumber: 1,
+              slotIntervalMinutes: 0,
+              location: '',
+            }}
+            loading={bulkLoading}
+            errorMessage={bulkError || ''}
+            onSubmit={handleBulkSubmit}
+            onCancel={() => {
+              resetBulkForm();
+              setIsBulkDialogOpen(false);
+            }}
+          />
 
-            <div className="flex justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsBulkDialogOpen(false);
-                  resetBulkForm();
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                disabled={bulkLoading}
-              >
-                {bulkLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Creating...
-                  </div>
-                ) : (
-                  'Create Slots'
-                )}
-              </Button>
-            </div>
-          </form>
         </DialogContent>
       </Dialog>
 
