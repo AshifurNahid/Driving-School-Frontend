@@ -299,17 +299,20 @@ const AdminAppointmentManagement = () => {
     dispatch(createBulkAppointmentSlots(payload));
   };
 
-  const getStatusBadge = (status: number) => {
-    switch (status) {
-      case 0:
-        return <Badge className="text-xs px-4 py-1.5 bg-red-100 text-red-700 hover:bg-red-100 border border-red-200">Deleted</Badge>;
-      case 1:
-        return <Badge className="text-xs px-4 py-1.5 bg-green-100 text-green-700 hover:bg-green-100 border border-green-200">Open</Badge>;
-      case 2:
-        return <Badge className="text-xs px-4 py-1.5 bg-orange-100 text-orange-700 hover:bg-orange-100 border border-orange-200">Booked</Badge>;
-      default:
-        return <Badge variant="outline" className="text-xs px-4 py-1.5">Unknown</Badge>;
+  const getStatusBadge = (slot: any) => {
+    if (slot.status === 0) {
+      return <Badge className="text-xs px-4 py-1.5 bg-red-100 text-red-700 hover:bg-red-100 border border-red-200">Deleted</Badge>;
     }
+
+    if (slot.isBooked) {
+      return <Badge className="text-xs px-4 py-1.5 bg-orange-100 text-orange-700 hover:bg-orange-100 border border-orange-200">Booked</Badge>;
+    }
+
+    if (slot.isBooked === false) {
+      return <Badge className="text-xs px-4 py-1.5 bg-green-100 text-green-700 hover:bg-green-100 border border-green-200">Open</Badge>;
+    }
+
+    return <Badge variant="outline" className="text-xs px-4 py-1.5">Unknown</Badge>;
   };
 
   // Filter out soft-deleted appointments (status=0) from the display
@@ -459,6 +462,7 @@ const AdminAppointmentManagement = () => {
                         <ChevronDown className="w-4 h-4" />
                       </div>
                     </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Price</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Status</th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100">Action</th>
                   </tr>
@@ -488,8 +492,11 @@ const AdminAppointmentManagement = () => {
                       <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                         {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                       </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                        {slot.pricePerSlot !== undefined && slot.pricePerSlot !== null ? `$${slot.pricePerSlot}` : '-'}
+                      </td>
                       <td className="px-6 py-4">
-                        {getStatusBadge(slot.status)}
+                        {getStatusBadge(slot)}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
