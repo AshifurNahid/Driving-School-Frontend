@@ -49,6 +49,15 @@ const generateTimeOptions = () => {
   return times;
 };
 
+const normalizeTimeValue = (time?: string | null) => {
+  if (!time) return '';
+
+  const [hours, minutes] = time.split(':');
+  if (!hours || !minutes) return '';
+
+  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+};
+
 const AppointmentForm = ({
   instructors = [],
   instructorsLoading = false,
@@ -64,10 +73,10 @@ const AppointmentForm = ({
   const timeOptions = generateTimeOptions();
 
   const defaultValues = {
-    instructorId: editingAppointment?.instructorId?.toString() || '',
+    instructorId: editingAppointment?.instructorId ? editingAppointment.instructorId.toString() : '',
     date: editingAppointment?.date ? new Date(editingAppointment.date) : selectedDate || undefined,
-    startTime: editingAppointment?.startTime || '',
-    endTime: editingAppointment?.endTime || '',
+    startTime: normalizeTimeValue(editingAppointment?.startTime),
+    endTime: normalizeTimeValue(editingAppointment?.endTime),
     location: editingAppointment?.location || '',
   };
 
@@ -83,9 +92,11 @@ const AppointmentForm = ({
   }, [editingAppointment, selectedDate, form]);
 
   const handleSubmit = (data: any) => {
+    const instructorId = data.instructorId ? parseInt(data.instructorId) : null;
+
     const formattedData = {
       ...data,
-      instructorId: parseInt(data.instructorId),
+      instructorId,
       date: format(data.date, 'yyyy-MM-dd'),
     };
     onSubmit(formattedData);
