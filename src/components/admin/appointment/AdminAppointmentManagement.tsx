@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/redux/store';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import {
   getAppointmentSlotsByDate,
   createAppointmentSlot,
@@ -36,6 +37,7 @@ import BulkAppointmentForm from '@/components/ui/BulkAppointmentForm';
 const AdminAppointmentManagement = () => {
   const { toast } = useToast();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   
   // Redux state selectors
   const { appointmentSlots: slotsData, loading: slotsLoading, error: slotsError } = useSelector(
@@ -500,6 +502,15 @@ const AdminAppointmentManagement = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
+                          {slot.isBooked && (
+                            <Button
+                              variant="outline"
+                              className="px-4 py-2 border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-200 dark:hover:bg-purple-900/30"
+                              onClick={() => navigate(`/admin/appointments/${slot.id}/user-info`)}
+                            >
+                              View Booking
+                            </Button>
+                          )}
                           <Button
                             onClick={() => handleEdit(slot)}
                             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg"
