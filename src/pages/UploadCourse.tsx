@@ -28,7 +28,7 @@ interface Subsection {
   description?: string;
   duration?: number | string;
   videoUrl: string;
-  pdfUrl?: string;
+  lesson_attachment_path?: string;
 }
 
 interface Question {
@@ -715,7 +715,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                 course_module_lessons: mod.subsections.map((sub, subIdx) => ({
                   lesson_title: sub.title,
                   lesson_description: sub.description,
-                  lesson_attachment_path: sub.videoUrl,
+                  lesson_attachment_path: sub.lesson_attachment_path || null,
                   duration: parseFloat(String(sub.duration)) || 0,
                   sequence: subIdx,
                 })),
@@ -742,6 +742,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
       };
 
       if (mode === 'edit' && course?.id) {
+        //console.log(payload);
       await dispatch(updateAdminCourse(course?.id, payload));
         toast({
           title: "Course updated!",
@@ -1285,17 +1286,16 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                                               const reader = new FileReader();
                                               reader.onloadend = () => {
                                                 const base64 = reader.result as string;
-                                                updateSubsection(moduleIndex, subsectionIndex, 'pdfUrl', base64);
+                                                updateSubsection(moduleIndex, subsectionIndex, 'lesson_attachment_path', base64);
                                               };
                                               reader.readAsDataURL(file);
                                             } else {
-                                              updateSubsection(moduleIndex, subsectionIndex, 'pdfUrl', '');
+                                              updateSubsection(moduleIndex, subsectionIndex, 'lesson_attachment_path', '');
                                             }
                                           }}
                                           className="bg-background"
                                         />
-                                        {/* Show selected file name if a file is chosen */}
-                                        {subsection.pdfUrl && (
+                                        {Boolean(subsection.lesson_attachment_path) && (
                                           <div className="text-xs text-muted-foreground mt-1">PDF selected</div>
                                         )}
                                       </div>

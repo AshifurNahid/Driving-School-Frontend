@@ -150,8 +150,8 @@ export default function AboutTwo() {
         </p>
         <div className="grid md:grid-cols-3 gap-8">
           {programs.map((program, index) => (
-            <div
-              key={index}
+            <div 
+              key={index} 
               className={[
                 'group bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border-t-4',
                 program.border,
@@ -228,8 +228,8 @@ export default function AboutTwo() {
           </p>
           <Link to="/courses">
             <button className={`${isDarkMode ? 'bg-blue-800 text-blue-100 hover:bg-blue-700' : 'bg-white text-blue-700 hover:bg-blue-50'} px-8 py-4 rounded-full text-lg font-bold transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:scale-105`}>
-              Explore Our Programs
-            </button>
+            Explore Our Programs
+          </button>
           </Link>
         </div>
       </div>

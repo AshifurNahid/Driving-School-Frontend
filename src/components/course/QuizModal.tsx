@@ -119,13 +119,13 @@ console.log(localQuiz.max_attempts);
       const questions = [...localQuiz.questions];
       const isMultiple = questions[idx]?.allowMultiple || false;
       if (isMultiple) {
-        let arr = prevCorrect ? prevCorrect.split(',').filter(Boolean) : [];
-        if (checked) {
-          if (!arr.includes(key)) arr.push(key);
-        } else {
-          arr = arr.filter((k) => k !== key);
-        }
-        updateQuestion(idx, 'correct_answers', arr.join(','));
+      let arr = prevCorrect ? prevCorrect.split(',').filter(Boolean) : [];
+      if (checked) {
+        if (!arr.includes(key)) arr.push(key);
+      } else {
+        arr = arr.filter((k) => k !== key);
+      }
+      updateQuestion(idx, 'correct_answers', arr.join(','));
       } else {
         updateQuestion(idx, 'correct_answers', key);
       }
@@ -280,19 +280,19 @@ console.log(localQuiz.max_attempts);
                           />
                           <label htmlFor={`allow-multiple-${idx}`} className="text-sm">Allow multiple correct answers</label>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {['a', 'b', 'c', 'd'].map((key) => (
-                            <Input
-                              key={key}
-                              placeholder={`Option ${key.toUpperCase()}`}
-                              value={optionsObj[key]}
-                              onChange={e => {
-                                const newOptions = { ...optionsObj, [key]: e.target.value };
-                                updateQuestion(idx, 'options', newOptions);
-                              }}
-                            />
-                          ))}
-                        </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['a', 'b', 'c', 'd'].map((key) => (
+                        <Input
+                          key={key}
+                          placeholder={`Option ${key.toUpperCase()}`}
+                          value={optionsObj[key]}
+                          onChange={e => {
+                            const newOptions = { ...optionsObj, [key]: e.target.value };
+                            updateQuestion(idx, 'options', newOptions);
+                          }}
+                        />
+                      ))}
+                    </div>
                       </>
                     )}
                     {q.type === 1 && (
@@ -329,17 +329,17 @@ console.log(localQuiz.max_attempts);
                               </label>
                             ))
                           ) : (
-                            ['a', 'b', 'c', 'd'].map((key) => (
-                              <label key={key} className="flex items-center gap-1 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name={`single-correct-${idx}`}
-                                  checked={q.correct_answers === key}
+                          ['a', 'b', 'c', 'd'].map((key) => (
+                            <label key={key} className="flex items-center gap-1 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`single-correct-${idx}`}
+                                checked={q.correct_answers === key}
                                   onChange={() => handleCorrectAnswer(idx, key, true, 0, q.correct_answers)}
-                                />
-                                <span>{optionsObj[key] || key.toUpperCase()}</span>
-                              </label>
-                            ))
+                              />
+                              <span>{optionsObj[key] || key.toUpperCase()}</span>
+                            </label>
+                          ))
                           ))
                         )}
                         {q.type === 1 && (
@@ -383,7 +383,7 @@ console.log(localQuiz.max_attempts);
                   points: q.points,
                 };
                 if (q.type === 0) {
-                  const optionsObj = parseOptions(q.options);
+                const optionsObj = parseOptions(q.options);
                   base.options = ['a','b','c','d'].map((k) => optionsObj[k] || '').join(',');
                   base.correct_answers = q.correct_answers || '';
                 } else if (q.type === 1) {
