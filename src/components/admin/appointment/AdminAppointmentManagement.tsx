@@ -604,7 +604,7 @@ const AdminAppointmentManagement = () => {
       </Dialog>
 
       <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
-        <DialogContent className="max-w-4xl bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">Booking Details</DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-400">

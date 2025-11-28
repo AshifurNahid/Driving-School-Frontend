@@ -64,6 +64,7 @@ export interface AppointmentSlot {
   updatedAt: string;
   pricePerSlot?: number;
   instructorName?: string;
+  isBooked?: boolean;
 }
 
 // Interface for appointment slots state
