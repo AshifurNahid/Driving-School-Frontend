@@ -38,12 +38,7 @@ const generateTimeOptions = () => {
   for (let hour = 0; hour < 24; hour++) {
     for (let minute of ['00', '30']) {
       const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
-      const displayTime = new Date(`1970-01-01T${timeString}:00`).toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-      times.push({ value: timeString, label: displayTime });
+      times.push({ value: timeString, label: timeString });
     }
   }
   return times;

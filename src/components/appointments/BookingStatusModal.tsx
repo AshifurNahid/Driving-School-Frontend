@@ -67,23 +67,11 @@ const BookingStatusModal: React.FC<BookingStatusModalProps> = ({
 
   const formatTime = (timeString: string): string => {
     if (!timeString) return "TBD";
-    
+
     try {
-      // Handle time in HH:mm:ss format (from API response)
-      if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+      if (timeString.match(/^\d{2}:\d{2}(:\d{2})?$/)) {
         const [hours, minutes] = timeString.split(':');
-        const hour24 = parseInt(hours);
-        const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-        const ampm = hour24 >= 12 ? 'PM' : 'AM';
-        return `${hour12}:${minutes} ${ampm}`;
-      }
-      // Handle time in HH:mm format
-      else if (timeString.match(/^\d{2}:\d{2}$/)) {
-        const [hours, minutes] = timeString.split(':');
-        const hour24 = parseInt(hours);
-        const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-        const ampm = hour24 >= 12 ? 'PM' : 'AM';
-        return `${hour12}:${minutes} ${ampm}`;
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
       }
       return timeString;
     } catch (error) {

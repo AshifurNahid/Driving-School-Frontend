@@ -38,12 +38,7 @@ const generateTimeOptions = () => {
   for (let hour = 0; hour < 24; hour++) {
     for (let minute of ['00', '30']) {
       const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
-      const displayTime = new Date(`1970-01-01T${timeString}:00`).toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-      times.push({ value: timeString, label: displayTime });
+      times.push({ value: timeString, label: timeString });
     }
   }
   return times;
@@ -394,13 +389,10 @@ const AdminAppointmentManagement = () => {
   // Filter out soft-deleted appointments (status=0) from the display
   const visibleAppointments = appointmentSlots.filter(slot => slot.status !== 0);
 
-  // Format time to 12-hour format
+  // Format time to 24-hour HH:mm
   const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    const [hours = '', minutes = ''] = time.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
   };
 
   // Get instructor name by ID
