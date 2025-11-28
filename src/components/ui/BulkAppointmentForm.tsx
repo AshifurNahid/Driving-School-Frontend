@@ -251,7 +251,6 @@ const BulkAppointmentForm: React.FC<BulkAppointmentFormProps> = ({
                       <Input
                         type="number"
                         min={1}
-                        step={5}
                         {...field}
                         value={field.value}
                         onChange={(e) => field.onChange(Number(e.target.value))}
