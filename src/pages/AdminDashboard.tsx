@@ -319,15 +319,18 @@ const AdminDashboard = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-6">
-              <Badge 
-                variant="secondary" 
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <ThemeToggle />
+              </div>
+              <Badge
+                variant="secondary"
                 className="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 border border-emerald-400/30 text-emerald-100 px-3 py-1.5 font-semibold shadow-lg backdrop-blur-sm"
               >
                 <Shield className="h-3 w-3 mr-2" />
                 Administrator
               </Badge>
-              
+
               <Avatar className="h-10 w-10 shadow-lg ring-2 ring-blue-400/30">
                 <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
