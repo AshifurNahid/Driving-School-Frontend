@@ -258,7 +258,7 @@ const CanadianDrivingSchool = () => {
       </section> */}
 
       {/* Enhanced Statistics Section */}
-<section className="relative py-12 bg-gradient-to-br from-gray-100 via-white to-gray-100 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 overflow-hidden">
+<section className="relative py-12 bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 overflow-hidden">
   {/* Background decoration */}
   <div className="absolute inset-0 opacity-30">
     <div className="absolute top-10 left-10 w-72 h-72 bg-blue-200 dark:bg-blue-800 rounded-full blur-3xl opacity-20" />
@@ -293,7 +293,7 @@ const CanadianDrivingSchool = () => {
 
     {/* Features Grid */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="text-3xl">🎓</div>
         <div>
           <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
@@ -304,7 +304,7 @@ const CanadianDrivingSchool = () => {
           </p>
         </div>
       </div>
-      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="text-3xl">🚗</div>
         <div>
           <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
@@ -315,7 +315,7 @@ const CanadianDrivingSchool = () => {
           </p>
         </div>
       </div>
-      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="text-3xl">📅</div>
         <div>
           <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
@@ -326,7 +326,7 @@ const CanadianDrivingSchool = () => {
           </p>
         </div>
       </div>
-      <div className="flex items-start space-x-4 p-6 rounded-xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div className="flex items-start space-x-4 p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="text-3xl">📍</div>
         <div>
           <h3 className="text-lg font-bold mb-1 text-gray-900 dark:text-white">
@@ -357,7 +357,7 @@ const CanadianDrivingSchool = () => {
 </section>
 
       {/* Featured Courses Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white transition-colors dark:bg-gray-900" id="courses">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 transition-colors dark:bg-gray-900" id="courses">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 mb-4 dark:bg-blue-900/30 dark:text-blue-200">
@@ -374,9 +374,9 @@ const CanadianDrivingSchool = () => {
           </div>
 
           {loading ? (
-            <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200">Loading...</div>
+            <div className="text-center py-16 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200">Loading...</div>
           ) : error ? (
-            <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-red-600 dark:text-red-400">{error}</div>
+            <div className="text-center py-16 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-red-600 dark:text-red-400">{error}</div>
           ) : filteredCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {filteredCourses.map((course) => (
@@ -384,7 +384,7 @@ const CanadianDrivingSchool = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+            <div className="text-center py-16 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
               <h3 className="text-2xl font-semibold text-foreground dark:text-white">No Courses Found</h3>
               <p className="text-muted-foreground dark:text-gray-300 mt-2">Try adjusting your search or filters.</p>
             </div>
@@ -406,7 +406,7 @@ const CanadianDrivingSchool = () => {
 
       
 {/* Why Choose Us Section - Mobile Optimized */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 via-gray-100 to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden">
         {/* Background animation */}
         <div className="absolute inset-0">
           <div className="absolute top-10 left-10 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl animate-pulse" />
@@ -416,7 +416,7 @@ const CanadianDrivingSchool = () => {
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Enhanced header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-sm mb-4">
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-50/90 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-sm mb-4">
               <Zap className="w-4 h-4 mr-1" />
               The DriveCanada Advantage
             </div>
@@ -481,7 +481,7 @@ const CanadianDrivingSchool = () => {
                 {/* Hover glow */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-700 scale-105`} />
                 {/* Main card */}
-                <div className="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-2 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-102 hover:-translate-y-1 border border-white/40 dark:border-gray-700/40 h-full">
+                <div className="relative bg-gray-50/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-2 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-102 hover:-translate-y-1 border border-gray-200/70 dark:border-gray-700/40 h-full">
                   {/* Icon */}
                   <div className="flex justify-center mb-3">
                     <div className={`w-8 h-8 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 group-hover:rotate-3 transition-all duration-500`}>
@@ -506,7 +506,7 @@ const CanadianDrivingSchool = () => {
           </div>
         </div>
       </section>
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -551,9 +551,9 @@ const CanadianDrivingSchool = () => {
               color: "blue"
             }
           ].map((contact, idx) => (
-            <div 
-              key={idx} 
-              className="group bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+            <div
+              key={idx}
+              className="group bg-gray-100 dark:bg-gray-800 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
             >
               {/* Icon */}
               <div className="flex justify-center mb-6">
