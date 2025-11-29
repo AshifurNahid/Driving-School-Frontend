@@ -97,6 +97,7 @@ export interface UserAppointmentItem {
   drivingExperience: string | null;
   isLicenceFromAnotherCountry: boolean;
   status: string;
+  cancelReason: string | null;
   createdAt: string;
   appointmentSlot: {
     id: number;
