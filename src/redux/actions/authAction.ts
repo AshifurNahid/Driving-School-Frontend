@@ -31,7 +31,8 @@ export const login = (email: string, password: string) => async (dispatch: any) 
 
 // Register Action
 export const register = (
-  full_name: string,
+  first_name: string,
+  last_name: string,
   email: string,
   password: string,
   phone: string
@@ -39,7 +40,8 @@ export const register = (
   try {
     dispatch({ type: USER_REGISTER_REQUEST });
     const { data } = await api.post("/register", {
-      full_name,
+      first_name,
+      last_name,
       email,
       password,
       phone,

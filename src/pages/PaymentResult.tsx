@@ -75,10 +75,7 @@ const PaymentResult = () => {
               <Home className="h-4 w-4" />
               Home
             </Button>
-            <Button
-              onClick={() => navigate("/learner/courses")}
-              className="gap-2 w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition dark:bg-indigo-500 dark:hover:bg-indigo-600"
-            >
+            <Button onClick={() => navigate("/learner/profile", { state: { section: 'courses' } })} className="gap-2">
               <ShoppingBag className="h-4 w-4" />
               My Courses
             </Button>
