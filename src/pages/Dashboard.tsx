@@ -171,7 +171,7 @@ const LoadingGrid = () => (
   </div>
 );
 
-const Dashboard = () => {
+export const DashboardContent = ({ embedded = false }: { embedded?: boolean }) => {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -237,216 +237,228 @@ const Dashboard = () => {
     return Math.round((active / total) * 100);
   }, [summary?.data.userStats]);
 
-  return (
-    <div className="min-h-screen bg-muted/30">
-      <RoleBasedNavigation />
+  const content = (
+    <>
+      <header className="space-y-2">
+        <p className="text-sm font-semibold text-primary uppercase tracking-wide">Dashboard</p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Driving School Dashboard</h1>
+        <p className="text-muted-foreground text-base">Overview for {formattedMonth || "--"}</p>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-        <header className="space-y-2">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wide">Dashboard</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Driving School Dashboard</h1>
-          <p className="text-muted-foreground text-base">Overview for {formattedMonth || "--"}</p>
-        </header>
+      {loading && (
+        <>
+          <LoadingGrid />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="shadow-sm">
+              <CardHeader className="space-y-3">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-4 w-60" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardHeader className="space-y-3">
+                <Skeleton className="h-5 w-52" />
+                <Skeleton className="h-4 w-48" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
 
-        {loading && (
-          <>
-            <LoadingGrid />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="shadow-sm">
-                <CardHeader className="space-y-3">
-                  <Skeleton className="h-5 w-40" />
-                  <Skeleton className="h-4 w-60" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-64 w-full" />
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm">
-                <CardHeader className="space-y-3">
-                  <Skeleton className="h-5 w-52" />
-                  <Skeleton className="h-4 w-48" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-64 w-full" />
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )}
+      {!loading && (error || statusInvalid) && (
+        <Card className="border-destructive/30 bg-destructive/10">
+          <CardHeader>
+            <CardTitle className="text-destructive">Unable to load dashboard</CardTitle>
+            <CardDescription className="text-destructive">
+              {error || summary?.status.message || "Unexpected error fetching dashboard data."}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
-        {!loading && (error || statusInvalid) && (
-          <Card className="border-destructive/30 bg-destructive/10">
-            <CardHeader>
-              <CardTitle className="text-destructive">Unable to load dashboard</CardTitle>
-              <CardDescription className="text-destructive">
-                {error || summary?.status.message || "Unexpected error fetching dashboard data."}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )}
+      {!loading && summary && !statusInvalid && (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <StatCard
+              title="Monthly Enrollments"
+              value={summary.data.courseStats.currentMonthEnrollments}
+              subtitle="New students this month"
+              icon={UsersIcon}
+            />
+            <StatCard
+              title="Monthly Revenue"
+              value={`$${summary.data.courseStats.currentMonthRevenue.toLocaleString()}`}
+              subtitle="Total revenue this month"
+              icon={CircleDollarSign}
+            />
+            <StatCard
+              title="Today’s Appointments"
+              value={summary.data.appointmentStats.todayAppointments}
+              subtitle={formattedToday || "--"}
+              icon={CalendarDays}
+            />
+            <StatCard
+              title="Total Users"
+              value={summary.data.userStats.totalUsers}
+              subtitle="Total registered users"
+              icon={UsersIcon}
+            />
+            <StatCard
+              title="Pending Appointments"
+              value={summary.data.appointmentStats.pendingAppointments}
+              subtitle="Awaiting confirmation"
+              icon={Clock3}
+            />
+            <StatCard
+              title="New Users This Month"
+              value={summary.data.userStats.newUsersThisMonth}
+              subtitle="New users this month"
+              icon={UserPlus}
+            />
+          </div>
 
-        {!loading && summary && !statusInvalid && (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              <StatCard
-                title="Monthly Enrollments"
-                value={summary.data.courseStats.currentMonthEnrollments}
-                subtitle="New students this month"
-                icon={UsersIcon}
-              />
-              <StatCard
-                title="Monthly Revenue"
-                value={`$${summary.data.courseStats.currentMonthRevenue.toLocaleString()}`}
-                subtitle="Total revenue this month"
-                icon={CircleDollarSign}
-              />
-              <StatCard
-                title="Today’s Appointments"
-                value={summary.data.appointmentStats.todayAppointments}
-                subtitle={formattedToday || "--"}
-                icon={CalendarDays}
-              />
-              <StatCard
-                title="Total Users"
-                value={summary.data.userStats.totalUsers}
-                subtitle="Total registered users"
-                icon={UsersIcon}
-              />
-              <StatCard
-                title="Pending Appointments"
-                value={summary.data.appointmentStats.pendingAppointments}
-                subtitle="Awaiting confirmation"
-                icon={Clock3}
-              />
-              <StatCard
-                title="New Users This Month"
-                value={summary.data.userStats.newUsersThisMonth}
-                subtitle="New users this month"
-                icon={UserPlus}
-              />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Monthly Appointments" subtitle="Daily appointment distribution">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={summary.data.appointmentStats.dailyBookedAppointments}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value) => new Date(value).getDate().toString()}
+                    tickLine={false}
+                  />
+                  <YAxis allowDecimals={false} tickLine={false} />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleDateString("en-US")}
+                    formatter={(value: number) => [`${value} booked`, "Appointments"]}
+                  />
+                  <Bar dataKey="bookedCount" fill="#2563EB" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ChartCard title="Monthly Appointments" subtitle="Daily appointment distribution">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={summary.data.appointmentStats.dailyBookedAppointments}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={(value) => new Date(value).getDate().toString()}
-                      tickLine={false}
-                    />
-                    <YAxis allowDecimals={false} tickLine={false} />
-                    <Tooltip
-                      labelFormatter={(value) => new Date(value).toLocaleDateString("en-US")}
-                      formatter={(value: number) => [`${value} booked`, "Appointments"]}
-                    />
-                    <Bar dataKey="bookedCount" fill="#2563EB" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartCard>
+            <ChartCard title="Appointment Status Distribution" subtitle="Current status breakdown">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip formatter={(value: number) => [`${value}`, "Appointments"]} />
+                  <Legend />
+                  <Pie data={appointmentStatusData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={100} paddingAngle={4}>
+                    {appointmentStatusData.map((entry, index) => (
+                      <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </div>
 
-              <ChartCard title="Appointment Status Distribution" subtitle="Current status breakdown">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="User Growth" subtitle="New user registrations over time">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={summary.data.userStats.userGrowthLast6Months}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="month"
+                    tickFormatter={(value) => new Date(`${value}-01`).toLocaleDateString("en-US", { month: "short" })}
+                    tickLine={false}
+                  />
+                  <YAxis allowDecimals={false} tickLine={false} />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(`${value}-01`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                    formatter={(value: number) => [`${value}`, "Users"]}
+                  />
+                  <Line type="monotone" dataKey="userCount" stroke="#2563EB" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="User Activity" subtitle="Active vs total users">
+              <div className="h-full flex items-center justify-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Tooltip formatter={(value: number) => [`${value}`, "Appointments"]} />
-                    <Legend />
-                    <Pie data={appointmentStatusData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={100} paddingAngle={4}>
-                      {appointmentStatusData.map((entry, index) => (
+                    <Tooltip formatter={(value: number) => [`${value}`, "Users"]} />
+                    <Pie data={userActivityData} dataKey="value" nameKey="name" innerRadius={70} outerRadius={110} paddingAngle={4}>
+                      {userActivityData.map((entry, index) => (
                         <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-              </ChartCard>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ChartCard title="User Growth" subtitle="New user registrations over time">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={summary.data.userStats.userGrowthLast6Months}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="month"
-                      tickFormatter={(value) => new Date(`${value}-01`).toLocaleDateString("en-US", { month: "short" })}
-                      tickLine={false}
-                    />
-                    <YAxis allowDecimals={false} tickLine={false} />
-                    <Tooltip
-                      labelFormatter={(value) => new Date(`${value}-01`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                      formatter={(value: number) => [`${value}`, "Users"]}
-                    />
-                    <Line type="monotone" dataKey="userCount" stroke="#2563EB" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartCard>
-
-              <ChartCard title="User Activity" subtitle="Active vs total users">
-                <div className="h-full flex items-center justify-center relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Tooltip formatter={(value: number) => [`${value}`, "Users"]} />
-                      <Pie data={userActivityData} dataKey="value" nameKey="name" innerRadius={70} outerRadius={110} paddingAngle={4}>
-                        {userActivityData.map((entry, index) => (
-                          <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute text-center">
-                    <div className="text-3xl font-semibold text-foreground">{activePercentage}%</div>
-                    <p className="text-sm text-muted-foreground">Active users</p>
-                  </div>
+                <div className="absolute text-center">
+                  <div className="text-3xl font-semibold text-foreground">{activePercentage}%</div>
+                  <p className="text-sm text-muted-foreground">Active users</p>
                 </div>
-              </ChartCard>
+              </div>
+            </ChartCard>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TopCoursesTable courses={summary.data.courseStats.topCourses} />
+
+            <ChartCard title="Top Courses" subtitle="Most popular courses by enrollment">
+              {summary.data.courseStats.topCourses.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={summary.data.courseStats.topCourses}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" tickLine={false} />
+                    <YAxis allowDecimals={false} tickLine={false} />
+                    <Tooltip formatter={(value: number) => [`${value}`, "Enrollments"]} />
+                    <Bar dataKey="enrollments" radius={[6, 6, 0, 0]} fill="#7C3AED">
+                      {summary.data.courseStats.topCourses.map((course, index) => (
+                        <Cell key={course.courseId} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No course enrollments this month.</div>
+              )}
+            </ChartCard>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+            <div>
+              <p className="font-semibold text-foreground">Appointments</p>
+              <p>Current month: {summary.data.appointmentStats.currentMonthAppointments}</p>
+              <p>Upcoming 7 days: {summary.data.appointmentStats.upcoming7DaysAppointments}</p>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TopCoursesTable courses={summary.data.courseStats.topCourses} />
-
-              <ChartCard title="Top Courses" subtitle="Most popular courses by enrollment">
-                {summary.data.courseStats.topCourses.length ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={summary.data.courseStats.topCourses}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="name" tickLine={false} />
-                      <YAxis allowDecimals={false} tickLine={false} />
-                      <Tooltip formatter={(value: number) => [`${value}`, "Enrollments"]} />
-                      <Bar dataKey="enrollments" radius={[6, 6, 0, 0]} fill="#7C3AED">
-                        {summary.data.courseStats.topCourses.map((course, index) => (
-                          <Cell key={course.courseId} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No course enrollments this month.</div>
-                )}
-              </ChartCard>
+            <div>
+              <p className="font-semibold text-foreground">Courses</p>
+              <p>Top course count: {summary.data.courseStats.topCourses.length}</p>
             </div>
-
-            <Separator />
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-              <div>
-                <p className="font-semibold text-foreground">Appointments</p>
-                <p>Current month: {summary.data.appointmentStats.currentMonthAppointments}</p>
-                <p>Upcoming 7 days: {summary.data.appointmentStats.upcoming7DaysAppointments}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">Courses</p>
-                <p>Top course count: {summary.data.courseStats.topCourses.length}</p>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">Users</p>
-                <p>Total active users: {summary.data.userStats.totalActiveUsers}</p>
-              </div>
+            <div>
+              <p className="font-semibold text-foreground">Users</p>
+              <p>Total active users: {summary.data.userStats.totalActiveUsers}</p>
             </div>
           </div>
-        )}
+        </div>
+      )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="space-y-8">{content}</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <RoleBasedNavigation />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+        {content}
       </div>
     </div>
   );
 };
+
+const Dashboard = () => <DashboardContent />;
 
 export default Dashboard;
