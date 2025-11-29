@@ -41,69 +41,22 @@ const ProfileHeader = ({ userInfo, activeSection, sidebarItems }: ProfileHeaderP
                 <AvatarFallback className="rounded-2xl text-base font-semibold">{initials}</AvatarFallback>
               </Avatar>
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Profile Overview</p>
                 <div className="space-y-1">
                   <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-50 leading-tight">{sectionLabel}</h1>
-                  <p className="text-sm text-muted-foreground">{displayName}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                  <Badge variant="outline" className="border-blue-200 text-blue-700 dark:border-blue-500/50 dark:text-blue-200">
-                    {userInfo?.role?.title || 'Learner'}
-                  </Badge>
-                  <span className="flex items-center gap-1">
-                    <Shield className="h-4 w-4" />
-                    Active learner account
-                  </span>
+                
+                  
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-[260px]">
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/70 p-4">
-                <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Contact</p>
-                <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-blue-500" />
-                    <span>{userInfo?.email || 'No email provided'}</span>
-                  </div>
-                  {userInfo?.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-blue-500" />
-                      <span>{userInfo.phone}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/80 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-4">
-                <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Status</p>
-                <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-blue-500" />
-                    <span>Enrolled learner</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Keep progressing to unlock achievements.</p>
-                </div>
-              </div>
-            </div>
+          
           </div>
 
           <Separator className="border-slate-200 dark:border-slate-800" />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-              <span>Overview keeps your current journey visible.</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-blue-500" />
-              <span>Appointments, courses, materials and achievements are one tap away.</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-amber-500" />
-              <span>Responsive layout keeps everything aligned on any device.</span>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>

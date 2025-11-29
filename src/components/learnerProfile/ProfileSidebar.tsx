@@ -153,13 +153,12 @@ const ProfileSidebar = ({ userInfo, activeSection, setActiveSection, sidebarItem
             </Avatar>
             {isOpen && (
               <div className="leading-tight">
-                <p className="text-xs text-slate-500 dark:text-slate-400">Profile</p>
                 <p className="text-lg font-semibold">{displayName}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="secondary" className="bg-blue-500/10 text-blue-700 dark:text-blue-300 dark:bg-blue-500/20">
                     {userInfo?.role?.title || 'Learner'}
                   </Badge>
-                  <span className="text-[11px] text-slate-400">ID: {userInfo?.id ?? 'N/A'}</span>
+                 
                 </div>
               </div>
             )}
@@ -197,10 +196,7 @@ const ProfileSidebar = ({ userInfo, activeSection, setActiveSection, sidebarItem
                   <span>{userInfo.phone}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                <Star className="h-4 w-4 text-blue-500" />
-                <span className="text-xs text-slate-500">Learning journey overview</span>
-              </div>
+              
             </div>
           )}
 
