@@ -97,7 +97,7 @@ const DrivingSchoolLearnerProfile = () => {
   return (
     <>
       <RoleBasedNavigation />
-      <div className="min-h-screen bg-background mt-14 relative">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 mt-14 pt-4 relative">
         <ProfileSidebar
           userInfo={userInfo}
           activeSection={activeSection}
@@ -105,8 +105,8 @@ const DrivingSchoolLearnerProfile = () => {
           sidebarItems={sidebarItems}
         />
 
-        <div className="relative flex-1 px-4 sm:px-6 lg:px-10 py-6 lg:pl-80 xl:pl-[21rem] transition-all duration-300">
-          <div className="max-w-6xl mx-auto">
+        <div className="relative flex-1 px-4 sm:px-6 lg:px-10 py-8 lg:pl-[19rem] xl:pl-[21rem] transition-all duration-300">
+          <div className="max-w-6xl mx-auto space-y-10">
             <ProfileHeader
               userInfo={userInfo}
               activeSection={activeSection}

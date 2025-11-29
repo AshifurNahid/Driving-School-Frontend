@@ -134,7 +134,7 @@ const ProfileSidebar = ({ userInfo, activeSection, setActiveSection, sidebarItem
         className={cn(
           'bg-white/95 dark:bg-slate-950/95 border-r border-slate-200/60 dark:border-slate-900 shadow-2xl',
           'backdrop-blur flex flex-col transition-all duration-300',
-          'fixed inset-y-0 left-0 z-40 lg:static lg:h-auto lg:shadow-none',
+          'fixed inset-y-0 left-0 z-40 lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:rounded-tr-3xl lg:shadow-xl',
           isOpen ? 'w-72 translate-x-0' : 'w-[84px]',
           isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'
         )}
