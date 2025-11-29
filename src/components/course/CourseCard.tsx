@@ -26,7 +26,7 @@ export const CourseCard = ({ course }: { course: Course }) => {
   const imageSrc = getImageUrl(course.thumbnail_photo_path);
 
   return (
-    <div className="bg-card dark:bg-slate-950 border border-slate-900 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group h-full min-h-[420px] text-card-foreground">
+    <div className="bg-card dark:bg-slate-950 border  rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group h-full min-h-[420px] text-card-foreground">
       <div className="relative p-3">
         <img 
           src={imageSrc}
