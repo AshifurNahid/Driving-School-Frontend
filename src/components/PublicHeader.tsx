@@ -59,7 +59,7 @@ const PublicHeader = () => {
                     onClick={() => navigate("/learner/profile")}
                   >
                     <img
-                      src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)}
+                      src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.first_name+" "+userInfo.last_name)}
                       alt="avatar"
                       className="w-8 h-8 rounded-full mr-2 inline-block"
                     />
@@ -120,7 +120,7 @@ const PublicHeader = () => {
                               onClick={() => navigate("/learner/profile")}>
                             
                               <img
-                                src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.full_name)}
+                                src={userInfo.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo.first_name+" "+userInfo.last_name)}
                                 alt="avatar"
                                 className="w-8 h-8 rounded-full mr-2 inline-block"
                               />

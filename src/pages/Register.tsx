@@ -58,7 +58,8 @@ const { userInfo, loading, error } = useAuth();
 
     // Call register action
     dispatch(register(
-      `${formData.firstName} ${formData.lastName}`,
+      formData.firstName,
+      formData.lastName,
       formData.email,
       formData.password,
       formData.phone

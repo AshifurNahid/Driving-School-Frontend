@@ -1,6 +1,7 @@
 // pages/DrivingSchoolLearnerProfile.tsx
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from 'react-router-dom';
 import { getUserCourses } from "@/redux/actions/userCourseAction";
 import { getUserAppointments } from "@/redux/actions/appointmentAction";
 import { RootState } from "@/redux/store";
@@ -20,7 +21,9 @@ import ProfileHeader from '@/components/learner/ProfileHeader';
 import { mapAppointmentsData, mapCoursesData } from '@/components/learner/utils/dataMappers';
 
 const DrivingSchoolLearnerProfile = () => {
-  const [activeSection, setActiveSection] = useState('overview');
+  const location = useLocation();
+  const sectionFromState = (location.state as any)?.section;
+  const [activeSection, setActiveSection] = useState(sectionFromState || 'overview');
 
   // Redux state
   const { userInfo } = useSelector((state: RootState) => state.auth);
@@ -35,6 +38,14 @@ const DrivingSchoolLearnerProfile = () => {
       dispatch(getUserAppointments(userId) as any);
     }
   }, [dispatch, userId]);
+
+  // Update active section when location state changes
+  useEffect(() => {
+    const sectionFromState = (location.state as any)?.section;
+    if (sectionFromState) {
+      setActiveSection(sectionFromState);
+    }
+  }, [location.state]);
 
   // Transform data using utility functions
   const mappedCourses = mapCoursesData(courses);

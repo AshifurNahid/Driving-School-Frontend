@@ -19,10 +19,10 @@ const ProfileSidebar = ({ userInfo, activeSection, setActiveSection, sidebarItem
   <div className="w-64 bg-card border-r min-h-screen p-6">
     <div className="mb-8 text-center">
       <Avatar className="h-20 w-20 mx-auto mb-4">
-        <AvatarImage src={userInfo?.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo?.full_name || "User")} alt={userInfo?.full_name || "User"} />
-        <AvatarFallback className="text-lg">{(userInfo?.full_name || "User").split(' ').map(n => n[0]).join('')}</AvatarFallback>
+        <AvatarImage src={userInfo?.user_detail?.image_path || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userInfo?.first_name+" "+userInfo?.last_name || "User")} alt={userInfo?.first_name+" "+userInfo?.last_name || "User"} />
+        <AvatarFallback className="text-lg">{(userInfo?.first_name+" "+userInfo?.last_name || "User").split(' ').map(n => n[0]).join('')}</AvatarFallback>
       </Avatar>
-      <h2 className="font-bold text-foreground">{userInfo?.full_name || "User"}</h2>
+      <h2 className="font-bold text-foreground">{userInfo?.first_name+" "+userInfo?.last_name || "User"}</h2>
       <p className="text-sm text-muted-foreground">{userInfo?.role?.title || "Learner"}</p>
       <p className="text-xs text-muted-foreground mt-1">ID: {userInfo?.id || "N/A"}</p>
       {userInfo?.phone && (
