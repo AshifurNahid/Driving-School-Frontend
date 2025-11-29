@@ -19,7 +19,7 @@ const PaymentResult = () => {
   const isSuccess = state.status === "succeeded" || state.status === "success";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-50">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
       <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
@@ -29,7 +29,7 @@ const PaymentResult = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Card className="bg-white/90 dark:bg-slate-900/80 backdrop-blur p-10 rounded-2xl shadow-2xl text-center space-y-6 border border-indigo-100 dark:border-slate-800">
+        <Card className="bg-white p-10 rounded-2xl shadow-2xl text-center space-y-6 border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
           <CardHeader className="space-y-4 p-0">
             {isSuccess ? (
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600 shadow-inner dark:bg-green-950/50 dark:text-green-300">

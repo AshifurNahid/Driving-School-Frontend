@@ -245,7 +245,7 @@ const CheckoutContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
         <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
@@ -254,7 +254,7 @@ const CheckoutContent = () => {
           </div>
         </header>
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Card className="bg-white/90 dark:bg-slate-900/80 backdrop-blur p-6 rounded-2xl shadow-xl border border-indigo-100 dark:border-slate-800">
+          <Card className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
             <CardContent className="p-0 flex items-center gap-3 text-gray-700 dark:text-slate-200">
               <Loader2 className="h-5 w-5 animate-spin text-indigo-600" /> Loading checkout details...
             </CardContent>
@@ -265,7 +265,7 @@ const CheckoutContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-50">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
       <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
@@ -276,12 +276,12 @@ const CheckoutContent = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="max-w-3xl mx-auto space-y-6">
-          <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur p-8 rounded-2xl shadow-xl border border-indigo-100 dark:border-slate-800">
+          <div className="bg-white p-8 rounded-2xl shadow-xl border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
             <h1 className="text-2xl font-semibold text-gray-800 mb-2 dark:text-slate-50">Checkout</h1>
             <p className="text-gray-600 text-sm dark:text-slate-300">Complete your purchase to access the course.</p>
           </div>
 
-          <Card className="bg-white/90 dark:bg-slate-900/80 backdrop-blur p-8 rounded-2xl shadow-xl border border-indigo-100 dark:border-slate-800">
+          <Card className="bg-white p-8 rounded-2xl shadow-xl border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
             <CardHeader className="p-0 mb-6 space-y-1">
               <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-slate-50">{course?.title || "Course"}</CardTitle>
               <CardDescription className="text-gray-600 text-sm dark:text-slate-300">Review your order before purchasing.</CardDescription>
@@ -328,7 +328,7 @@ const CheckoutContent = () => {
           {transaction ? (
             <CardCheckout transaction={transaction} courseName={course?.title} />
           ) : (
-            <Card className="bg-white/90 dark:bg-slate-900/80 backdrop-blur p-6 rounded-2xl shadow-lg border border-indigo-100 dark:border-slate-800">
+            <Card className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
               <CardContent className="p-0 text-sm text-gray-600 flex items-center gap-3 dark:text-slate-300">
                 <AlertCircle className="h-4 w-4 text-indigo-600" />
                 <span>Click "Pay" to create a payment transaction and unlock the card form.</span>
