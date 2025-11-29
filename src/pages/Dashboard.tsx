@@ -1,4 +1,5 @@
 import { type ComponentType, type ReactNode, useEffect, useMemo, useState } from "react";
+import { isAxiosError } from "axios";
 import {
   Bar,
   BarChart,
@@ -19,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import RoleBasedNavigation from "@/components/navigation/RoleBasedNavigation";
+import api from "@/utils/axios";
 
 interface DashboardSummary {
   status: {
@@ -181,14 +183,24 @@ export const DashboardContent = ({ embedded = false }: { embedded?: boolean }) =
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch("/dashboard/summary");
-        if (!response.ok) {
-          throw new Error("Failed to fetch dashboard data");
+        const response = await api.get<DashboardSummary>("/dashboard/summary");
+        const data = response.data;
+
+        if (!data?.status?.code) {
+          throw new Error("Invalid dashboard response format");
         }
-        const data: DashboardSummary = await response.json();
+
         setSummary(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error occurred");
+        if (isAxiosError(err)) {
+          const messageFromApi =
+            typeof err.response?.data === "string"
+              ? err.response.data
+              : err.response?.data?.status?.message;
+          setError(messageFromApi || "Unable to reach dashboard service.");
+        } else {
+          setError(err instanceof Error ? err.message : "Unknown error occurred");
+        }
       } finally {
         setLoading(false);
       }
