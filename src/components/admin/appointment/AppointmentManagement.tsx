@@ -2,22 +2,26 @@
 // components/admin/appointment/AppointmentManagement.tsx
 
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  MapPin, 
-  Eye, 
-  Check, 
-  X, 
+import { format, parseISO } from 'date-fns';
+import {
+  Calendar,
+  Clock,
+  User,
+  MapPin,
+  Eye,
+  Check,
+  X,
   AlertCircle,
   Search,
   Filter,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UserCheck,
+  Mail,
+  Phone,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,16 +32,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/redux/store';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { 
-  getAdminPreviousAppointments, 
-  getAdminUpcomingAppointments, 
-  updateAppointmentStatus, 
+import {
+  getAdminPreviousAppointments,
+  getAdminUpcomingAppointments,
+  updateAppointmentStatus,
   cancelAppointment,
-  AdminAppointmentItem 
+  AdminAppointmentItem,
+  assignInstructorToSlot,
+  getAppointmentSlotUserInfo
 } from '@/redux/actions/appointmentAction';
 import { listInstructors } from '@/redux/actions/instructorActions';
-import { ADMIN_APPOINTMENT_CANCEL_RESET } from '@/redux/constants/appointmentConstants';
+import { ADMIN_APPOINTMENT_CANCEL_RESET, APPOINTMENT_SLOT_ASSIGN_RESET } from '@/redux/constants/appointmentConstants';
 import { useUserDetails } from '@/hooks/useUserDetails';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const AppointmentManagement = () => {
   const { toast } = useToast();
@@ -64,11 +71,23 @@ const AppointmentManagement = () => {
     error: statusUpdateError 
   } = useSelector((state: RootState) => state.adminAppointmentStatusUpdate);
 
-  const { 
-    loading: cancelLoading, 
-    success: cancelSuccess, 
-    error: cancelError 
+  const {
+    loading: cancelLoading,
+    success: cancelSuccess,
+    error: cancelError
   } = useSelector((state: RootState) => state.adminAppointmentCancel);
+
+  const {
+    success: assignSuccess,
+    error: assignError,
+    loading: assignLoading,
+  } = useSelector((state: RootState) => state.appointmentSlotAssign);
+
+  const {
+    loading: bookingInfoLoading,
+    data: bookingInfo,
+    error: bookingInfoError,
+  } = useSelector((state: RootState) => state.adminAppointmentUserInfo);
 
   // Instructors state for filtering
   const { instructors = [], loading: instructorsLoading } = useSelector(
@@ -95,6 +114,14 @@ const AppointmentManagement = () => {
     appointment: AdminAppointmentItem | null;
     reason: string;
   }>({ open: false, appointment: null, reason: '' });
+
+  const [assignDialog, setAssignDialog] = useState<{
+    open: boolean;
+    appointment: AdminAppointmentItem | null;
+    instructorId: string;
+  }>({ open: false, appointment: null, instructorId: '' });
+
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   // Get current appointments and loading state based on active tab
   const currentAppointments = activeTab === 'upcoming' ? upcomingAppointments : previousAppointments;
@@ -164,24 +191,52 @@ const AppointmentManagement = () => {
         description: cancelError,
         variant: "destructive",
       });
-      
+
       // Reset error state
       dispatch({ type: ADMIN_APPOINTMENT_CANCEL_RESET });
     }
   }, [cancelError, dispatch, toast]);
 
+  useEffect(() => {
+    if (assignSuccess) {
+      toast({
+        title: "Success",
+        description: "Instructor assigned successfully",
+      });
+
+      setAssignDialog({ open: false, appointment: null, instructorId: '' });
+      dispatch({ type: APPOINTMENT_SLOT_ASSIGN_RESET });
+
+      if (activeTab === 'upcoming') {
+        dispatch(getAdminUpcomingAppointments(currentPage, itemsPerPage));
+      } else {
+        dispatch(getAdminPreviousAppointments(currentPage, itemsPerPage));
+      }
+    }
+
+    if (assignError) {
+      toast({
+        title: "Error",
+        description: assignError,
+        variant: "destructive",
+      });
+      dispatch({ type: APPOINTMENT_SLOT_ASSIGN_RESET });
+    }
+  }, [assignSuccess, assignError, toast, dispatch, activeTab, currentPage, itemsPerPage]);
+
   // Filter and search logic - Updated to work with API data structure
   const filteredAppointments = currentAppointments.filter((appointment: AdminAppointmentItem) => {
     const instructorName = getInstructorName(appointment.appointmentSlot.instructorId);
     const userName = getUserName(appointment.userId);
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getUserEmail(appointment.userId).toLowerCase().includes(searchTerm.toLowerCase()) ||
       getUserPhone(appointment.userId).toLowerCase().includes(searchTerm.toLowerCase()) ||
       instructorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.appointmentType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.note.toLowerCase().includes(searchTerm.toLowerCase());
+      (appointment.note || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.cancelReason || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || appointment.status.toLowerCase() === statusFilter.toLowerCase();
     const matchesInstructor = instructorFilter === 'all' || instructorName === instructorFilter;
@@ -299,10 +354,24 @@ const AppointmentManagement = () => {
   };
 
   const handleViewProfile = (appointment: AdminAppointmentItem) => {
-    toast({
-      title: "View Profile",
-      description: `Viewing profile for User ${appointment.userId}`,
-    });
+    setBookingDialogOpen(true);
+    dispatch(getAppointmentSlotUserInfo(appointment.appointmentSlot.id));
+  };
+
+  const handleAssignClick = (appointment: AdminAppointmentItem) => {
+    setAssignDialog({ open: true, appointment, instructorId: appointment.appointmentSlot.instructorId?.toString() || '' });
+  };
+
+  const handleConfirmAssign = () => {
+    if (assignDialog.appointment && assignDialog.instructorId) {
+      dispatch(assignInstructorToSlot(assignDialog.appointment.appointmentSlot.id, Number(assignDialog.instructorId)));
+    } else {
+      toast({
+        title: "Error",
+        description: "Please select an instructor before assigning.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePageChange = (newPage: number) => {
@@ -325,6 +394,13 @@ const AppointmentManagement = () => {
     const [hours = '', minutes = ''] = time.split(':');
     return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
   };
+
+  const renderInfoRow = (label: string, value: React.ReactNode) => (
+    <div className="flex flex-col gap-1 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-900">
+      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{label}</p>
+      <div className="text-sm text-gray-900 dark:text-gray-100">{value || 'N/A'}</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
@@ -624,12 +700,17 @@ const AppointmentManagement = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge 
-                          variant={getStatusBadge(appointment.status).variant}
-                          className={getStatusBadge(appointment.status).className}
-                        >
-                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                        </Badge>
+                        <div className="space-y-1">
+                          <Badge
+                            variant={getStatusBadge(appointment.status).variant}
+                            className={getStatusBadge(appointment.status).className}
+                          >
+                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                          </Badge>
+                          {appointment.cancelReason && (
+                            <p className="text-xs text-red-600 dark:text-red-400">Cancel reason: {appointment.cancelReason}</p>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center gap-2">
@@ -640,6 +721,16 @@ const AppointmentManagement = () => {
                             className="h-8 px-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAssignClick(appointment)}
+                            className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-900/20"
+                            disabled={assignLoading}
+                          >
+                            <UserCheck className="w-4 h-4 mr-1" />
+                            Assign
                           </Button>
                           {appointment.status.toLowerCase() === 'booked' && (
                             <Button
@@ -699,6 +790,204 @@ const AppointmentManagement = () => {
           </Card>
         )}
       </div>
+
+      <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">Booking Details</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              Review learner and appointment information for this booking.
+            </DialogDescription>
+          </DialogHeader>
+
+          {bookingInfoLoading && (
+            <div className="flex items-center justify-center py-10">
+              <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <span className="ml-3 text-gray-600 dark:text-gray-300">Loading booking info...</span>
+            </div>
+          )}
+
+          {bookingInfoError && (
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 dark:bg-red-950 dark:border-red-800 dark:text-red-200">
+              {bookingInfoError}
+            </div>
+          )}
+
+          {!bookingInfoLoading && !bookingInfoError && bookingInfo && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card className="shadow-sm dark:border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <User className="w-5 h-5" /> Learner Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {renderInfoRow(
+                    'Name',
+                    `${bookingInfo.userFirstName || ''} ${bookingInfo.userLastName || ''}`.trim() || '-'
+                  )}
+                  {renderInfoRow(
+                    'Email',
+                    (
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-gray-500" />
+                        <span>{bookingInfo.userEmail || '-'}</span>
+                      </div>
+                    )
+                  )}
+                  {renderInfoRow(
+                    'Phone',
+                    (
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>{bookingInfo.userPhone || '-'}</span>
+                      </div>
+                    )
+                  )}
+                  {renderInfoRow('Course', bookingInfo.courseName || 'N/A')}
+                  {renderInfoRow('Permit Number', bookingInfo.permitNumber || 'N/A')}
+                  {renderInfoRow(
+                    'Permit Issue Date',
+                    bookingInfo.learnerPermitIssueDate ? format(parseISO(bookingInfo.learnerPermitIssueDate), 'dd MMM yyyy') : 'N/A'
+                  )}
+                  {renderInfoRow(
+                    'Permit Expiration Date',
+                    bookingInfo.permitExpirationDate ? format(parseISO(bookingInfo.permitExpirationDate), 'dd MMM yyyy') : 'N/A'
+                  )}
+                  {renderInfoRow('Driving Experience', bookingInfo.drivingExperience || 'N/A')}
+                  {renderInfoRow('License From Another Country', bookingInfo.isLicenceFromAnotherCountry ? 'Yes' : 'No')}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm dark:border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <Calendar className="w-5 h-5" /> Appointment Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {renderInfoRow('Appointment ID', bookingInfo.appointmentId)}
+                  {renderInfoRow('Type', bookingInfo.appointmentType || 'N/A')}
+                  {renderInfoRow(
+                    'Status',
+                    <Badge className="bg-purple-100 text-purple-700 border border-purple-200">{bookingInfo.appointmentStatus || 'N/A'}</Badge>
+                  )}
+                  {renderInfoRow('Hours Booked', bookingInfo.hoursConsumed)}
+                  {renderInfoRow('Amount Paid', bookingInfo.amountPaid ? `$${bookingInfo.amountPaid}` : 'N/A')}
+                  {renderInfoRow('Note', bookingInfo.note || 'N/A')}
+                  {renderInfoRow('Cancellation Reason', bookingInfo.cancelReason || bookingInfo.cancellationReason || 'N/A')}
+                  {renderInfoRow(
+                    'Booked At',
+                    bookingInfo.appointmentCreatedAt
+                      ? format(parseISO(bookingInfo.appointmentCreatedAt), 'dd MMM yyyy, p')
+                      : 'N/A'
+                  )}
+                  {renderInfoRow(
+                    'Slot Schedule',
+                    bookingInfo.appointmentSlot
+                      ? `${format(parseISO(bookingInfo.appointmentSlot.date), 'dd MMM yyyy')} • ${formatTime(
+                          bookingInfo.appointmentSlot.startTime
+                        )} - ${formatTime(bookingInfo.appointmentSlot.endTime)}`
+                      : 'N/A'
+                  )}
+                  {renderInfoRow('Instructor ID', bookingInfo.appointmentSlot?.instructorId ?? 'N/A')}
+                  {renderInfoRow('Price Per Slot', bookingInfo.appointmentSlot?.pricePerSlot ? `$${bookingInfo.appointmentSlot.pricePerSlot}` : 'N/A')}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm dark:border-gray-800 lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <FileText className="w-5 h-5" /> Additional Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {renderInfoRow('Appointment Slot ID', bookingInfo.availableAppointmentSlotId)}
+                  {renderInfoRow('Course ID', bookingInfo.userCourseId ?? 'N/A')}
+                  {renderInfoRow('Location', bookingInfo.appointmentSlot?.location || 'N/A')}
+                  {renderInfoRow(
+                    'Slot Created',
+                    bookingInfo.appointmentSlot?.createdAt
+                      ? format(parseISO(bookingInfo.appointmentSlot.createdAt), 'dd MMM yyyy, p')
+                      : 'N/A'
+                  )}
+                  {renderInfoRow(
+                    'Slot Updated',
+                    bookingInfo.appointmentSlot?.updatedAt
+                      ? format(parseISO(bookingInfo.appointmentSlot.updatedAt), 'dd MMM yyyy, p')
+                      : 'N/A'
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-4">
+            <Button variant="outline" onClick={() => setBookingDialogOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={assignDialog.open}
+        onOpenChange={(open) => {
+          setAssignDialog({ open, appointment: open ? assignDialog.appointment : null, instructorId: open ? assignDialog.instructorId : '' });
+          if (!open) {
+            dispatch({ type: APPOINTMENT_SLOT_ASSIGN_RESET });
+          }
+        }}
+      >
+        <DialogContent className="max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <UserCheck className="w-5 h-5" />
+              Assign Instructor
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              Choose an instructor to assign to this appointment slot.
+            </DialogDescription>
+          </DialogHeader>
+
+          {assignDialog.appointment && (
+            <div className="mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/40 text-sm text-gray-800 dark:text-gray-200">
+              <p className="font-semibold">
+                {format(parseISO(assignDialog.appointment.appointmentSlot.date), 'dd-MMM-yyyy')} • {formatTime(assignDialog.appointment.appointmentSlot.startTime)}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">Location: {assignDialog.appointment.appointmentSlot.location || 'N/A'}</p>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Instructor</label>
+            <Select value={assignDialog.instructorId} onValueChange={(value) => setAssignDialog((prev) => ({ ...prev, instructorId: value }))}>
+              <SelectTrigger className="w-full h-11">
+                <SelectValue placeholder="Select instructor" />
+              </SelectTrigger>
+              <SelectContent>
+                {instructors.map((instructor) => (
+                  <SelectItem key={instructor.id} value={instructor.id.toString()}>
+                    {instructor.instructor_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {assignError && (
+              <p className="text-sm text-red-600 dark:text-red-400">{assignError}</p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setAssignDialog({ open: false, appointment: null, instructorId: '' })}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmAssign} disabled={!assignDialog.instructorId || assignLoading}>
+              {assignLoading ? 'Assigning...' : 'Assign'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, appointment: null, action: '' })}>

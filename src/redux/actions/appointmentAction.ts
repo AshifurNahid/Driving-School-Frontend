@@ -501,13 +501,14 @@ export interface AdminAppointmentItem {
   appointmentType: string;
   hoursConsumed: number;
   amountPaid: number;
-  note: string;
+  note: string | null;
   learnerPermitIssueDate: string;
   permitNumber: string;
   permitExpirationDate: string;
   drivingExperience: string;
   isLicenceFromAnotherCountry: boolean;
   status: string;
+  cancelReason: string | null;
   createdAt: string;
   appointmentSlot: {
     id: number;
