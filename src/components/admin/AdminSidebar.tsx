@@ -344,22 +344,17 @@ const AdminSidebar = ({
 
           <Button
             onClick={handleLogout}
+            variant="outline"
             className={cn(
-              "w-full relative overflow-hidden text-white",
-              "bg-gradient-to-r from-rose-500 via-red-500 to-orange-400",
-              "border border-red-200/70 dark:border-red-900/40 shadow-lg",
-              "transition-all duration-200 hover:shadow-xl hover:brightness-105",
-              "py-3",
-              collapsed ? "justify-center px-0" : "justify-between px-4"
+              "w-full font-semibold text-red-600 dark:text-red-200",
+              "border border-red-200 dark:border-red-900/40 bg-white dark:bg-slate-950",
+              "hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-700 dark:hover:text-red-100",
+              "shadow-sm transition-colors duration-200 py-3",
+              collapsed ? "justify-center px-0" : "justify-center gap-2"
             )}
           >
-            <span className="flex items-center gap-2 font-semibold">
-              <LogOut className="h-4 w-4" />
-              {isOpen && <span>Sign Out</span>}
-            </span>
-            {isOpen && (
-              <span className="text-xs font-semibold bg-white/20 px-3 py-1 rounded-lg">Secure</span>
-            )}
+            <LogOut className="h-4 w-4" />
+            {isOpen && <span>Sign Out</span>}
           </Button>
         </div>
       </aside>
