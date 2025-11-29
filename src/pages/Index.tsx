@@ -407,22 +407,22 @@ const CanadianDrivingSchool = () => {
       
 {/* Why Choose Us Section - Mobile Optimized */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 via-gray-100 to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden">
-        {/* Background animation */}
+        {/* Background accents */}
         <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-10 left-10 w-72 h-72 bg-slate-200/30 dark:bg-slate-800/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-slate-200/30 dark:bg-slate-800/20 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Enhanced header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-50/90 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 font-bold text-sm mb-4">
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-50/90 dark:bg-gray-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm mb-4">
               <Zap className="w-4 h-4 mr-1" />
               The DriveCanada Advantage
             </div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-3">
               Why Students{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-slate-500 dark:from-slate-200 dark:to-slate-400">
                 Choose Us
               </span>
             </h2>
