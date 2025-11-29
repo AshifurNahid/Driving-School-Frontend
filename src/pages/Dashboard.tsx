@@ -258,10 +258,8 @@ export const DashboardContent = ({ embedded = false }: { embedded?: boolean }) =
 
   const content = (
     <>
-      <header className="space-y-2">
-        <p className="text-sm font-semibold text-primary uppercase tracking-wide">Dashboard</p>
-        <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Driving School Dashboard</h1>
-        <p className="text-muted-foreground text-base">Overview for {formattedMonth || "--"}</p>
+      <header className="space-y-2">      
+        <p className="text-sm font-semibold text-primary uppercase tracking-wide">Overview for {formattedMonth || "--"}</p>
       </header>
 
       {loading && (

@@ -183,7 +183,7 @@ const AdminSidebar = ({
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 pt-4 pb-6 space-y-5">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
+          {/* <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
             <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300 grid place-items-center font-semibold">
               NL
             </div>
@@ -193,7 +193,7 @@ const AdminSidebar = ({
                 <p className="text-base font-semibold">Admin Panel</p>
               </div>
             )}
-          </div>
+          </div> */}
 
           <nav className="space-y-4">
             {isOpen && (
