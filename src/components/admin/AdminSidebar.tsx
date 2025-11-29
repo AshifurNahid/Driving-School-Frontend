@@ -28,7 +28,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -329,7 +328,7 @@ const AdminSidebar = ({
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@example.com</p>
               </div>
             )}
-            <div className={cn("ml-auto flex items-center gap-2", collapsed && "mx-auto")}> 
+            <div className={cn("ml-auto flex items-center gap-2", collapsed && "mx-auto")}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -340,21 +339,27 @@ const AdminSidebar = ({
                   <Home className="h-4 w-4" />
                 </Link>
               </Button>
-              <ThemeToggle />
             </div>
           </div>
 
           <Button
             onClick={handleLogout}
-            variant="ghost"
             className={cn(
-              "w-full justify-start gap-2 text-red-500 font-semibold",
-              "bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50",
-              "border border-red-100 dark:border-red-900/40"
+              "w-full relative overflow-hidden text-white",
+              "bg-gradient-to-r from-rose-500 via-red-500 to-orange-400",
+              "border border-red-200/70 dark:border-red-900/40 shadow-lg",
+              "transition-all duration-200 hover:shadow-xl hover:brightness-105",
+              "py-3",
+              collapsed ? "justify-center px-0" : "justify-between px-4"
             )}
           >
-            <LogOut className="h-4 w-4" />
-            {isOpen && <span>Sign Out</span>}
+            <span className="flex items-center gap-2 font-semibold">
+              <LogOut className="h-4 w-4" />
+              {isOpen && <span>Sign Out</span>}
+            </span>
+            {isOpen && (
+              <span className="text-xs font-semibold bg-white/20 px-3 py-1 rounded-lg">Secure</span>
+            )}
           </Button>
         </div>
       </aside>
