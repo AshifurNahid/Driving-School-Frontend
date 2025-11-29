@@ -9,6 +9,7 @@ import {
   USER_REGISTER_FAIL,
 } from "../constants/authConstants";
 import { User } from "@/types/user";
+import { getUserCourses } from "./userCourseAction";
 
 // Login Action
 export const login = (email: string, password: string) => async (dispatch: any) => {
@@ -19,8 +20,14 @@ export const login = (email: string, password: string) => async (dispatch: any) 
     localStorage.setItem("access_token", data.data.access_token);
     localStorage.setItem("refresh_token", data.data.refresh_token);
     // Save user info
-    dispatch({ type: USER_LOGIN_SUCCESS, payload: data.data.user as User });
-    localStorage.setItem("userInfo", JSON.stringify(data.data.user));
+    const user = data.data.user as User;
+    dispatch({ type: USER_LOGIN_SUCCESS, payload: user });
+    localStorage.setItem("userInfo", JSON.stringify(user));
+    
+    // Fetch user courses after successful login
+    if (user?.id) {
+      dispatch(getUserCourses(user.id) as any);
+    }
   } catch (error: any) {
     dispatch({
       type: USER_LOGIN_FAIL,
