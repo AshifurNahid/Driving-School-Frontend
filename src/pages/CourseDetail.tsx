@@ -1,5 +1,5 @@
 import { useState,useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle, Edit, Trash2, ChevronDown, ChevronRight, Video, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDispatch, useSelector } from 'react-redux';
-import { enrollCourse, getCourseDetail } from '@/redux/actions/courseAction';
 import { useCourseDetails } from '@/hooks/useCourseDetail';
 import { RootState } from '@/redux/store';
 import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/redux/actions/reviewAction';
@@ -19,6 +18,7 @@ import "react-quill/dist/quill.snow.css";
 const CourseDetail = () => {
   const { userInfo } = useAuth();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
@@ -103,11 +103,14 @@ const CourseDetail = () => {
   };
 
   const handleEnroll = () => {
-    dispatch(enrollCourse(Number(id)) as any);
-    setIsEnrolled(true);
-    toast.success('Your enrollement is successful!', {
-      description: 'Keep learning and enjoy the course!',
-    });
+    if (!id) return;
+
+    if (!userInfo) {
+      navigate('/login');
+      return;
+    }
+
+    navigate(`/course/${id}/checkout`);
   };
 
   return (

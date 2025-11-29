@@ -24,6 +24,8 @@ import CoursesPage from "./pages/CoursesPage";
 import AdminInstructors from "./pages/AdminInstructors";
 import UserAppointment from '@/pages/UserAppointment';
 import DrivingSchoolLearnerProfile from "./pages/DrivingSchoolLearnerProfile";
+import CheckoutPage from "./pages/Checkout";
+import PaymentResult from "./pages/PaymentResult";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -48,6 +50,8 @@ const App = () => (
                 <Route path="/upload-course" element={<UploadCourse mode="add" />} />
                 <Route path="/course/:id/edit" element={<UploadCourse mode="edit" />} />
                 <Route path="/course/:id" element={<CourseDetail />} />
+                <Route path="/course/:id/checkout" element={<CheckoutPage />} />
+                <Route path="/checkout/result" element={<PaymentResult />} />
                 <Route path="/course/:id/learn" element={<CourseLearn />} />
                 <Route path="/learner/profile" element={<DrivingSchoolLearnerProfile/>} />
                 <Route path="/learner/courses" element={<LearnerCourses />} />
