@@ -506,104 +506,86 @@ const CanadianDrivingSchool = () => {
           </div>
         </div>
       </section>
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-2000" />
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold text-sm mb-6">
+            Ready to Begin Your Journey?
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
+            Your Driving Future
+            <br />
+            <span className="text-blue-600 dark:text-blue-400">Starts Here</span>
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Take the first step towards driving independence. Our expert team is ready to guide you through every mile of your learning journey.
+          </p>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto">
-          {/* Enhanced header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold text-sm mb-4">
-              <Sparkles className="w-4 h-4 mr-1 animate-pulse" />
-              Ready to Begin Your Journey?
-            </div>
-            <h2 className="text-2xl md:text-3xl font-extrabold mb-3">
-              Your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                Driving Future
-              </span>
-              <br />Starts Here
-            </h2>
-            <p className="text-base text-white/90 max-w-xl mx-auto leading-normal">
-              Take the first step towards driving independence. Our expert team is ready to guide you through every mile of your learning journey.
-            </p>
-          </div>
-
-          {/* Revolutionary contact cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {[
-              {
-                icon: <Phone className="w-8 h-8" />,
-                title: "Call Us Now",
-                subtitle: "Instant Support",
-                action: "+1 (709) 351-6738",
-                href: "tel:+17093516738",
-                gradient: "from-green-500 to-emerald-600",
-                hoverGradient: "from-green-600 to-emerald-700"
-              },
-              {
-                icon: <Mail className="w-8 h-8" />,
-                title: "Email Direct",
-                subtitle: "Quick Response",
-                action: "info@nldriversacademy.ca",
-                href: "mailto:info@nldriversacademy.ca",
-                gradient: "from-blue-500 to-cyan-600",
-                hoverGradient: "from-blue-600 to-cyan-700"
-              },
-              {
-                icon: <MapPin className="w-8 h-8" />,
-                title: "Visit Our Campus",
-                subtitle: "Modern Facilities",
-                action: "411 Torbay Rd, St. John's, NL",
-                href: "https://maps.google.com/?q=411+Torbay+Rd,+St.+John's,+NL+A1A+5C9",
-                gradient: "from-purple-500 to-pink-600",
-                hoverGradient: "from-purple-600 to-pink-700"
-              }
-            ].map((contact, idx) => (
-              <div key={idx} className="group relative">
-                {/* Hover glow */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${contact.gradient} opacity-20 rounded-3xl blur-xl group-hover:opacity-40 transition-all duration-500 scale-110`} />
-                
-                {/* Main card */}
-                <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-4 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-white/20 group-hover:border-white/40">
-                  {/* Icon */}
-                  <div className="flex justify-center mb-3">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${contact.gradient} group-hover:${contact.hoverGradient} rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
-                      <div className="text-white">{contact.icon}</div>
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-blue-400 transition-colors duration-300">
-                      {contact.title}
-                    </h3>
-                    <p className="text-white/70 text-sm mb-4">{contact.subtitle}</p>
-                    
-                    <a
-                      href={contact.href}
-                      target={contact.href.startsWith('http') ? '_blank' : undefined}
-                      rel={contact.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                      className={`inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r ${contact.gradient} hover:${contact.hoverGradient} rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg`}
-                    >
-                      <span className="text-sm break-all sm:break-normal">{contact.action}</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </a>
-                  </div>
+        {/* Contact Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          {[
+            {
+              icon: <Phone className="w-6 h-6" />,
+              title: "Call Us Now",
+              subtitle: "Instant Support",
+              action: "+1 (709) 351-6738",
+              href: "tel:+17093516738",
+              color: "blue"
+            },
+            {
+              icon: <Mail className="w-6 h-6" />,
+              title: "Email Direct",
+              subtitle: "Quick Response",
+              action: "info@nldriversacademy.ca",
+              href: "mailto:info@nldriversacademy.ca",
+              color: "blue"
+            },
+            {
+              icon: <MapPin className="w-6 h-6" />,
+              title: "Visit Our Campus",
+              subtitle: "Modern Facilities",
+              action: "411 Torbay Rd, St. John's, NL",
+              href: "https://maps.google.com/?q=411+Torbay+Rd,+St.+John's,+NL+A1A+5C9",
+              color: "blue"
+            }
+          ].map((contact, idx) => (
+            <div 
+              key={idx} 
+              className="group bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+            >
+              {/* Icon */}
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center text-white">
+                  {contact.icon}
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Ultimate CTA */}
-          
+              
+              {/* Content */}
+              <div className="text-center">
+                <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+                  {contact.title}
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+                  {contact.subtitle}
+                </p>
+                
+                <a
+                  href={contact.href}
+                  target={contact.href.startsWith('http') ? '_blank' : undefined}
+                  rel={contact.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 rounded-lg text-white font-semibold transition-all duration-200 w-full group-hover:gap-3"
+                >
+                  <span className="text-sm break-all sm:break-normal">{contact.action}</span>
+                  <ArrowRight className="w-4 h-4 flex-shrink-0" />
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
-      </section>
-
+      </div>
+    </section>
       {/* Enhanced Footer */}
       <footer className="bg-gray-900 text-white py-16 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
