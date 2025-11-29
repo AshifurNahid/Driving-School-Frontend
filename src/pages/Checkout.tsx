@@ -103,44 +103,54 @@ const CardCheckout = ({ transaction, courseName }: { transaction: PaymentTransac
   };
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Payment method</CardTitle>
-        <CardDescription>Enter your card details to save a payment method.</CardDescription>
+    <Card className="mt-6 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+      <CardHeader className="space-y-1 p-0 mb-6">
+        <CardTitle className="text-2xl font-semibold text-gray-800">Payment method</CardTitle>
+        <CardDescription className="text-gray-600 text-sm">
+          Enter your card details to save a payment method.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6 p-0">
         <div className="space-y-2">
-          <Label htmlFor="cardholder">Cardholder name</Label>
+          <Label htmlFor="cardholder" className="text-lg font-medium text-gray-700">
+            Cardholder name
+          </Label>
           <Input
             id="cardholder"
             placeholder="Full name on card"
             value={cardholderName}
             onChange={(event) => setCardholderName(event.target.value)}
+            className="rounded-lg border-gray-300 focus-visible:ring-indigo-500"
           />
         </div>
 
-        <div className="rounded-md border p-4 bg-muted/50">
-          <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
+        <div className="border border-gray-200 p-4 rounded-xl bg-white shadow-sm space-y-3 focus-within:ring-2 focus-within:ring-indigo-500">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
             <CreditCard className="h-4 w-4" />
             <span>Card details</span>
           </div>
-          <div className="p-3 rounded-md border bg-background">
+          <div className="border border-gray-300 rounded-lg p-4 bg-white focus-within:ring-2 focus-within:ring-indigo-500">
             <CardElement options={{ hidePostalCode: true }} />
           </div>
         </div>
 
         {cardError && (
-          <div className="flex items-center gap-2 text-sm text-destructive">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             <span>{cardError}</span>
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col items-stretch gap-3">
-        <Button onClick={handleSaveCard} disabled={isSavingMethod} className="w-full">
+      <CardFooter className="flex flex-col items-stretch gap-3 p-0 mt-6">
+        <Button
+          onClick={handleSaveCard}
+          disabled={isSavingMethod}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {isSavingMethod ? (
-            <span className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Saving card
+            <span className="flex items-center gap-2 justify-center">
+              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              <span>Saving card...</span>
             </span>
           ) : (
             "Save card"
@@ -151,11 +161,12 @@ const CardCheckout = ({ transaction, courseName }: { transaction: PaymentTransac
           variant="secondary"
           onClick={handleConfirmPayment}
           disabled={!paymentMethodId || isConfirming}
-          className="w-full"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isConfirming ? (
-            <span className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Confirming
+            <span className="flex items-center gap-2 justify-center">
+              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              <span>Confirming...</span>
             </span>
           ) : (
             "Confirm payment"
@@ -209,8 +220,8 @@ const CheckoutContent = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="bg-card shadow-sm border-b border-border">
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
               <RoleBasedNavigation />
@@ -218,9 +229,9 @@ const CheckoutContent = () => {
           </div>
         </header>
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Card>
-            <CardContent className="p-6 flex items-center gap-3 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" /> Loading checkout details...
+          <Card className="bg-white p-6 rounded-xl shadow-lg">
+            <CardContent className="p-0 flex items-center gap-3 text-gray-600">
+              <Loader2 className="h-5 w-5 animate-spin text-indigo-600" /> Loading checkout details...
             </CardContent>
           </Card>
         </main>
@@ -229,8 +240,8 @@ const CheckoutContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card shadow-sm border-b border-border">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <RoleBasedNavigation />
@@ -240,40 +251,40 @@ const CheckoutContent = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="max-w-3xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Checkout</h1>
-            <p className="text-muted-foreground">Complete your purchase to access the course.</p>
+          <div className="bg-white p-8 rounded-xl shadow-lg">
+            <h1 className="text-2xl font-semibold text-gray-800 mb-2">Checkout</h1>
+            <p className="text-gray-600 text-sm">Complete your purchase to access the course.</p>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{course?.title || "Course"}</CardTitle>
-              <CardDescription>Review your order before purchasing.</CardDescription>
+          <Card className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+            <CardHeader className="p-0 mb-6 space-y-1">
+              <CardTitle className="text-2xl font-semibold text-gray-800">{course?.title || "Course"}</CardTitle>
+              <CardDescription className="text-gray-600 text-sm">Review your order before purchasing.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 p-0">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold">Course</p>
-                  <p className="text-muted-foreground text-sm">{course?.title}</p>
+                <div className="space-y-1">
+                  <p className="text-lg font-medium text-gray-700">Course</p>
+                  <p className="text-gray-600 text-sm">{course?.title}</p>
                 </div>
-                <span className="text-lg font-semibold">${amountLabel} CAD</span>
+                <span className="text-xl font-semibold text-gray-900">${amountLabel} CAD</span>
               </div>
-              <Separator />
+              <Separator className="bg-gray-200" />
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Total</span>
-                <span className="text-xl font-bold">${amountLabel} CAD</span>
+                <span className="text-gray-600">Total</span>
+                <span className="text-2xl font-bold text-gray-900">${amountLabel} CAD</span>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-3">
+            <CardFooter className="flex flex-col gap-3 p-0 mt-6">
               <Button
-                className="w-full"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleCreateTransaction}
                 disabled={isCreatingTransaction || !course}
               >
                 {isCreatingTransaction ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating transaction
+                  <span className="flex items-center gap-2 justify-center">
+                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                    <span>Processing...</span>
                   </span>
                 ) : (
                   "BUY NOW"
@@ -281,7 +292,7 @@ const CheckoutContent = () => {
               </Button>
 
               {transaction && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <span>Transaction created. Enter card details below.</span>
                 </div>
@@ -292,9 +303,9 @@ const CheckoutContent = () => {
           {transaction ? (
             <CardCheckout transaction={transaction} courseName={course?.title} />
           ) : (
-            <Card className="bg-muted/40">
-              <CardContent className="p-6 text-sm text-muted-foreground flex items-center gap-3">
-                <AlertCircle className="h-4 w-4" />
+            <Card className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+              <CardContent className="p-0 text-sm text-gray-600 flex items-center gap-3">
+                <AlertCircle className="h-4 w-4 text-indigo-600" />
                 <span>Click "BUY NOW" to create a payment transaction and unlock the card form.</span>
               </CardContent>
             </Card>
