@@ -3,6 +3,7 @@ import {
   USER_COURSE_LIST_REQUEST,
   USER_COURSE_LIST_SUCCESS,
   USER_COURSE_LIST_FAIL,
+  USER_COURSE_ADD,
   USER_COURSE_DETAILS_REQUEST,
   USER_COURSE_DETAILS_SUCCESS,
   USER_COURSE_DETAILS_FAIL,
@@ -52,5 +53,28 @@ export const getUserCourseById = (id: number) => async (dispatch: any) => {
       type: USER_COURSE_DETAILS_FAIL,
       payload: error.response?.data?.message || error.message,
     });
+  }
+};
+
+// Add a newly enrolled course to the user's course list
+export const addUserCourse = (enrolledCourse: EnrolledCourses) => (dispatch: any) => {
+  dispatch({ type: USER_COURSE_ADD, payload: enrolledCourse });
+};
+
+// Fetch and add a newly enrolled course by course ID
+export const fetchAndAddUserCourse = (courseId: number, userId: number) => async (dispatch: any) => {
+  try {
+    // Fetch the user's courses to find the newly enrolled one
+    const response = await api.get(`/user-courses?PageNumber=1&PageSize=100&UserId=${userId}`);
+    const data: EnrolledCoursesApiResponse = response.data;
+    const courses = (data.data as EnrolledCourses[]) || [];
+    const newlyEnrolledCourse = courses.find((course) => course.course_id === courseId);
+    
+    if (newlyEnrolledCourse) {
+      dispatch({ type: USER_COURSE_ADD, payload: newlyEnrolledCourse });
+    }
+  } catch (error: any) {
+    console.error("Failed to fetch newly enrolled course:", error);
+    // Silently fail - the course will be loaded on next page refresh
   }
 };

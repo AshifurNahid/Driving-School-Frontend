@@ -1,9 +1,13 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2, CircleAlert, Home, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import RoleBasedNavigation from "@/components/navigation/RoleBasedNavigation";
 import { Separator } from "@/components/ui/separator";
+import { useDispatch } from "react-redux";
+import { fetchAndAddUserCourse } from "@/redux/actions/userCourseAction";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PaymentResultState {
   status?: string;
@@ -15,8 +19,17 @@ interface PaymentResultState {
 const PaymentResult = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  const { userInfo } = useAuth();
   const state = (location.state as PaymentResultState) || {};
   const isSuccess = state.status === "succeeded" || state.status === "success";
+
+  // Update Redux state when payment is successful
+  useEffect(() => {
+    if (isSuccess && state.courseId && userInfo?.id) {
+      dispatch(fetchAndAddUserCourse(state.courseId, userInfo.id) as any);
+    }
+  }, [isSuccess, state.courseId, userInfo?.id, dispatch]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">

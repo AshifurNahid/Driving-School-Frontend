@@ -472,7 +472,7 @@ const CanadianDrivingSchool = () => {
               {
                 icon: <MapPin className="w-8 h-8" />,
                 title: "Convenient Locations",
-                description: "25+ locations across provinces with door-to-door pickup service for maximum convenience.",
+                description: "Convenient locations across provinces with door-to-door pickup service for maximum convenience.",
                 gradient: "from-red-400 to-pink-500",
                 bgGradient: "from-red-500/10 to-pink-500/10"
               }

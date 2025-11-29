@@ -32,14 +32,17 @@ const CourseDetail = () => {
   const { course, loading, error } = useCourseDetails(Number(id));
   const {courses:userCourseList} = useSelector((state: RootState) => state.userCourseList);
 
-  // Fetch reviews on mount
-  useEffect(() => {
+  // Find the enrolled course for this course ID
+  const enrolledCourse = userCourseList.find((uc: any) => uc?.course_id === Number(id));
 
-   if(userCourseList.length > 0 && userCourseList.some((course:any)=>course?.course_id === Number(id))||isEnrolled){
-    setIsEnrolled(true);
-   }
-   
-  }, [isEnrolled]);
+  // Check if user is enrolled in this course
+  useEffect(() => {
+    if (enrolledCourse) {
+      setIsEnrolled(true);
+    } else {
+      setIsEnrolled(false);
+    }
+  }, [enrolledCourse]);
 
   
 
@@ -515,9 +518,9 @@ const CourseDetail = () => {
                 </div>
 
                 {userInfo ? (
-  isEnrolled ? (
+  isEnrolled && enrolledCourse?.id ? (
     <Button className="w-full mb-4" asChild>
-      <Link to={`/course/${course?.id}/learn`}>Continue Learning</Link>
+      <Link to={`/course/${enrolledCourse.id}/learn`}>Continue Learning</Link>
     </Button>
   ) : (
     <Button className="w-full mb-4" onClick={handleEnroll}>

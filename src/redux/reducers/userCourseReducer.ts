@@ -2,6 +2,7 @@ import {
   USER_COURSE_LIST_REQUEST,
   USER_COURSE_LIST_SUCCESS,
   USER_COURSE_LIST_FAIL,
+  USER_COURSE_ADD,
   USER_COURSE_DETAILS_REQUEST,
   USER_COURSE_DETAILS_SUCCESS,
   USER_COURSE_DETAILS_FAIL,
@@ -54,6 +55,19 @@ export const userCourseListReducer = (
       };
     case USER_COURSE_LIST_FAIL:
       return { ...state, loading: false, error: action.payload };
+    case USER_COURSE_ADD:
+      // Check if course already exists in the list to avoid duplicates
+      const courseExists = state.courses.some(
+        (course) => course.course_id === action.payload.course_id || course.id === action.payload.id
+      );
+      if (courseExists) {
+        return state; // Don't add duplicate
+      }
+      return {
+        ...state,
+        courses: [action.payload, ...state.courses],
+        totalCourses: state.totalCourses + 1,
+      };
     default:
       return state;
   }
