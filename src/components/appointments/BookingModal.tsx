@@ -5,7 +5,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { CalendarIcon, Clock, User, MapPin, DollarSign } from 'lucide-react';
 import { AppointmentSlot } from '@/redux/reducers/appointmentReducer';
 import { BookDirectAppointmentPayload } from '@/redux/actions/appointmentAction';
@@ -56,13 +56,18 @@ const BookingModal: React.FC<BookingModalProps> = ({
     }
   }, [isOpen]);
 
-  // Calculate hours to consume based on start and end time
   const calculateHoursToConsume = (startTime: string, endTime: string): number => {
     const start = new Date(`2000-01-01 ${startTime}`);
     const end = new Date(`2000-01-01 ${endTime}`);
     const diffInMs = end.getTime() - start.getTime();
     const diffInHours = diffInMs / (1000 * 60 * 60);
-    return Math.round(diffInHours * 100) / 100; // Round to 2 decimal places
+    return Math.round(diffInHours * 100) / 100;
+  };
+
+  const formatTimeRange = (start: string, end: string) => {
+    const startDate = parse(start, 'HH:mm:ss', new Date());
+    const endDate = parse(end, 'HH:mm:ss', new Date());
+    return `${format(startDate, 'h:mm a')} – ${format(endDate, 'h:mm a')}`;
   };
 
   const validateForm = () => {
@@ -111,8 +116,6 @@ const BookingModal: React.FC<BookingModalProps> = ({
       isLicenceFromAnotherCountry: formData.isLicenceFromAnotherCountry
     };
 
-    // Reset form data after submission
-    console.log("Form submitted, resetting form data");
     setFormData(initialFormState);
     setErrors({});
     
@@ -120,8 +123,6 @@ const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   const handleClose = () => {
-    console.log("Closing booking modal and resetting form");
-    // Reset to initial state
     setFormData(initialFormState);
     setErrors({});
     onClose();
@@ -134,171 +135,190 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-blue-700">
-            Book Appointment
-          </DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card text-foreground border border-border/70 shadow-xl">
+        <DialogHeader className="space-y-2 pb-2 border-b border-border/70">
+          <DialogTitle className="text-xl font-semibold">Book appointment</DialogTitle>
+          <DialogDescription className="text-muted-foreground text-sm">
             Please fill in the required information to book your appointment.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Slot Summary */}
-        <div className="bg-blue-50 p-4 rounded-lg mb-4">
-          <h3 className="font-semibold text-blue-800 mb-2">Appointment Summary</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-blue-600" />
-              <span>{slot.startTime} - {slot.endTime}</span>
+        <div className="bg-muted/50 p-4 rounded-lg mb-5 border border-border/60">
+          <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-primary" />
+            Appointment summary
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-primary/10 text-primary">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Time slot</p>
+                <p className="font-semibold leading-tight">{formatTimeRange(slot.startTime, slot.endTime)}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600" />
-              <span>{slot.instructorName || `Instructor ${slot.instructorId}`}</span>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-muted text-foreground/80">
+                <User className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Instructor</p>
+                <p className="font-semibold leading-tight">{slot.instructorName || `Instructor ${slot.instructorId}`}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-blue-600" />
-              <span>{slot.location || 'Location TBD'}</span>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-muted text-foreground/80">
+                <MapPin className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Location</p>
+                <p className="font-semibold leading-tight">{slot.location || 'Location TBD'}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-blue-600" />
-              <span>${displayPrice} ({hoursToConsume}h)</span>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-primary/10 text-primary">
+                <DollarSign className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Price ({hoursToConsume}h)</p>
+                <p className="font-semibold leading-tight">${displayPrice}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Note */}
-          <div>
-            <Label htmlFor="note">Note (Optional)</Label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="note" className="text-sm font-medium">Note (Optional)</Label>
             <Textarea
               id="note"
               placeholder="Any additional notes..."
               value={formData.note}
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               rows={3}
+              className="bg-background"
             />
           </div>
 
-          {/* Permit Number */}
-          <div>
-            <Label htmlFor="permitNumber">Permit Number *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="permitNumber" className="text-sm font-medium">Permit Number *</Label>
             <Input
               id="permitNumber"
               placeholder="Enter your permit number"
               value={formData.permitNumber}
               onChange={(e) => setFormData({ ...formData, permitNumber: e.target.value })}
-              className={errors.permitNumber ? 'border-red-500' : ''}
+              className={`${errors.permitNumber ? 'border-destructive text-destructive' : ''}`}
             />
             {errors.permitNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.permitNumber}</p>
+              <p className="text-destructive text-sm mt-1">{errors.permitNumber}</p>
             )}
           </div>
 
-          {/* Permit Issue Date */}
-          <div>
-            <Label>Learner Permit Issue Date *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-start text-left font-normal ${
-                    !formData.learnerPermitIssueDate && "text-muted-foreground"
-                  } ${errors.learnerPermitIssueDate ? 'border-red-500' : ''}`}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.learnerPermitIssueDate ? (
-                    format(formData.learnerPermitIssueDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={formData.learnerPermitIssueDate}
-                  onSelect={(date) => setFormData({ ...formData, learnerPermitIssueDate: date })}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            {errors.learnerPermitIssueDate && (
-              <p className="text-red-500 text-sm mt-1">{errors.learnerPermitIssueDate}</p>
-            )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Learner Permit Issue Date *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`w-full justify-start text-left font-normal bg-background ${
+                      !formData.learnerPermitIssueDate && 'text-muted-foreground'
+                    } ${errors.learnerPermitIssueDate ? 'border-destructive text-destructive' : ''}`}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.learnerPermitIssueDate ? (
+                      format(formData.learnerPermitIssueDate, 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-card border border-border/70" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.learnerPermitIssueDate}
+                    onSelect={(date) => setFormData({ ...formData, learnerPermitIssueDate: date })}
+                    initialFocus
+                    className="rounded-md"
+                  />
+                </PopoverContent>
+              </Popover>
+              {errors.learnerPermitIssueDate && (
+                <p className="text-destructive text-sm mt-1">{errors.learnerPermitIssueDate}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Permit Expiration Date *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`w-full justify-start text-left font-normal bg-background ${
+                      !formData.permitExpirationDate && 'text-muted-foreground'
+                    } ${errors.permitExpirationDate ? 'border-destructive text-destructive' : ''}`}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.permitExpirationDate ? (
+                      format(formData.permitExpirationDate, 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-card border border-border/70" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.permitExpirationDate}
+                    onSelect={(date) => setFormData({ ...formData, permitExpirationDate: date })}
+                    initialFocus
+                    className="rounded-md"
+                  />
+                </PopoverContent>
+              </Popover>
+              {errors.permitExpirationDate && (
+                <p className="text-destructive text-sm mt-1">{errors.permitExpirationDate}</p>
+              )}
+            </div>
           </div>
 
-          {/* Permit Expiration Date */}
-          <div>
-            <Label>Permit Expiration Date *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`w-full justify-start text-left font-normal ${
-                    !formData.permitExpirationDate && "text-muted-foreground"
-                  } ${errors.permitExpirationDate ? 'border-red-500' : ''}`}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.permitExpirationDate ? (
-                    format(formData.permitExpirationDate, "PPP")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={formData.permitExpirationDate}
-                  onSelect={(date) => setFormData({ ...formData, permitExpirationDate: date })}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            {errors.permitExpirationDate && (
-              <p className="text-red-500 text-sm mt-1">{errors.permitExpirationDate}</p>
-            )}
-          </div>
-
-          {/* Driving Experience */}
-          <div>
-            <Label htmlFor="drivingExperience">Driving Experience *</Label>
+          <div className="space-y-2">
+            <Label htmlFor="drivingExperience" className="text-sm font-medium">Driving Experience *</Label>
             <Textarea
               id="drivingExperience"
               placeholder="Describe your driving experience..."
               value={formData.drivingExperience}
               onChange={(e) => setFormData({ ...formData, drivingExperience: e.target.value })}
               rows={3}
-              className={errors.drivingExperience ? 'border-red-500' : ''}
+              className={`${errors.drivingExperience ? 'border-destructive text-destructive' : ''} bg-background`}
             />
             {errors.drivingExperience && (
-              <p className="text-red-500 text-sm mt-1">{errors.drivingExperience}</p>
+              <p className="text-destructive text-sm mt-1">{errors.drivingExperience}</p>
             )}
           </div>
 
-          {/* License from another country */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 rounded-lg border border-border/60 px-3 py-2 bg-muted/40">
             <Checkbox
               id="isLicenceFromAnotherCountry"
               checked={formData.isLicenceFromAnotherCountry}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setFormData({ ...formData, isLicenceFromAnotherCountry: !!checked })
               }
             />
-            <Label htmlFor="isLicenceFromAnotherCountry">
+            <Label htmlFor="isLicenceFromAnotherCountry" className="text-sm">
               I have a license from another country
             </Label>
           </div>
 
-          <DialogFooter className="gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
+          <DialogFooter className="gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={handleClose} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="w-full sm:w-auto"
             >
               {loading ? 'Booking...' : `Book Appointment - ${displayPrice}`}
             </Button>
@@ -308,7 +328,5 @@ const BookingModal: React.FC<BookingModalProps> = ({
     </Dialog>
   );
 };
-
-
 
 export default BookingModal;
