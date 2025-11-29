@@ -9,7 +9,6 @@ import {
   User,
   MapPin,
   Eye,
-  Check,
   X,
   AlertCircle,
   Search,
@@ -285,7 +284,7 @@ const AppointmentManagement = () => {
   // Updated stats calculations
   const totalCount = currentPagination?.totalCount || currentAppointments.length;
   const pendingCount = currentAppointments.filter((a: AdminAppointmentItem) => a.status.toLowerCase() === 'booked').length;
-  const approvedCount = currentAppointments.filter((a: AdminAppointmentItem) => a.status.toLowerCase() === 'approved').length;
+  const cancelledCount = currentAppointments.filter((a: AdminAppointmentItem) => a.status.toLowerCase() === 'cancelled').length;
   const rejectedCount = currentAppointments.filter((a: AdminAppointmentItem) => a.status.toLowerCase() === 'rejected').length;
 
   const handleSort = (field: string) => {
@@ -301,7 +300,6 @@ const AppointmentManagement = () => {
     const normalizedStatus = status.toLowerCase();
     const statusConfig: Record<string, any> = {
       booked: { variant: 'secondary', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' },
-      approved: { variant: 'default', className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' },
       rejected: { variant: 'destructive', className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' },
       completed: { variant: 'outline', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' },
       cancelled: { variant: 'secondary', className: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400' },
@@ -469,10 +467,10 @@ const AppointmentManagement = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Approved</p>
-                  <p className="text-2xl font-bold text-green-600">{approvedCount}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cancelled</p>
+                  <p className="text-2xl font-bold text-gray-700 dark:text-gray-200">{cancelledCount}</p>
                 </div>
-                <Check className="w-8 h-8 text-green-600" />
+                <X className="w-8 h-8 text-gray-500" />
               </div>
             </CardContent>
           </Card>
@@ -523,11 +521,10 @@ const AppointmentManagement = () => {
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="booked">Pending</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
                 
@@ -635,21 +632,10 @@ const AppointmentManagement = () => {
                         <SortIcon field="date" />
                       </button>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Course Type
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort('status')}
-                        className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
-                      >
-                        Status
-                        <SortIcon field="status" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course Type</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cancel Reason</th>
+                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -668,9 +654,26 @@ const AppointmentManagement = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-100">
-                          {getInstructorName(appointment.appointmentSlot.instructorId)}
+                      <td className="px-6 py-4 whitespace-nowrap align-top">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                              {getInstructorName(appointment.appointmentSlot.instructorId) || 'Unassigned'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {getInstructorEmail(appointment.appointmentSlot.instructorId)}
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAssignClick(appointment)}
+                            className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-900/20"
+                            disabled={assignLoading}
+                          >
+                            <UserCheck className="w-4 h-4 mr-1" />
+                            Assign
+                          </Button>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -700,20 +703,22 @@ const AppointmentManagement = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="space-y-1">
-                          <Badge
-                            variant={getStatusBadge(appointment.status).variant}
-                            className={getStatusBadge(appointment.status).className}
-                          >
-                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                          </Badge>
-                          {appointment.cancelReason && (
-                            <p className="text-xs text-red-600 dark:text-red-400">Cancel reason: {appointment.cancelReason}</p>
-                          )}
-                        </div>
+                        <Badge
+                          variant={getStatusBadge(appointment.status).variant}
+                          className={getStatusBadge(appointment.status).className}
+                        >
+                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                        </Badge>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 max-w-xs">
+                        {appointment.cancelReason ? (
+                          <span className="line-clamp-2">{appointment.cancelReason}</span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
+                        <div className="flex items-center gap-2 justify-end">
                           <Button
                             variant="outline"
                             size="sm"
@@ -721,16 +726,6 @@ const AppointmentManagement = () => {
                             className="h-8 px-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAssignClick(appointment)}
-                            className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-900/20"
-                            disabled={assignLoading}
-                          >
-                            <UserCheck className="w-4 h-4 mr-1" />
-                            Assign
                           </Button>
                           {appointment.status.toLowerCase() === 'booked' && (
                             <Button
