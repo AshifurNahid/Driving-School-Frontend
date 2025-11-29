@@ -370,31 +370,37 @@ console.log(course);
     }
   }, [initialCourse]);
 
-  const editorModules = {
+  const editorModules = React.useMemo(() => ({
     toolbar: [
       [{ header: [1, 2, 3, 4, 5, 6, false] }, { font: [] }],
       [{ size: ['small', false, 'large', 'huge'] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote', 'code'],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block'],
       [{ color: [] }, { background: [] }],
       [{ script: 'sub' }, { script: 'super' }],
-      [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+      [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }, { indent: '-1' }, { indent: '+1' }],
       [{ align: [] }, { direction: 'rtl' }],
-      ['link', 'image', 'video', 'code-block'],
+      [{ header: 1 }, { header: 2 }],
+      ['link', 'image', 'video'],
       ['clean'],
     ],
     clipboard: {
-      matchVisual: false,
+      matchVisual: true,
     },
-  };
+    history: {
+      delay: 500,
+      maxStack: 100,
+      userOnly: true,
+    },
+  }), []);
 
   const editorFormats = [
     'header', 'font', 'size',
-    'bold', 'italic', 'underline', 'strike', 'blockquote', 'code',
+    'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block',
     'color', 'background',
     'script',
     'list', 'bullet', 'indent',
     'align', 'direction',
-    'link', 'image', 'video', 'code-block',
+    'link', 'image', 'video',
     'clean',
   ];
   
@@ -955,18 +961,23 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                   </div> */}
 
                   <div className="space-y-2">
-                    <Label htmlFor="content">Course Content Summary</Label>
+                    <Label htmlFor="content">About This Course</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Use the advanced editor to add headings, code snippets, callouts, and media that make your overview feel modern.
+                    </p>
 
-                    <ReactQuill
-                      id="content"
-                      theme="snow"
-                      value={course?.content || ""}
-                      onChange={(value) => setCourse({ ...course, content: value })}
-                      placeholder="Brief summary of the course content"
-                      className="rounded-lg border bg-white"
-                      modules={editorModules}
-                      formats={editorFormats}
-                    />
+                    <div className="rounded-xl border border-border bg-muted/30 p-3 shadow-sm">
+                      <ReactQuill
+                        id="content"
+                        theme="snow"
+                        value={course?.content || ""}
+                        onChange={(value) => setCourse({ ...course, content: value })}
+                        placeholder="Craft a polished overview, add highlights, checklists, and media..."
+                        className="rounded-lg border bg-background shadow-sm"
+                        modules={editorModules}
+                        formats={editorFormats}
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
