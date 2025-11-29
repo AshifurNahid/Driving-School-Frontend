@@ -129,7 +129,8 @@ const UserManagement = () => {
 
   // Filter users based on search term and filters
   const filteredUsers = users?.filter((user: User) => {
-    const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    console.log(user);
+    const matchesSearch = user.first_name+user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role.title.toLowerCase() === roleFilter.toLowerCase();
     const matchesStatus = statusFilter === 'all' || 
@@ -345,12 +346,12 @@ const UserManagement = () => {
                               <AvatarImage
                                 src={
                                   user.user_detail?.image_path ||
-                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=6366f1&color=ffffff`
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user.first_name+user.last_name)}&background=6366f1&color=ffffff`
                                 }
-                                alt={user.full_name}
+                                alt={user.first_name+user.last_name}
                               />
                               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                                {user.full_name
+                                {user.first_name+user.last_name
                                   .split(" ")
                                   .map((n) => n[0])
                                   .join("")}
@@ -358,7 +359,7 @@ const UserManagement = () => {
                             </Avatar>
                             <div>
                               <div className="font-semibold text-slate-900 dark:text-slate-100">
-                                {user.full_name}
+                                {user.first_name+user.last_name}
                               </div>
                               <div className="text-xs text-slate-500 dark:text-slate-400">
                                 {getDisplayRole(user.role)}

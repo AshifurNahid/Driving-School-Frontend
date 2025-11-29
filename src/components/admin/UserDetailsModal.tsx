@@ -24,15 +24,15 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ open, onClose, user
         <div className="flex items-center gap-4 mb-4">
           <Avatar className="h-16 w-16">
             <AvatarImage
-              src={user.user_detail?.image_path || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}`}
-              alt={user.full_name}
+              src={user.user_detail?.image_path || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.first_name+user.last_name)}`}
+              alt={user.first_name+user.last_name}
             />
             <AvatarFallback>
-              {user.full_name.split(" ").map((n) => n[0]).join("")}
+              {user.first_name+user.last_name.split(" ").map((n) => n[0]).join("")}
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-bold text-lg">{user.full_name}</div>
+            <div className="font-bold text-lg">{user.first_name+user.last_name}</div>
             <Badge variant={user.role.title === 'Instructor' ? 'default' : 'secondary'}>
               {user.role.title}
             </Badge>
