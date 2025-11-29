@@ -26,7 +26,7 @@ export const CourseCard = ({ course }: { course: Course }) => {
   const imageSrc = getImageUrl(course.thumbnail_photo_path);
 
   return (
-    <div className="bg-card dark:bg-[#23235b] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group h-full min-h-[420px] text-card-foreground">
+    <div className="bg-card dark:bg-slate-950 border  rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group h-full min-h-[420px] text-card-foreground">
       <div className="relative p-3">
         <img 
           src={imageSrc}
@@ -59,7 +59,7 @@ export const CourseCard = ({ course }: { course: Course }) => {
             {course.duration}
           </span>
         </div>
-        <h3 className="text-lg font-bold text-card-foreground mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+        <h3 className="text-lg font-bold text-card-foreground mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors line-clamp-2">
           {course.title}
         </h3>
         <p className="text-muted-foreground mb-3 line-clamp-7">
