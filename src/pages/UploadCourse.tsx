@@ -370,15 +370,33 @@ console.log(course);
     }
   }, [initialCourse]);
 
-  const modules = {
+  const editorModules = {
     toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ align: [] }], // 👈 enables alignment (left, center, right, justify)
-      ['link', 'image', 'clean'],
+      [{ header: [1, 2, 3, 4, 5, 6, false] }, { font: [] }],
+      [{ size: ['small', false, 'large', 'huge'] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote', 'code'],
+      [{ color: [] }, { background: [] }],
+      [{ script: 'sub' }, { script: 'super' }],
+      [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+      [{ align: [] }, { direction: 'rtl' }],
+      ['link', 'image', 'video', 'code-block'],
+      ['clean'],
     ],
+    clipboard: {
+      matchVisual: false,
+    },
   };
+
+  const editorFormats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote', 'code',
+    'color', 'background',
+    'script',
+    'list', 'bullet', 'indent',
+    'align', 'direction',
+    'link', 'image', 'video', 'code-block',
+    'clean',
+  ];
   
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -937,25 +955,19 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                   </div> */}
 
                   <div className="space-y-2">
-      <Label htmlFor="content">Course Content Summary</Label>
+                    <Label htmlFor="content">Course Content Summary</Label>
 
-      <ReactQuill
-        id="content"
-        theme="snow"
-        value={course?.content || ""}
-        onChange={(value) => setCourse({ ...course, content: value })}
-        placeholder="Brief summary of the course content"
-        className="rounded-lg border bg-white"
-        modules={modules}
-        formats={[
-          'header',
-          'bold', 'italic', 'underline', 'strike',
-          'list', 'bullet',
-          'align', // 👈 allow alignment
-          'link', 'image',
-        ]}
-      />
-    </div>
+                    <ReactQuill
+                      id="content"
+                      theme="snow"
+                      value={course?.content || ""}
+                      onChange={(value) => setCourse({ ...course, content: value })}
+                      placeholder="Brief summary of the course content"
+                      className="rounded-lg border bg-white"
+                      modules={editorModules}
+                      formats={editorFormats}
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
