@@ -5,14 +5,12 @@ import { useLocation } from 'react-router-dom';
 import { getUserCourses } from "@/redux/actions/userCourseAction";
 import { getUserAppointments } from "@/redux/actions/appointmentAction";
 import { RootState } from "@/redux/store";
-import { useAuth } from "@/hooks/useAuth";
-import PublicHeader from '@/components/PublicHeader';
 import ProfileSidebar from '@/components/learnerProfile/ProfileSidebar';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 import { User, Calendar, BookOpen, Download, Award } from 'lucide-react';
 
 // Import learner components
-import OverviewSection from '@/components/learner/OverviewSection'; 
+import OverviewSection from '@/components/learner/OverviewSection';
 import AppointmentsSection from '@/components/learner/AppointmentsSection';
 import CoursesSection from '@/components/learner/CoursesSection';
 import MaterialsSection from '@/components/learner/MaterialsSection';
@@ -50,7 +48,7 @@ const DrivingSchoolLearnerProfile = () => {
   // Transform data using utility functions
   const mappedCourses = mapCoursesData(courses);
   const mappedAppointments = mapAppointmentsData(appointments);
-  
+
   const activeCourses = mappedCourses.filter(course => !course?.completed);
   const completedCourses = mappedCourses.filter(course => course?.completed);
 
@@ -99,24 +97,22 @@ const DrivingSchoolLearnerProfile = () => {
   return (
     <>
       <RoleBasedNavigation />
-      <div className="min-h-screen bg-background mt-14">
-        <div className="flex">
-          <ProfileSidebar
-            userInfo={userInfo}
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-            sidebarItems={sidebarItems}
-          />
-          
-          <div className="flex-1 p-8">
-            <div className="max-w-6xl mx-auto">
-              <ProfileHeader 
-                userInfo={userInfo}
-                activeSection={activeSection}
-                sidebarItems={sidebarItems}
-              />
-              {renderContent()}
-            </div>
+      <div className="min-h-screen bg-background mt-14 relative">
+        <ProfileSidebar
+          userInfo={userInfo}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          sidebarItems={sidebarItems}
+        />
+
+        <div className="relative flex-1 px-4 sm:px-6 lg:px-10 py-6 lg:pl-80 xl:pl-[21rem] transition-all duration-300">
+          <div className="max-w-6xl mx-auto">
+            <ProfileHeader
+              userInfo={userInfo}
+              activeSection={activeSection}
+              sidebarItems={sidebarItems}
+            />
+            {renderContent()}
           </div>
         </div>
       </div>
