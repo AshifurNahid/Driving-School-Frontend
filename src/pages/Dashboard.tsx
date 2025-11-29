@@ -63,7 +63,7 @@ interface DashboardSummary {
   };
 }
 
-const COLORS = ["#2563EB", "#16A34A", "#F97316", "#7C3AED", "#0EA5E9", "#E11D48"];
+const COLORS = ["#2563EB", "#22C55E", "#F97316", "#A855F7", "#0EA5E9", "#EF4444"];
 
 const StatCard = ({
   title,
@@ -76,17 +76,21 @@ const StatCard = ({
   subtitle: string;
   icon: ComponentType<{ className?: string }>;
 }) => (
-  <Card className="shadow-sm">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  <Card className="relative overflow-hidden border border-border/60 bg-gradient-to-br from-background to-muted/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+    <div className="pointer-events-none absolute inset-0 opacity-40 blur-3xl" aria-hidden>
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/20" />
+      <div className="absolute -left-14 bottom-0 h-28 w-28 rounded-full bg-emerald-400/15" />
+    </div>
+    <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
       <div>
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <div className="text-2xl font-semibold text-foreground mt-1">{value}</div>
       </div>
-      <div className="rounded-full bg-primary/10 p-3 text-primary">
+      <div className="rounded-2xl bg-primary/10 p-3 text-primary ring-1 ring-primary/20">
         <Icon className="h-5 w-5" />
       </div>
     </CardHeader>
-    <CardContent>
+    <CardContent className="relative">
       <CardDescription>{subtitle}</CardDescription>
     </CardContent>
   </Card>
@@ -101,7 +105,7 @@ const ChartCard = ({
   subtitle: string;
   children: ReactNode;
 }) => (
-  <Card className="h-full shadow-sm">
+  <Card className="h-full border border-border/60 bg-gradient-to-br from-background to-muted/50 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
     <CardHeader>
       <CardTitle className="text-lg text-foreground">{title}</CardTitle>
       <CardDescription>{subtitle}</CardDescription>
@@ -115,7 +119,7 @@ const ChartCard = ({
 const TopCoursesTable = ({ courses }: { courses: DashboardSummary["data"]["courseStats"]["topCourses"] }) => {
   if (!courses.length) {
     return (
-      <Card className="shadow-sm">
+      <Card className="border border-border/60 bg-gradient-to-br from-background to-muted/50 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
         <CardHeader>
           <CardTitle className="text-lg text-foreground">Top Courses</CardTitle>
           <CardDescription>Most popular courses by enrollment</CardDescription>
@@ -128,7 +132,7 @@ const TopCoursesTable = ({ courses }: { courses: DashboardSummary["data"]["cours
   }
 
   return (
-    <Card className="shadow-sm">
+    <Card className="border border-border/60 bg-gradient-to-br from-background to-muted/50 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
       <CardHeader>
         <CardTitle className="text-lg text-foreground">Top Courses</CardTitle>
         <CardDescription>Most popular courses by enrollment</CardDescription>
@@ -144,7 +148,10 @@ const TopCoursesTable = ({ courses }: { courses: DashboardSummary["data"]["cours
           </thead>
           <tbody>
             {courses.map((course, index) => (
-              <tr key={course.courseId} className="border-t border-border">
+              <tr
+                key={course.courseId}
+                className="border-t border-border/70 transition-colors hover:bg-muted/50"
+              >
                 <td className="py-2 font-medium">{index + 1}</td>
                 <td className="py-2">{course.name}</td>
                 <td className="py-2 text-right font-semibold text-foreground">{course.enrollments}</td>
