@@ -83,7 +83,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onSelect, sho
         Select a date
       </CardTitle>
     </CardHeader>
-    <CardContent className="p-6">
+    <CardContent className="p-5 sm:p-6">
       <div className="space-y-4">
         <Popover open={showPicker} onOpenChange={onToggle}>
           <PopoverTrigger asChild>
@@ -151,7 +151,7 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({ slot, selected, onSelect })
             <p className="text-base font-semibold">{range}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle className="h-4 w-4" />
           Available
         </div>
@@ -393,7 +393,7 @@ const UserAppointment: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40 text-foreground">
       <RoleBasedNavigation />
 
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 pt-16 pb-12">
+      <div className="max-w-screen-xl xl:max-w-screen-2xl mx-auto px-3 sm:px-5 lg:px-6 xl:px-8 pt-16 pb-12">
         <header className="text-center mb-10 space-y-3">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
             <Sparkles className="h-4 w-4" />
@@ -405,7 +405,7 @@ const UserAppointment: React.FC = () => {
           </p>
         </header>
 
-        <div className="grid items-start lg:grid-cols-[320px_minmax(0,1.4fr)] xl:grid-cols-[340px_minmax(0,1.8fr)_340px] gap-6 xl:gap-6 2xl:gap-8">
+        <div className="grid items-start lg:grid-cols-[280px_minmax(0,1.8fr)] xl:grid-cols-[300px_minmax(0,2.2fr)_320px] gap-5 xl:gap-6 2xl:gap-7">
           <DateSelector
             selectedDate={selectedDate}
             onSelect={(date) => {
@@ -421,7 +421,7 @@ const UserAppointment: React.FC = () => {
               <CardHeader className="border-b border-border/60 bg-muted/40 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5" />
-                  <CardTitle className="text-lg font-semibold">Available slots</CardTitle>
+                  <CardTitle className="text-base sm:text-lg font-semibold">Available slots</CardTitle>
                 </div>
                 {selectedDate && (
                   <p className="text-sm text-muted-foreground">{friendlyDate(selectedDate)}</p>
