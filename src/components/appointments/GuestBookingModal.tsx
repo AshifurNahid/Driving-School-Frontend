@@ -94,7 +94,7 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
     if (isAuthenticated && user) {
       setFormData(prev => ({
         ...prev,
-        full_name: user.full_name || '',
+        full_name: user.first_name+user.last_name || '',
         email: user.email || ''
       }));
       setActiveTab('appointment');

@@ -30,7 +30,7 @@ const UserRoleEditModal: React.FC<UserRoleEditModalProps> = ({ open, onClose, us
         </DialogHeader>
         <div>
           <div className="mb-4">
-            <div className="font-medium">{user.full_name}</div>
+            <div className="font-medium">{user.first_name+" "+user.last_name}</div>
             <div className="text-sm text-muted-foreground">{user.email}</div>
           </div>
           <Select value={selectedRole?.toString()} onValueChange={val => setSelectedRole(Number(val))}>
