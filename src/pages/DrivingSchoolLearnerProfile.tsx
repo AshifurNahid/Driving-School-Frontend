@@ -4,8 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUserCourses } from "@/redux/actions/userCourseAction";
 import { getUserAppointments } from "@/redux/actions/appointmentAction";
 import { RootState } from "@/redux/store";
-import { useAuth } from "@/hooks/useAuth";
-import PublicHeader from '@/components/PublicHeader';
 import ProfileSidebar from '@/components/learnerProfile/ProfileSidebar';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 import { User, Calendar, BookOpen, Download, Award } from 'lucide-react';
@@ -89,17 +87,17 @@ const DrivingSchoolLearnerProfile = () => {
     <>
       <RoleBasedNavigation />
       <div className="min-h-screen bg-background mt-14">
-        <div className="flex">
+        <div className="flex relative gap-6 px-4 pb-10 sm:px-6 lg:px-10">
           <ProfileSidebar
             userInfo={userInfo}
             activeSection={activeSection}
             setActiveSection={setActiveSection}
             sidebarItems={sidebarItems}
           />
-          
-          <div className="flex-1 p-8">
-            <div className="max-w-6xl mx-auto">
-              <ProfileHeader 
+
+          <div className="flex-1 lg:pl-4 xl:pl-8">
+            <div className="max-w-6xl mx-auto space-y-6">
+              <ProfileHeader
                 userInfo={userInfo}
                 activeSection={activeSection}
                 sidebarItems={sidebarItems}
