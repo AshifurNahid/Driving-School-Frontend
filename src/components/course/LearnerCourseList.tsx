@@ -53,12 +53,19 @@ const LearnerCourseList = ({ courses }: LearnerCourseListProps) => {
                 <Progress value={course?.progress} className="w-full" />
               </div>
               <div className="flex space-x-2">
-                <Button asChild className="flex-1">
-                  <Link to={`/course/${course?.user_course}/learn`}>
+                {course?.user_course ? (
+                  <Button asChild className="flex-1">
+                    <Link to={`/course/${course.user_course}/learn`}>
+                      <Play className="h-4 w-4 mr-2" />
+                      {course?.completed ? "Review" : "Continue"}
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button className="flex-1" disabled>
                     <Play className="h-4 w-4 mr-2" />
                     {course?.completed ? "Review" : "Continue"}
-                  </Link>
-                </Button>
+                  </Button>
+                )}
                 <Button variant="outline" asChild>
                   <Link to={`/course/${course?.id}`}>
                     <BookOpen className="h-4 w-4" />

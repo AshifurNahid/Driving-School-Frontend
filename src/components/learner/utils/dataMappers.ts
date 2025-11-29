@@ -2,7 +2,8 @@ import { UserAppointmentItem } from '@/types/appointment';
 
 export const mapCoursesData = (courses: any[]) => {
   return courses.map((uc: any) => ({
-    id: uc.course?.id,
+    user_course: uc?.id, // The enrolled course ID (user_course ID) needed for the learn route
+    id: uc.course?.id, // The course ID for the course detail page
     title: uc.course?.title,
     instructor: uc.course?.instructor || "Instructor",
     thumbnail: uc.course?.thumbnail_photo_path,
