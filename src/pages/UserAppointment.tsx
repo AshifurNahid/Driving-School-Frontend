@@ -188,10 +188,17 @@ interface BookingSummaryProps {
   selectedSlot?: AppointmentSlot | null;
   onRequest: () => void;
   loading: boolean;
+  className?: string;
 }
 
-const BookingSummary: React.FC<BookingSummaryProps> = ({ selectedDate, selectedSlot, onRequest, loading }) => (
-  <Card className="shadow-sm border border-border/60 bg-card h-full">
+const BookingSummary: React.FC<BookingSummaryProps> = ({
+  selectedDate,
+  selectedSlot,
+  onRequest,
+  loading,
+  className = ''
+}) => (
+  <Card className={`shadow-sm border border-border/60 bg-card h-full ${className}`}>
     <CardHeader className="border-b border-border/60 bg-muted/40">
       <CardTitle className="flex items-center gap-3 text-lg font-semibold">
         <Sparkles className="h-5 w-5 text-primary" />
@@ -385,7 +392,7 @@ const UserAppointment: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40 text-foreground">
       <RoleBasedNavigation />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         <header className="text-center mb-10 space-y-3">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
             <Sparkles className="h-4 w-4" />
@@ -397,7 +404,7 @@ const UserAppointment: React.FC = () => {
           </p>
         </header>
 
-        <div className="grid lg:grid-cols-[320px_1fr] gap-6">
+        <div className="grid items-start lg:grid-cols-[320px_1fr] xl:grid-cols-[340px_1.4fr_320px] gap-6 xl:gap-8">
           <DateSelector
             selectedDate={selectedDate}
             onSelect={(date) => {
@@ -408,7 +415,7 @@ const UserAppointment: React.FC = () => {
             onToggle={() => setShowDatePicker((prev) => !prev)}
           />
 
-          <div className="space-y-6">
+          <div className="space-y-6 lg:space-y-5">
             <Card className="shadow-sm border border-border/60 bg-card">
               <CardHeader className="border-b border-border/60 bg-muted/40 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
@@ -443,7 +450,7 @@ const UserAppointment: React.FC = () => {
                     <p className="text-muted-foreground">Please choose another date.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:gap-5">
                     {availableSlots.map((slot) => (
                       <TimeSlotCard
                         key={slot.id}
@@ -457,11 +464,23 @@ const UserAppointment: React.FC = () => {
               </CardContent>
             </Card>
 
+            <div className="xl:hidden">
+              <BookingSummary
+                selectedDate={selectedDate}
+                selectedSlot={selectedSlot}
+                onRequest={handleRequest}
+                loading={bookingLoading || guestBookingLoading}
+              />
+            </div>
+          </div>
+
+          <div className="hidden xl:block">
             <BookingSummary
               selectedDate={selectedDate}
               selectedSlot={selectedSlot}
               onRequest={handleRequest}
               loading={bookingLoading || guestBookingLoading}
+              className="sticky top-24"
             />
           </div>
         </div>
