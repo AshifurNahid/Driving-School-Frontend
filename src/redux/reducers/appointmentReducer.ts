@@ -20,6 +20,10 @@ import {
   APPOINTMENT_SLOT_ASSIGN_SUCCESS,
   APPOINTMENT_SLOT_ASSIGN_FAIL,
   APPOINTMENT_SLOT_ASSIGN_RESET,
+  APPOINTMENT_SLOT_BULK_REQUEST,
+  APPOINTMENT_SLOT_BULK_SUCCESS,
+  APPOINTMENT_SLOT_BULK_FAIL,
+  APPOINTMENT_SLOT_BULK_RESET,
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
@@ -39,7 +43,10 @@ import {
   ADMIN_APPOINTMENT_CANCEL_REQUEST,
   ADMIN_APPOINTMENT_CANCEL_SUCCESS,
   ADMIN_APPOINTMENT_CANCEL_FAIL,
-  ADMIN_APPOINTMENT_CANCEL_RESET
+  ADMIN_APPOINTMENT_CANCEL_RESET,
+  ADMIN_APPOINTMENT_USER_INFO_REQUEST,
+  ADMIN_APPOINTMENT_USER_INFO_SUCCESS,
+  ADMIN_APPOINTMENT_USER_INFO_FAIL
 } from '../constants/appointmentConstants';
 
 // Interface for appointment slot
@@ -57,6 +64,7 @@ export interface AppointmentSlot {
   updatedAt: string;
   pricePerSlot?: number;
   instructorName?: string;
+  isBooked?: boolean;
 }
 
 // Interface for appointment slots state
@@ -108,6 +116,20 @@ const initialAppointmentSlotCreateState: AppointmentSlotCreateState = {
   loading: false,
   success: false,
   appointmentSlot: null,
+  error: null,
+};
+
+interface AppointmentSlotBulkState {
+  loading: boolean;
+  success: boolean;
+  data: any | null;
+  error: string | null;
+}
+
+const initialAppointmentSlotBulkState: AppointmentSlotBulkState = {
+  loading: false,
+  success: false,
+  data: null,
   error: null,
 };
 
@@ -167,6 +189,24 @@ export const appointmentSlotCreateReducer = (
       return { ...state, loading: false, success: false, error: action.payload };
     case APPOINTMENT_SLOT_CREATE_RESET:
       return initialAppointmentSlotCreateState;
+    default:
+      return state;
+  }
+};
+
+export const appointmentSlotBulkReducer = (
+  state = initialAppointmentSlotBulkState,
+  action: any
+): AppointmentSlotBulkState => {
+  switch (action.type) {
+    case APPOINTMENT_SLOT_BULK_REQUEST:
+      return { ...state, loading: true, error: null, success: false };
+    case APPOINTMENT_SLOT_BULK_SUCCESS:
+      return { ...state, loading: false, success: true, data: action.payload, error: null };
+    case APPOINTMENT_SLOT_BULK_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload };
+    case APPOINTMENT_SLOT_BULK_RESET:
+      return initialAppointmentSlotBulkState;
     default:
       return state;
   }
@@ -488,6 +528,35 @@ export const adminAppointmentCancelReducer = (
       return { ...state, loading: false, success: false, error: action.payload };
     case ADMIN_APPOINTMENT_CANCEL_RESET:
       return initialAdminAppointmentCancelState;
+    default:
+      return state;
+  }
+};
+
+// Admin appointment slot user info state and reducer
+interface AdminAppointmentUserInfoState {
+  loading: boolean;
+  data: any;
+  error: string | null;
+}
+
+const initialAdminAppointmentUserInfoState: AdminAppointmentUserInfoState = {
+  loading: false,
+  data: null,
+  error: null,
+};
+
+export const adminAppointmentUserInfoReducer = (
+  state = initialAdminAppointmentUserInfoState,
+  action: any
+): AdminAppointmentUserInfoState => {
+  switch (action.type) {
+    case ADMIN_APPOINTMENT_USER_INFO_REQUEST:
+      return { ...state, loading: true, error: null };
+    case ADMIN_APPOINTMENT_USER_INFO_SUCCESS:
+      return { ...state, loading: false, data: action.payload, error: null };
+    case ADMIN_APPOINTMENT_USER_INFO_FAIL:
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }

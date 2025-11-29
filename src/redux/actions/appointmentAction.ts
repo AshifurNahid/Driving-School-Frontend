@@ -37,7 +37,14 @@ import {
   ADMIN_APPOINTMENT_STATUS_UPDATE_FAIL,
   ADMIN_APPOINTMENT_CANCEL_REQUEST,
   ADMIN_APPOINTMENT_CANCEL_SUCCESS,
-  ADMIN_APPOINTMENT_CANCEL_FAIL
+  ADMIN_APPOINTMENT_CANCEL_FAIL,
+  APPOINTMENT_SLOT_BULK_REQUEST,
+  APPOINTMENT_SLOT_BULK_SUCCESS,
+  APPOINTMENT_SLOT_BULK_FAIL,
+  APPOINTMENT_SLOT_BULK_RESET,
+  ADMIN_APPOINTMENT_USER_INFO_REQUEST,
+  ADMIN_APPOINTMENT_USER_INFO_SUCCESS,
+  ADMIN_APPOINTMENT_USER_INFO_FAIL
 } from "../constants/appointmentConstants";
 
 
@@ -57,6 +64,7 @@ export interface AppointmentSlot {
   updatedAt: string;
   pricePerSlot?: number;
   instructorName?: string;
+  isBooked?: boolean;
 }
 
 export interface BookDirectAppointmentPayload {
@@ -90,6 +98,17 @@ export interface BookGuestAppointmentPayload {
     phone: string;
   };
   isLicenceFromAnotherCountry: boolean;
+}
+
+export interface BulkAppointmentSlotPayload {
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  slotDurationMinutes: number;
+  slotNumber: number;
+  slotIntervalMinutes: number;
+  instructorId?: number | null;
+  location?: string;
 }
 
 const getAppointmentErrorMessage = (error: any) => {
@@ -235,6 +254,29 @@ export const assignInstructorToSlot = (slotId: number, instructorId: number) => 
   } catch (error: any) {
     dispatch({
       type: APPOINTMENT_SLOT_ASSIGN_FAIL,
+      payload: getAppointmentErrorMessage(error),
+    });
+  }
+};
+
+export const createBulkAppointmentSlots = (payload: BulkAppointmentSlotPayload) => async (dispatch: any) => {
+  try {
+    dispatch({ type: APPOINTMENT_SLOT_BULK_REQUEST });
+
+    const sanitizedPayload = {
+      ...payload,
+      instructorId: payload.instructorId ?? null,
+    };
+
+    const { data } = await api.post('/appointment-slots/bulk', sanitizedPayload);
+
+    dispatch({
+      type: APPOINTMENT_SLOT_BULK_SUCCESS,
+      payload: data,
+    });
+  } catch (error: any) {
+    dispatch({
+      type: APPOINTMENT_SLOT_BULK_FAIL,
       payload: getAppointmentErrorMessage(error),
     });
   }
@@ -651,7 +693,7 @@ export const updateAppointmentStatus = (appointmentId: number, status: string) =
 export const cancelAppointment = (appointmentId: number, cancellationReason: string) => async (dispatch: any) => {
   try {
     dispatch({ type: ADMIN_APPOINTMENT_CANCEL_REQUEST });
-    
+
     console.log('Canceling appointment:', appointmentId, 'with reason:', cancellationReason);
     
     const { data } = await api.put(`/appointments/${appointmentId}/cancel`, { 
@@ -671,7 +713,26 @@ export const cancelAppointment = (appointmentId: number, cancellationReason: str
       payload:
         error.response && error.response.data.message
           ? error.response.data.message
-          : error.message,
+      : error.message,
+    });
+  }
+};
+
+// Get booked appointment slot user info
+export const getAppointmentSlotUserInfo = (slotId: number) => async (dispatch: any) => {
+  try {
+    dispatch({ type: ADMIN_APPOINTMENT_USER_INFO_REQUEST });
+
+    const { data } = await api.get(`/appointments/slot/${slotId}/user-info`);
+
+    dispatch({
+      type: ADMIN_APPOINTMENT_USER_INFO_SUCCESS,
+      payload: data?.data || data,
+    });
+  } catch (error: any) {
+    dispatch({
+      type: ADMIN_APPOINTMENT_USER_INFO_FAIL,
+      payload: getAppointmentErrorMessage(error),
     });
   }
 };

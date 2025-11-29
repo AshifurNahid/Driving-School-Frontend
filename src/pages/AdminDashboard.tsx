@@ -45,6 +45,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import CourseManagement from '@/components/admin/CourseManagement';
 import { RevenueChart, UserGrowthChart, CoursePerformanceChart, EngagementChart } from '@/components/admin/analytics/AnalyticsCharts';
 import { useDispatch, useSelector } from "react-redux";
+import { DashboardContent } from './Dashboard';
 import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, getAdminCourses, deleteAdminCourse } from "@/redux/actions/adminAction";
 import { RootState, AppDispatch } from "@/redux/store";
 import { User } from "@/types/user";
@@ -153,16 +154,6 @@ const AdminDashboard = () => {
   };
 
 
-  // Mock data
-  const stats = {
-    totalUsers,
-    totalCourses: 12,
-    totalRevenue: 2847592,
-    activeUsers: 18493,
-    pendingCourses: 23,
-    instructors: 156,
-    students: 52691
-  };
   // Place this near the top of your AdminDashboard component
   // 
   const [pendingCourses, setPendingCourses] = useState([
@@ -328,15 +319,18 @@ const AdminDashboard = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-6">
-              <Badge 
-                variant="secondary" 
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <ThemeToggle />
+              </div>
+              <Badge
+                variant="secondary"
                 className="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 border border-emerald-400/30 text-emerald-100 px-3 py-1.5 font-semibold shadow-lg backdrop-blur-sm"
               >
                 <Shield className="h-3 w-3 mr-2" />
                 Administrator
               </Badge>
-              
+
               <Avatar className="h-10 w-10 shadow-lg ring-2 ring-blue-400/30">
                 <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
@@ -353,114 +347,9 @@ const AdminDashboard = () => {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground">{stats.totalUsers.toLocaleString()}</div>
-                    {/* <p className="text-xs text-muted-foreground">
-                     <span className="text-green-600">+12.5%</span> from last month
-                    </p> */}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground">{stats.totalCourses.toLocaleString()}</div>
-                    {/* <p className="text-xs text-muted-foreground">
-                    //  <span className="text-green-600">+8.2%</span> from last month
-                    </p> */}
-                  </CardContent>
-                </Card>
-
-                {/* <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground">${stats.totalRevenue.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="text-green-600">+15.3%</span> from last month
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground">{stats.activeUsers.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="text-green-600">+5.7%</span> from last week
-                    </p>
-                  </CardContent>
-                </Card> */}
-              </div>
-
-              {/* Recent Activity */}
-              {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Pending Course Approvals</CardTitle>
-                    <CardDescription>Courses waiting for review</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {pendingCourses.slice(0, 3).map((course) => (
-                        <div key={course?.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
-                          <div>
-                            <div className="font-medium text-foreground">{course?.title}</div>
-                            <div className="text-sm text-muted-foreground">by {course?.instructor}</div>
-                          </div>
-                          
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Platform Analytics</CardTitle>
-                    <CardDescription>Key performance metrics</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Instructors</span>
-                        <span className="font-medium text-foreground">{stats.instructors}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Students</span>
-                        <span className="font-medium text-foreground">{stats.students.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Pending Reviews</span>
-                        <span className="font-medium text-foreground">{stats.pendingCourses}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Active Sessions</span>
-                        <span className="font-medium text-foreground">2,847</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div> */}
+              <DashboardContent embedded />
             </div>
           )}
-
-          {/* User Management Tab */}
           {activeTab === 'users' && <UserManagement />}
 
 

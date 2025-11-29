@@ -17,12 +17,14 @@ import {
   appointmentSlotUpdateReducer,
   appointmentSlotDeleteReducer,
   appointmentSlotAssignReducer,
+  appointmentSlotBulkReducer,
   bookDirectAppointmentReducer,
   userAppointmentsReducer,
   adminPreviousAppointmentsReducer,
   adminUpcomingAppointmentsReducer,
   adminAppointmentStatusUpdateReducer,
-  adminAppointmentCancelReducer
+  adminAppointmentCancelReducer,
+  adminAppointmentUserInfoReducer
 } from "./appointmentReducer";
 import { bookGuestAppointmentReducer } from "./guestBookingReducer";
 import { instructorListReducer } from "./instructorReducers";
@@ -52,6 +54,7 @@ const rootReducer = combineReducers({
   appointmentSlotUpdate: appointmentSlotUpdateReducer,
   appointmentSlotDelete: appointmentSlotDeleteReducer,
   appointmentSlotAssign: appointmentSlotAssignReducer,
+  appointmentSlotBulkCreate: appointmentSlotBulkReducer,
   bookDirectAppointment: bookDirectAppointmentReducer,
   bookGuestAppointment: bookGuestAppointmentReducer,
   userAppointments: userAppointmentsReducer,
@@ -59,6 +62,7 @@ const rootReducer = combineReducers({
   adminUpcomingAppointments: adminUpcomingAppointmentsReducer,
   adminAppointmentStatusUpdate: adminAppointmentStatusUpdateReducer,
   adminAppointmentCancel: adminAppointmentCancelReducer,
+  adminAppointmentUserInfo: adminAppointmentUserInfoReducer,
   
   instructorList: instructorListReducer,
   regionList: adminRegionListReducer,
