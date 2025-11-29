@@ -22,11 +22,14 @@ import {
   LogOut,
   Grid3X3,
   Navigation,
-  Circle
+  Circle,
+  Settings,
+  Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface SidebarItem {
@@ -140,30 +143,35 @@ const AdminSidebar = ({
 
       <aside
         className={cn(
-          "fixed left-0 top-0 h-screen bg-gradient-to-b from-white via-blue-50/60 to-white text-slate-700",
-          "shadow-2xl border-r border-slate-200/80 backdrop-blur-xl flex flex-col z-50 transition-all duration-300 lg:static",
-          isOpen ? "w-80 translate-x-0" : "w-0 -translate-x-full lg:w-20 lg:translate-x-0",
+          "fixed left-0 top-0 h-screen text-slate-900 dark:text-slate-100",
+          "bg-white/95 dark:bg-slate-950/95 border-r border-slate-200/60 dark:border-slate-900 shadow-2xl",
+          "backdrop-blur flex flex-col z-50 transition-all duration-300 lg:static",
+          isOpen ? "w-72 translate-x-0" : "w-[84px]",
+          isMobile && !isOpen ? "-translate-x-full" : "translate-x-0",
           className
         )}
       >
-        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-200/70">
-          {isOpen && (
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 via-blue-400 to-cyan-400 shadow-md flex items-center justify-center text-white font-semibold">
-                NL
-              </div>
-              <div className="leading-tight">
-                <p className="text-sm text-slate-500 font-semibold">Dashboard</p>
-                <p className="text-lg font-bold text-slate-800">NL Driving</p>
-              </div>
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-200/60 dark:border-slate-900">
+          <div className="flex items-center gap-3 min-h-[48px]">
+            <div className="h-11 w-11 rounded-2xl grid place-items-center bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200 border border-slate-200 dark:border-slate-800">
+              <Settings className="h-5 w-5" />
             </div>
-          )}
+            {isOpen && (
+              <div className="leading-tight">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Admin management</p>
+                <p className="text-lg font-semibold">Dashboard</p>
+              </div>
+            )}
+          </div>
 
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-9 w-9 rounded-full border border-slate-200 bg-white/80 hover:bg-white shadow-sm text-slate-500"
+            className={cn(
+              "ml-auto h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800",
+              "bg-white/70 dark:bg-slate-900/70 hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
           >
             {isMobile ? (
               <X className="h-4 w-4" />
@@ -175,118 +183,163 @@ const AdminSidebar = ({
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pt-4 pb-6 space-y-6">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/70 border border-slate-200/70 shadow-sm">
-            <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 grid place-items-center font-semibold">NL</div>
+        <div className="flex-1 overflow-y-auto px-3 pt-4 pb-6 space-y-5">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
+            <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-300 grid place-items-center font-semibold">
+              NL
+            </div>
             {isOpen && (
               <div className="flex-1">
-                <p className="text-xs text-slate-500">Quick View</p>
-                <p className="text-base font-semibold text-slate-800">Admin Panel</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Quick view</p>
+                <p className="text-base font-semibold">Admin Panel</p>
               </div>
             )}
           </div>
 
-          <nav className="space-y-1">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              const isAppointments = item.id === 'appointments';
+          <nav className="space-y-4">
+            {isOpen && (
+              <div className="px-3">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 tracking-wide">General</p>
+              </div>
+            )}
+            <div className="space-y-2">
+              {sidebarItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                const isAppointments = item.id === 'appointments';
 
-              return (
-                <div key={item.id} className="space-y-2">
+                const button = (
                   <button
                     onClick={() => handleItemClick(item.id)}
                     className={cn(
-                      "w-full flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200",
-                      collapsed ? "justify-center px-2.5 py-3" : "px-3 py-2.5",
+                      "group w-full relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200",
+                      collapsed ? "justify-center px-2.5 py-2.5" : "px-3 py-2.5",
                       isActive
-                        ? "bg-white shadow-md border border-blue-100 text-blue-700"
-                        : "text-slate-600 hover:bg-white/70 border border-transparent"
+                        ? "bg-slate-100/80 dark:bg-slate-900 border border-blue-500/30 text-slate-900 dark:text-slate-50"
+                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-100/70 dark:hover:bg-slate-900 border border-transparent"
                     )}
                   >
-                    <Icon className={cn("h-5 w-5", isActive ? "text-blue-600" : "text-slate-400")}
-                      style={{ minWidth: '20px' }}
+                    <span
+                      className={cn(
+                        "absolute left-0 h-6 w-1 rounded-full",
+                        isActive ? "bg-blue-500" : "bg-transparent"
+                      )}
                     />
+                    <span
+                      className={cn(
+                        "h-9 w-9 shrink-0 grid place-items-center rounded-lg border",
+                        isActive
+                          ? "border-blue-500/40 bg-white text-blue-600 dark:border-blue-500/40 dark:bg-slate-800"
+                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
                     {isOpen && (
                       <>
                         <span className="flex-1 text-left">{item.label}</span>
                         {isAppointments && (
-                          <span className="text-slate-400">
+                          <span className="text-slate-400 dark:text-slate-500">
                             {appointmentExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </span>
                         )}
                         {item.badge && (
-                          <Badge variant="secondary" className="ml-auto bg-blue-50 text-blue-700">
+                          <Badge variant="secondary" className="ml-auto bg-blue-500/10 text-blue-600 dark:text-blue-300 dark:bg-blue-500/20">
                             {item.badge}
                           </Badge>
                         )}
                       </>
                     )}
                   </button>
+                );
 
-                  {isAppointments && isOpen && (
-                    <div
-                      className={cn(
-                        "ml-2 rounded-xl bg-white/70 border border-blue-50 shadow-inner overflow-hidden",
-                        "transition-[max-height,opacity] duration-300 ease-in-out",
-                        appointmentExpanded ? "max-h-48 opacity-100" : "max-h-0 opacity-0"
-                      )}
-                    >
-                      <div className="py-2">
-                        {appointmentSubItems.map((subItem) => {
-                          const SubIcon = subItem.icon;
-                          const isSubActive = appointmentActiveTab === subItem.id;
-                          return (
-                            <button
-                              key={subItem.id}
-                              onClick={() => handleAppointmentSubItemClick(subItem.id)}
-                              className={cn(
-                                "w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors",
-                                isSubActive
-                                  ? "text-blue-700 bg-blue-50"
-                                  : "text-slate-500 hover:text-slate-700 hover:bg-blue-50/60"
-                              )}
-                            >
-                              <span className={cn(
-                                "flex items-center justify-center h-5 w-5 rounded-full",
-                                isSubActive ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-500"
-                              )}>
-                                <SubIcon className="h-3.5 w-3.5" />
-                              </span>
-                              <span className="flex-1 text-left">{subItem.label}</span>
-                              {subItem.id === 'availability' && (
-                                <span className="flex items-center gap-1 text-xs text-blue-600">
-                                  <Circle className="h-2 w-2 fill-blue-600 text-blue-600" />
+                return (
+                  <div key={item.id} className="space-y-2">
+                    {collapsed ? (
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>{button}</TooltipTrigger>
+                          <TooltipContent side="right" className="text-sm">
+                            {item.label}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      button
+                    )}
+
+                    {isAppointments && isOpen && (
+                      <div
+                        className={cn(
+                          "ml-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 overflow-hidden",
+                          "transition-[max-height,opacity] duration-300 ease-in-out",
+                          appointmentExpanded ? "max-h-48 opacity-100" : "max-h-0 opacity-0"
+                        )}
+                      >
+                        <div className="py-2">
+                          {appointmentSubItems.map((subItem) => {
+                            const SubIcon = subItem.icon;
+                            const isSubActive = appointmentActiveTab === subItem.id;
+                            return (
+                              <button
+                                key={subItem.id}
+                                onClick={() => handleAppointmentSubItemClick(subItem.id)}
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors",
+                                  isSubActive
+                                    ? "text-blue-700 dark:text-blue-200 bg-white dark:bg-slate-800"
+                                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    "flex items-center justify-center h-5 w-5 rounded-full",
+                                    isSubActive ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-200" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                  )}
+                                >
+                                  <SubIcon className="h-3.5 w-3.5" />
                                 </span>
-                              )}
-                            </button>
-                          );
-                        })}
+                                <span className="flex-1 text-left">{subItem.label}</span>
+                                {subItem.id === 'availability' && (
+                                  <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                                    <Circle className="h-2 w-2 fill-green-500 text-green-500" />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </nav>
         </div>
 
-        <div className="px-4 py-4 border-t border-slate-200/70 bg-white/70 backdrop-blur-sm space-y-3">
-          <div className={cn("flex items-center", isOpen ? "justify-between" : "justify-center")}>
+        <div className="px-4 py-4 border-t border-slate-200/60 dark:border-slate-900 bg-white/80 dark:bg-slate-950/80 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-800">
+              <Layers className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+            </div>
             {isOpen && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">Admin User</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@example.com</p>
+              </div>
+            )}
+            <div className={cn("ml-auto flex items-center gap-2", collapsed && "mx-auto")}> 
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
+                className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
                 asChild
-                className="gap-2 text-slate-700 font-semibold bg-blue-50 hover:bg-blue-100 border border-blue-100"
               >
                 <Link to="/">
                   <Home className="h-4 w-4" />
-                  Back to Home
                 </Link>
               </Button>
-            )}
-            <div className="[&_button]:border-slate-200 [&_button]:bg-white/80">
               <ThemeToggle />
             </div>
           </div>
@@ -296,8 +349,8 @@ const AdminSidebar = ({
             variant="ghost"
             className={cn(
               "w-full justify-start gap-2 text-red-500 font-semibold",
-              "bg-gradient-to-r from-red-50 to-orange-50 hover:from-red-100 hover:to-orange-100",
-              "border border-red-100 hover:border-red-200"
+              "bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50",
+              "border border-red-100 dark:border-red-900/40"
             )}
           >
             <LogOut className="h-4 w-4" />
