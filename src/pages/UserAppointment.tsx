@@ -11,7 +11,8 @@ import {
   AlertCircle,
   ChevronDown,
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  Info
 } from 'lucide-react';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 import { Calendar } from '@/components/ui/calendar';
@@ -67,64 +68,6 @@ const formatTimeRange = (start: string, end: string) => {
   const endDate = parse(end, 'HH:mm:ss', new Date());
   return `${format(startDate, 'h:mm a')} – ${format(endDate, 'h:mm a')}`;
 };
-
-interface DateSelectorProps {
-  selectedDate?: Date;
-  onSelect: (date: Date | undefined) => void;
-  showPicker: boolean;
-  onToggle: (open: boolean) => void;
-}
-
-const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onSelect, showPicker, onToggle }) => (
-  <Card className="shadow-sm border border-border/60 bg-card">
-    <CardHeader className="border-b border-border/60 bg-muted/40">
-      <CardTitle className="text-lg font-semibold flex items-center gap-3">
-        <CalendarIcon className="h-5 w-5" />
-        Select a date
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="p-5 sm:p-6">
-      <div className="space-y-4">
-        <Popover open={showPicker} onOpenChange={onToggle}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full h-14 justify-between rounded-lg border-border/70 bg-background/80"
-            >
-              <div className="flex items-center gap-3 text-left">
-                <div className="p-2 rounded-md bg-primary/10 text-primary">
-                  <CalendarIcon className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Selected date</p>
-                  <p className="font-semibold">{friendlyDate(selectedDate)}</p>
-                </div>
-              </div>
-              <ChevronDown className={`h-4 w-4 transition-transform ${showPicker ? 'rotate-180' : ''}`} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-3 bg-card border border-border/70 shadow-lg rounded-xl" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                onSelect(date ?? undefined);
-                onToggle(false);
-              }}
-              disabled={(date) => date < new Date()}
-              className="rounded-lg"
-              classNames={{
-                day_selected: 'bg-primary text-primary-foreground hover:bg-primary/90',
-                day_today: 'bg-muted text-foreground font-semibold',
-                day: 'hover:bg-muted/70 rounded-md'
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 interface TimeSlotCardProps {
   slot: AppointmentSlot;
@@ -243,6 +186,44 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           </>
         )}
       </Button>
+    </CardContent>
+  </Card>
+);
+
+const BookingGuidance: React.FC = () => (
+  <Card className="shadow-sm border border-border/60 bg-card h-full">
+    <CardHeader className="border-b border-border/60 bg-muted/40">
+      <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+        <Info className="h-5 w-5 text-primary" />
+        Before you book
+      </CardTitle>
+      <p className="text-sm text-muted-foreground">Quick reminders to make your appointment smooth.</p>
+    </CardHeader>
+    <CardContent className="p-6 space-y-4">
+      {[
+        {
+          title: 'Pick a date to see slots',
+          description: 'Use the date selector in the header to refresh available times instantly.'
+        },
+        {
+          title: 'Arrive a few minutes early',
+          description: 'Plan for parking and bring your learner’s permit and any required documents.'
+        },
+        {
+          title: 'Confirm your contact info',
+          description: 'We’ll send reminders and updates to the details you provide during booking.'
+        }
+      ].map((item) => (
+        <div key={item.title} className="flex items-start gap-3">
+          <div className="mt-0.5 rounded-md bg-primary/10 text-primary p-2">
+            <CheckCircle className="h-4 w-4" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-medium text-sm">{item.title}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+          </div>
+        </div>
+      ))}
     </CardContent>
   </Card>
 );
@@ -393,7 +374,7 @@ const UserAppointment: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40 text-foreground">
       <RoleBasedNavigation />
 
-      <div className="max-w-screen-xl xl:max-w-screen-2xl mx-auto px-3 sm:px-5 lg:px-6 xl:px-8 pt-16 pb-12">
+      <div className="max-w-screen-xl xl:max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-5 xl:px-6 pt-24 pb-12">
         <header className="text-center mb-10 space-y-3">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
             <Sparkles className="h-4 w-4" />
@@ -405,27 +386,53 @@ const UserAppointment: React.FC = () => {
           </p>
         </header>
 
-        <div className="grid items-start lg:grid-cols-[280px_minmax(0,1.8fr)] xl:grid-cols-[300px_minmax(0,2.2fr)_320px] gap-5 xl:gap-6 2xl:gap-7">
-          <DateSelector
-            selectedDate={selectedDate}
-            onSelect={(date) => {
-              setSelectedDate(date ?? undefined);
-              setSelectedSlot(null);
-            }}
-            showPicker={showDatePicker}
-            onToggle={(open) => setShowDatePicker(open)}
-          />
+        <div className="grid items-start lg:grid-cols-[320px_minmax(0,2fr)] xl:grid-cols-[320px_minmax(0,2fr)_320px] gap-5 xl:gap-6 2xl:gap-7">
+          <BookingGuidance />
 
           <div className="space-y-6 lg:space-y-5">
             <Card className="shadow-sm border border-border/60 bg-card">
-              <CardHeader className="border-b border-border/60 bg-muted/40 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <CardHeader className="border-b border-border/60 bg-muted/40 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5" />
                   <CardTitle className="text-base sm:text-lg font-semibold">Available slots</CardTitle>
                 </div>
-                {selectedDate && (
-                  <p className="text-sm text-muted-foreground">{friendlyDate(selectedDate)}</p>
-                )}
+                <Popover open={showDatePicker} onOpenChange={(open) => setShowDatePicker(open)}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full lg:w-auto h-12 justify-between gap-3 rounded-lg border-border/70 bg-background/80"
+                    >
+                      <div className="flex items-center gap-3 text-left">
+                        <div className="p-2 rounded-md bg-primary/10 text-primary">
+                          <CalendarIcon className="h-4 w-4" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs text-muted-foreground">Choose a date</p>
+                          <p className="text-sm font-semibold leading-tight">{friendlyDate(selectedDate)}</p>
+                        </div>
+                      </div>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${showDatePicker ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-3 bg-card border border-border/70 shadow-lg rounded-xl" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
+                        setSelectedDate(date ?? undefined);
+                        setSelectedSlot(null);
+                        setShowDatePicker(false);
+                      }}
+                      disabled={(date) => date < new Date()}
+                      className="rounded-lg"
+                      classNames={{
+                        day_selected: 'bg-primary text-primary-foreground hover:bg-primary/90',
+                        day_today: 'bg-muted text-foreground font-semibold',
+                        day: 'hover:bg-muted/70 rounded-md'
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
                 {slotsLoading ? (
