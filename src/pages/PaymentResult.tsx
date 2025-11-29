@@ -19,8 +19,8 @@ const PaymentResult = () => {
   const isSuccess = state.status === "succeeded" || state.status === "success";
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card shadow-sm border-b border-border">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
+      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <RoleBasedNavigation />
@@ -29,45 +29,49 @@ const PaymentResult = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Card className="text-center">
-          <CardHeader className="space-y-2">
+        <Card className="bg-white p-10 rounded-2xl shadow-2xl text-center space-y-6 border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
+          <CardHeader className="space-y-4 p-0">
             {isSuccess ? (
-              <div className="flex justify-center text-green-600">
-                <CheckCircle2 className="h-10 w-10" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600 shadow-inner dark:bg-green-950/50 dark:text-green-300">
+                <CheckCircle2 className="h-9 w-9" />
               </div>
             ) : (
-              <div className="flex justify-center text-destructive">
-                <CircleAlert className="h-10 w-10" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600 shadow-inner dark:bg-red-950/50 dark:text-red-200">
+                <CircleAlert className="h-9 w-9" />
               </div>
             )}
-            <CardTitle className="text-3xl font-bold">
+            <CardTitle className="text-2xl font-semibold text-gray-800 dark:text-slate-50">
               {isSuccess ? "Payment Successful" : "Payment Failed"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-600 text-sm dark:text-slate-300">
               {isSuccess
-                ? "Your course purchase is confirmed."
+                ? "Your purchase is confirmed."
                 : "We could not process your payment. Please try again."}
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
-            <div className="flex justify-center gap-6 text-sm text-muted-foreground">
-              {state.transactionId && (
-                <span>Transaction #{state.transactionId}</span>
-              )}
+          <CardContent className="space-y-5 p-0">
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 dark:text-slate-300">
+              {state.transactionId && <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">Transaction #{state.transactionId}</span>}
               {typeof state.amount === "number" && (
-                <span>Amount: ${state.amount.toFixed(2)} CAD</span>
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">
+                  Amount: ${state.amount.toFixed(2)} CAD
+                </span>
               )}
             </div>
-            <Separator />
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>If payment succeeded, the course will be available under "My Courses".</p>
+            <Separator className="bg-gray-200 dark:bg-slate-700" />
+            <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300">
+              <p>{isSuccess ? "Your purchase is confirmed." : "Please retry checkout or use another card."}</p>
               <p>If it failed, you can return to the course and retry checkout.</p>
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button onClick={() => navigate("/")} variant="outline" className="gap-2">
+          <CardFooter className="flex flex-col sm:flex-row gap-3 justify-center p-0">
+            <Button
+              onClick={() => navigate("/")}
+              variant="outline"
+              className="gap-2 w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            >
               <Home className="h-4 w-4" />
               Home
             </Button>
@@ -79,7 +83,7 @@ const PaymentResult = () => {
               <Button
                 variant="secondary"
                 onClick={() => navigate(`/course/${state.courseId}`)}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-3 rounded-lg font-medium transition dark:bg-slate-800 dark:text-indigo-200 dark:hover:bg-slate-700"
               >
                 Retry checkout
               </Button>
