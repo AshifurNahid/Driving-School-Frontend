@@ -134,6 +134,11 @@ const AppointmentManagement = () => {
     return instructor?.instructor_name || `Instructor ${instructorId}`;
   };
 
+  const getInstructorEmail = (instructorId: number): string => {
+    const instructor = instructors.find(inst => inst.id === instructorId);
+    return instructor?.description || '—';
+  };
+
   // Get unique user IDs from current appointments
   const userIds = currentAppointments.map((appointment: AdminAppointmentItem) => appointment.userId);
   const { getUserName, getUserEmail, getUserPhone, loading: userDetailsLoading, error: userDetailsError } = useUserDetails(userIds);
