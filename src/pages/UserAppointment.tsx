@@ -17,6 +17,7 @@ import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import BookingModal from '@/components/appointments/BookingModal';
 import BookingStatusModal from '@/components/appointments/BookingStatusModal';
 import GuestBookingModal from '@/components/appointments/GuestBookingModal';
@@ -71,7 +72,7 @@ interface DateSelectorProps {
   selectedDate?: Date;
   onSelect: (date: Date | undefined) => void;
   showPicker: boolean;
-  onToggle: () => void;
+  onToggle: (open: boolean) => void;
 }
 
 const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onSelect, showPicker, onToggle }) => (
@@ -84,31 +85,31 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onSelect, sho
     </CardHeader>
     <CardContent className="p-6">
       <div className="space-y-4">
-        <Button
-          variant="outline"
-          onClick={onToggle}
-          className="w-full h-14 justify-between rounded-lg border-border/70 bg-background/80"
-        >
-          <div className="flex items-center gap-3 text-left">
-            <div className="p-2 rounded-md bg-muted">
-              <CalendarIcon className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Selected date</p>
-              <p className="font-semibold">{friendlyDate(selectedDate)}</p>
-            </div>
-          </div>
-          <ChevronDown className={`h-4 w-4 transition-transform ${showPicker ? 'rotate-180' : ''}`} />
-        </Button>
-
-        {showPicker && (
-          <div className="border rounded-lg border-border/70 shadow-sm">
+        <Popover open={showPicker} onOpenChange={onToggle}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full h-14 justify-between rounded-lg border-border/70 bg-background/80"
+            >
+              <div className="flex items-center gap-3 text-left">
+                <div className="p-2 rounded-md bg-primary/10 text-primary">
+                  <CalendarIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Selected date</p>
+                  <p className="font-semibold">{friendlyDate(selectedDate)}</p>
+                </div>
+              </div>
+              <ChevronDown className={`h-4 w-4 transition-transform ${showPicker ? 'rotate-180' : ''}`} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-3 bg-card border border-border/70 shadow-lg rounded-xl" align="start">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={(date) => {
                 onSelect(date ?? undefined);
-                onToggle();
+                onToggle(false);
               }}
               disabled={(date) => date < new Date()}
               className="rounded-lg"
@@ -118,8 +119,8 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onSelect, sho
                 day: 'hover:bg-muted/70 rounded-md'
               }}
             />
-          </div>
-        )}
+          </PopoverContent>
+        </Popover>
       </div>
     </CardContent>
   </Card>
@@ -412,7 +413,7 @@ const UserAppointment: React.FC = () => {
               setSelectedSlot(null);
             }}
             showPicker={showDatePicker}
-            onToggle={() => setShowDatePicker((prev) => !prev)}
+            onToggle={(open) => setShowDatePicker(open)}
           />
 
           <div className="space-y-6 lg:space-y-5">
