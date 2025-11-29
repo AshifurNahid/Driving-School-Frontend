@@ -130,11 +130,13 @@ const AppointmentManagement = () => {
 
   // Helper function to get instructor name
   const getInstructorName = (instructorId: number): string => {
+    if (!instructorId) return 'No Instructor';
     const instructor = instructors.find(inst => inst.id === instructorId);
     return instructor?.instructor_name || `Instructor ${instructorId}`;
   };
 
   const getInstructorEmail = (instructorId: number): string => {
+    if (!instructorId) return '—';
     const instructor = instructors.find(inst => inst.id === instructorId);
     return instructor?.description || '—';
   };
@@ -406,125 +408,129 @@ const AppointmentManagement = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 lg:p-6">
-      <div className="max-w-7xl mx-auto space-y-4">
-        {/* Header with Tabs */}
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Appointment Management
-            </CardTitle>
-            {/* <CardDescription className="text-gray-600 dark:text-gray-400">
-              Manage and review appointment requests from students
-            </CardDescription> */}
-            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 mt-2">
-              <Button
-                variant={activeTab === 'upcoming' ? 'default' : 'ghost'}
-                onClick={() => {
-                  setActiveTab('upcoming');
-                  setCurrentPage(1);
-                }}
-                className="flex-1"
-              >
-                Upcoming Appointments
-              </Button>
-              <Button
-                variant={activeTab === 'previous' ? 'default' : 'ghost'}
-                onClick={() => {
-                  setActiveTab('previous');
-                  setCurrentPage(1);
-                }}
-                className="flex-1"
-              >
-                Previous Appointments
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <div className="max-w-7xl mx-auto space-y-6 px-4 lg:px-8 py-6">
+        {/* Hero */}
+        <Card className="relative overflow-hidden border-0 shadow-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_left,white,transparent_35%)]" />
+          <CardHeader className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-3 text-white">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
+                <Calendar className="w-4 h-4" />
+                Appointment Requests
+              </div>
+              <CardTitle className="text-3xl font-semibold">Manage learner appointments with confidence</CardTitle>
+              <CardDescription className="text-white/80 max-w-2xl text-base">
+                Track, review, and action every learner request from a modern command center. Filter by status, assign instructors,
+                and keep every journey on schedule.
+              </CardDescription>
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-white/15 text-white border-white/30">Pending: {pendingCount}</Badge>
+                <Badge className="bg-white/10 text-white border-white/30">Cancelled: {cancelledCount}</Badge>
+                <Badge className="bg-white/10 text-white border-white/30">Rejected: {rejectedCount}</Badge>
+              </div>
+            </div>
+            <div className="flex w-full flex-col gap-3 rounded-2xl bg-white/10 p-4 text-white shadow-lg backdrop-blur-sm lg:w-auto">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-white/80">Viewing</p>
+                  <p className="text-xl font-bold capitalize">{activeTab} requests</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-white/80">Total requests</p>
+                  <p className="text-3xl font-semibold">{totalCount}</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 rounded-xl bg-white/5 p-2">
+                <div className="flex items-center gap-2 text-sm text-white/90">
+                  <Clock className="w-4 h-4" />
+                  <span>{totalFilteredCount} results after filters</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Button
+                    variant={activeTab === 'upcoming' ? 'secondary' : 'outline'}
+                    onClick={() => {
+                      setActiveTab('upcoming');
+                      setCurrentPage(1);
+                    }}
+                    className="h-11 justify-center rounded-lg border-white/30 bg-white/10 text-white hover:bg-white/20"
+                  >
+                    Upcoming Requests
+                  </Button>
+                  <Button
+                    variant={activeTab === 'previous' ? 'secondary' : 'outline'}
+                    onClick={() => {
+                      setActiveTab('previous');
+                      setCurrentPage(1);
+                    }}
+                    className="h-11 justify-center rounded-lg border-white/30 bg-white/10 text-white hover:bg-white/20"
+                  >
+                    Previous Requests
+                  </Button>
+                </div>
+              </div>
             </div>
           </CardHeader>
         </Card>
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Requests</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalCount}</p>
-                </div>
-                <Calendar className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
-                </div>
-                <Clock className="w-8 h-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cancelled</p>
-                  <p className="text-2xl font-bold text-gray-700 dark:text-gray-200">{cancelledCount}</p>
-                </div>
-                <X className="w-8 h-8 text-gray-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
-                  <p className="text-2xl font-bold text-red-600">{rejectedCount}</p>
-                </div>
-                <X className="w-8 h-8 text-red-600" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[{ label: 'Total Requests', value: totalCount, icon: Calendar, accent: 'from-blue-100 to-blue-50' },
+            { label: 'Pending', value: pendingCount, icon: Clock, accent: 'from-amber-100 to-amber-50' },
+            { label: 'Cancelled', value: cancelledCount, icon: X, accent: 'from-slate-100 to-white' },
+            { label: 'Rejected', value: rejectedCount, icon: AlertCircle, accent: 'from-rose-100 to-rose-50' }].map((stat) => (
+              <Card key={stat.label} className={`overflow-hidden border-0 shadow-lg bg-gradient-to-br ${stat.accent}`}>
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-slate-600">{stat.label}</p>
+                      <p className="text-3xl font-semibold text-slate-900">{stat.value}</p>
+                      <div className="h-1 w-16 rounded-full bg-slate-900/10" />
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md">
+                      <stat.icon className="w-6 h-6 text-slate-700" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
         </div>
 
-        {/* Filters and Search */}
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        {/* Filters */}
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur dark:bg-gray-900/60">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Appointment Requests
-            </CardTitle>
-           
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-50">Appointment request queue</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Slice through requests with smart filters and a modern search experience.
+                </CardDescription>
+              </div>
+              <Badge variant="secondary" className="h-8 rounded-full px-4 text-sm">
+                Showing {displayAppointments.length} / {totalFilteredCount}
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Search and Filters Row */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search Input */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by student name, email, phone, instructor, or course..."
+                  placeholder="Search by learner, contact, instructor, course, or notes"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                  className="h-12 rounded-xl border-gray-200 pl-10 text-base shadow-inner focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-900"
                 />
               </div>
-              
-              {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-gray-200 bg-white shadow-inner dark:border-gray-700 dark:bg-gray-900">
                     <div className="flex items-center gap-2">
                       <Filter className="w-4 h-4" />
                       <SelectValue placeholder="Filter by status" />
                     </div>
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="booked">Pending</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -532,222 +538,211 @@ const AppointmentManagement = () => {
                     <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={instructorFilter} onValueChange={setInstructorFilter}>
-                  <SelectTrigger className="w-full sm:w-48 h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-gray-200 bg-white shadow-inner dark:border-gray-700 dark:bg-gray-900">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4" />
                       <SelectValue placeholder="Filter by instructor" />
                     </div>
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
                     <SelectItem value="all">All Instructors</SelectItem>
                     {instructors.map((instructor) => (
                       <SelectItem key={instructor.id} value={instructor.instructor_name}>
                         {instructor.instructor_name}
                       </SelectItem>
                     ))}
+                    <SelectItem value="No Instructor">No Instructor</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            
-            {/* Results count */}
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Showing {displayAppointments.length} of {totalFilteredCount} appointments
-              {currentPagination && (
-                <span className="ml-2">
-                  (Page {currentPagination.pageNumber} of {currentPagination.totalPages}, Total: {currentPagination.totalCount})
-                </span>
-              )}
+
+            <div className="flex flex-wrap gap-2 text-xs text-gray-600 dark:text-gray-400">
+              <Badge variant="outline" className="rounded-full border-dashed">Total: {totalCount}</Badge>
+              <Badge variant="outline" className="rounded-full border-dashed">Filtered: {totalFilteredCount}</Badge>
+              <Badge variant="outline" className="rounded-full border-dashed">Page size: {itemsPerPage}</Badge>
             </div>
           </CardContent>
         </Card>
 
         {/* Table */}
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 overflow-hidden">
+        <Card className="overflow-hidden border-0 shadow-2xl bg-white/90 backdrop-blur dark:bg-gray-900/70">
           {currentLoading || userDetailsLoading ? (
-            <CardContent className="p-8">
-              <div className="flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="ml-3 text-gray-600 dark:text-gray-400">
-                  {currentLoading ? 'Loading appointments...' : 'Loading user details...'}
-                </span>
+            <CardContent className="p-10">
+              <div className="flex items-center justify-center gap-3 text-gray-700 dark:text-gray-300">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+                <span>{currentLoading ? 'Loading appointments...' : 'Loading user details...'}</span>
               </div>
             </CardContent>
           ) : currentError || userDetailsError ? (
-            <CardContent className="p-8">
-              <div className="flex flex-col items-center justify-center">
-                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Error Loading Data</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-center">
-                  {currentError || userDetailsError}
-                </p>
+            <CardContent className="p-10">
+              <div className="flex flex-col items-center justify-center gap-3 text-center">
+                <AlertCircle className="w-12 h-12 text-red-500" />
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Error loading data</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{currentError || userDetailsError}</p>
+                </div>
                 {userDetailsError && !currentError && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-                    Appointments loaded, but some user details may be unavailable.
-                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Appointments loaded, but some user details may be unavailable.</p>
                 )}
               </div>
             </CardContent>
           ) : displayAppointments.length === 0 ? (
             <CardContent className="p-16">
-              <div className="flex flex-col items-center justify-center">
-                <Calendar className="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  No {activeTab === 'upcoming' ? 'Upcoming' : 'Previous'} Appointments
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-center">
-                  {activeTab === 'upcoming' 
-                    ? 'No upcoming appointment requests found. New appointments will appear here when students make requests.'
-                    : 'No previous appointment requests found. Completed and past appointments will appear here.'
-                  }
-                </p>
+              <div className="flex flex-col items-center justify-center gap-3 text-center text-gray-700 dark:text-gray-200">
+                <Calendar className="w-16 h-16 text-gray-400" />
+                <div className="space-y-1">
+                  <h3 className="text-xl font-semibold">No {activeTab === 'upcoming' ? 'upcoming' : 'previous'} appointments</h3>
+                  <p className="text-gray-600 dark:text-gray-400 max-w-xl">
+                    {activeTab === 'upcoming'
+                      ? 'New appointment requests will appear here as soon as learners schedule time.'
+                      : 'Completed and past appointments will be listed here for historical context.'}
+                  </p>
+                </div>
               </div>
             </CardContent>
           ) : (
             <div className="overflow-x-auto">
+              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 text-sm text-gray-600 dark:border-gray-800 dark:text-gray-300">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-500" />
+                  <span>{displayAppointments.length} requests in view</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button onClick={() => handleSort('date')} className="flex items-center gap-1 text-xs uppercase tracking-wide text-gray-500 hover:text-blue-600">
+                    Sort by date
+                    <SortIcon field="date" />
+                  </button>
+                  <button onClick={() => handleSort('learnerName')} className="flex items-center gap-1 text-xs uppercase tracking-wide text-gray-500 hover:text-blue-600">
+                    Sort by learner
+                    <SortIcon field="learnerName" />
+                  </button>
+                </div>
+              </div>
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-900/50">
+                <thead className="bg-gray-100/80 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:bg-gray-900/60 dark:text-gray-300">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort('learnerName')}
-                        className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
-                      >
-                        Student
-                        <SortIcon field="learnerName" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort('instructorName')}
-                        className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
-                      >
-                        Instructor
-                        <SortIcon field="instructorName" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort('date')}
-                        className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
-                      >
-                        Date & Time
-                        <SortIcon field="date" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course Type</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cancel Reason</th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-4">Student</th>
+                    <th className="px-6 py-4">Instructor</th>
+                    <th className="px-6 py-4">Date & Time</th>
+                    <th className="px-6 py-4">Course Type</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Cancel Reason</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {displayAppointments.map((appointment: AdminAppointmentItem) => (
-                    <tr key={appointment.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {getUserName(appointment.userId)}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {getUserEmail(appointment.userId)}
-                          </div>
-                          <div className="text-xs text-gray-400 dark:text-gray-500">
-                            {getUserPhone(appointment.userId)}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap align-top">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                              {getInstructorName(appointment.appointmentSlot.instructorId) || 'Unassigned'}
+                <tbody className="divide-y divide-gray-200 bg-white text-sm dark:divide-gray-800 dark:bg-gray-900">
+                  {displayAppointments.map((appointment: AdminAppointmentItem) => {
+                    const instructorId = appointment.appointmentSlot.instructorId;
+                    const instructorLabel = getInstructorName(instructorId);
+                    const noInstructor = !instructorId;
+
+                    return (
+                      <tr key={appointment.id} className="hover:bg-blue-50/60 dark:hover:bg-gray-800/60">
+                        <td className="px-6 py-4 align-top">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-base font-semibold text-gray-900 dark:text-gray-50">{getUserName(appointment.userId)}</span>
+                            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                              <Mail className="w-4 h-4" />
+                              <span>{getUserEmail(appointment.userId)}</span>
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {getInstructorEmail(appointment.appointmentSlot.instructorId)}
+                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                              <Phone className="w-4 h-4" />
+                              <span>{getUserPhone(appointment.userId)}</span>
                             </div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAssignClick(appointment)}
-                            className="h-8 px-3 text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-900/20"
-                            disabled={assignLoading}
-                          >
-                            <UserCheck className="w-4 h-4 mr-1" />
-                            Assign
-                          </Button>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {format(new Date(appointment.appointmentSlot.date), 'MMM dd, yyyy')}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatTime(appointment.appointmentSlot.startTime)} - {formatTime(appointment.appointmentSlot.endTime)}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <div className="text-sm text-gray-900 dark:text-gray-100">
-                            {appointment.appointmentType}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {appointment.hoursConsumed}h - ${appointment.amountPaid}
-                          </div>
-                          {appointment.appointmentSlot.location && (
-                            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                              <MapPin className="w-3 h-3" />
-                              {appointment.appointmentSlot.location}
+                        </td>
+                        <td className="px-6 py-4 align-top">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                                <UserCheck className="w-4 h-4 text-blue-600" />
+                                <span className="font-semibold">{instructorLabel}</span>
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">{getInstructorEmail(instructorId)}</div>
+                              {noInstructor && (
+                                <Badge variant="outline" className="rounded-full border-dashed text-xs">Awaiting assignment</Badge>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge
-                          variant={getStatusBadge(appointment.status).variant}
-                          className={getStatusBadge(appointment.status).className}
-                        >
-                          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 max-w-xs">
-                        {appointment.cancelReason ? (
-                          <span className="line-clamp-2">{appointment.cancelReason}</span>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewProfile(appointment)}
-                            className="h-8 px-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {appointment.status.toLowerCase() === 'booked' && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleCancelClick(appointment)}
-                              className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
-                              disabled={cancelLoading}
+                              onClick={() => handleAssignClick(appointment)}
+                              className="h-8 px-3 rounded-full border-blue-200 text-blue-600 shadow-sm hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                              disabled={assignLoading}
                             >
-                              <X className="w-4 h-4 mr-1" />
-                              Cancel
+                              Assign
                             </Button>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 align-top">
+                          <div className="space-y-1 text-gray-900 dark:text-gray-100">
+                            <div className="font-semibold">{format(new Date(appointment.appointmentSlot.date), 'MMM dd, yyyy')}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-300">
+                              {formatTime(appointment.appointmentSlot.startTime)} - {formatTime(appointment.appointmentSlot.endTime)}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 align-top">
+                          <div className="space-y-1 text-gray-900 dark:text-gray-100">
+                            <span className="font-medium">{appointment.appointmentType}</span>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{appointment.hoursConsumed}h · ${appointment.amountPaid}</div>
+                            {appointment.appointmentSlot.location && (
+                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                <MapPin className="w-3 h-3" />
+                                {appointment.appointmentSlot.location}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 align-top">
+                          <Badge
+                            variant={getStatusBadge(appointment.status).variant}
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadge(appointment.status).className}`}
+                          >
+                            {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 align-top text-gray-700 dark:text-gray-300">
+                          {appointment.cancelReason ? (
+                            <div className="rounded-lg bg-gray-100 px-3 py-2 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-3 h-3" />
+                                <span className="line-clamp-2">{appointment.cancelReason}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4 text-right align-top">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewProfile(appointment)}
+                              className="h-9 rounded-full border-gray-200 px-3 text-gray-700 shadow-sm hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            {appointment.status.toLowerCase() === 'booked' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCancelClick(appointment)}
+                                className="h-9 rounded-full border-red-200 px-3 text-red-600 shadow-sm hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/40"
+                                disabled={cancelLoading}
+                              >
+                                Cancel
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -756,14 +751,12 @@ const AppointmentManagement = () => {
 
         {/* Pagination */}
         {currentPagination && currentPagination.totalPages > 1 && (
-          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <Card className="border-0 bg-white/90 shadow-lg backdrop-blur dark:bg-gray-900/70">
             <CardContent className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-700 dark:text-gray-300">
                   Page {currentPagination.pageNumber} of {currentPagination.totalPages}
-                  <span className="ml-2 text-gray-500">
-                    ({currentPagination.totalCount} total appointments)
-                  </span>
+                  <span className="ml-2 text-gray-500">({currentPagination.totalCount} total appointments)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -771,17 +764,19 @@ const AppointmentManagement = () => {
                     size="sm"
                     onClick={() => handlePageChange(currentPagination.pageNumber - 1)}
                     disabled={!currentPagination.hasPreviousPage || currentLoading}
-                    className="h-9 px-3"
+                    className="h-10 rounded-full px-4"
                   >
                     <ChevronLeft className="w-4 h-4" />
+                    Prev
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPagination.pageNumber + 1)}
                     disabled={!currentPagination.hasNextPage || currentLoading}
-                    className="h-9 px-3"
+                    className="h-10 rounded-full px-4"
                   >
+                    Next
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
