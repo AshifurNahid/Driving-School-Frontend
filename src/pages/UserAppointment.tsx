@@ -435,15 +435,6 @@ const UserAppointment: React.FC = () => {
                               {slot.location || 'Driving School'}
                             </span>
                           </div>
-
-                          {slot.courseTitle && (
-                            <div className="flex items-center gap-2 text-xs">
-                              <BookOpen className="h-3 w-3 text-gray-500 dark:text-gray-400" />
-                              <span className="text-gray-600 dark:text-gray-300 truncate">
-                                {slot.courseTitle}
-                              </span>
-                            </div>
-                          )}
                         </div>
 
                         {/* Features */}
