@@ -87,7 +87,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onSelect, sho
         <Button
           variant="outline"
           onClick={onToggle}
-          className="w-full h-14 justify-between rounded-lg border-border/70 bg-background/70"
+          className="w-full h-14 justify-between rounded-lg border-border/70 bg-background/80"
         >
           <div className="flex items-center gap-3 text-left">
             <div className="p-2 rounded-md bg-muted">
@@ -136,7 +136,7 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({ slot, selected, onSelect })
   return (
     <button
       onClick={() => onSelect(slot)}
-      className={`w-full text-left rounded-xl border p-5 transition-all duration-200 shadow-sm bg-card border-border/70 hover:border-primary hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+      className={`w-full text-left rounded-2xl border p-6 transition-all duration-200 shadow-sm bg-card border-border/70 hover:border-primary hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary/40 ${
         selected ? 'border-primary ring-2 ring-primary/40' : ''
       }`}
     >
@@ -156,24 +156,24 @@ const TimeSlotCard: React.FC<TimeSlotCardProps> = ({ slot, selected, onSelect })
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-muted/60">
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="flex items-start gap-3">
+          <div className="p-2.5 rounded-md bg-muted/60">
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Location</p>
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium leading-relaxed">
               {slot.location ? slot.location : 'Location will be provided'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-muted/60">
+        <div className="flex items-start gap-3">
+          <div className="p-2.5 rounded-md bg-muted/60">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Price</p>
             <p className="text-sm font-semibold">${slot.pricePerSlot} per session</p>
           </div>
@@ -392,7 +392,7 @@ const UserAppointment: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40 text-foreground">
       <RoleBasedNavigation />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 pt-16 pb-12">
         <header className="text-center mb-10 space-y-3">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
             <Sparkles className="h-4 w-4" />
@@ -404,7 +404,7 @@ const UserAppointment: React.FC = () => {
           </p>
         </header>
 
-        <div className="grid items-start lg:grid-cols-[320px_1fr] xl:grid-cols-[340px_1.4fr_320px] gap-6 xl:gap-8">
+        <div className="grid items-start lg:grid-cols-[320px_minmax(0,1.4fr)] xl:grid-cols-[340px_minmax(0,1.8fr)_340px] gap-6 xl:gap-6 2xl:gap-8">
           <DateSelector
             selectedDate={selectedDate}
             onSelect={(date) => {
