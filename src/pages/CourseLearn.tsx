@@ -158,17 +158,7 @@ const CourseLearn = () => {
                       </BreadcrumbItem>
                     </BreadcrumbList>
                   </Breadcrumb>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {selection?.lessonId ? "Active Lesson" : selection?.quizId ? "Active Quiz" : "Learning"}
-                    </p>
-                    <h2 className="text-2xl font-semibold leading-tight text-foreground">
-                      {activeLesson?.lesson_title || activeQuiz?.title || "Select content to get started"}
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {activeModule?.module_title ? `Section: ${activeModule.module_title}` : "Pick a section from the course content"}
-                    </p>
-                  </div>
+             
                 </div>
 
                 <div className="flex flex-col items-end gap-2 text-right text-sm text-muted-foreground">
