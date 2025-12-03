@@ -1,5 +1,10 @@
 import { Course, CourseModule, Lesson, Quiz, QuizQuestion } from "@/types/courses";
 
+export interface ApiStatus {
+  code?: string;
+  message?: string;
+}
+
 export interface UserCourseResponse {
   id?: number;
   user_id?: number;
@@ -13,7 +18,15 @@ export interface UserCourseResponse {
   updated_by_id?: number;
   created_at?: string;
   updated_at?: string;
+  totalOfflineHours?: number;
+  consumedOfflineHours?: number;
+  remainingOfflineHours?: number;
   course?: ExtendedCourse;
+}
+
+export interface UserCourseApiResponse {
+  status?: ApiStatus;
+  data?: UserCourseResponse;
 }
 
 export interface ExtendedCourse extends Course {
