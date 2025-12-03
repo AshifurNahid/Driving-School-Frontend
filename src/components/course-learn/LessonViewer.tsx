@@ -30,22 +30,14 @@ export const LessonViewer = ({ lesson, attachmentUrl }: LessonViewerProps) => {
               {lesson.lesson_description}
             </p>
           ) : null}
-        </CardHeader>
-        {attachmentUrl && (
-          <CardContent className="space-y-3">
-            <Separator />
-            <PdfCanvasViewer src={attachmentUrl} title={lesson.lesson_title} />
-          </CardContent>
-        )}
-      </Card>
-      {!attachmentUrl && (
-        <Card>
-          <CardContent className="py-6 text-sm text-muted-foreground">
-            This lesson does not include a PDF attachment yet. Please review the description above
-            or proceed to the next activity.
-          </CardContent>
-        </Card>
+      </CardHeader>
+      {attachmentUrl && (
+        <CardContent className="space-y-3">
+          <Separator />
+          <PdfCanvasViewer src={attachmentUrl} title={lesson.lesson_title} />
+        </CardContent>
       )}
-    </div>
-  );
+    </Card>
+  </div>
+);
 };
