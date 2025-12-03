@@ -11,14 +11,7 @@ import {
 } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import {
-  ArrowsMaximize,
-  ArrowsMinimize,
-  Maximize2,
-  Minimize2,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+import { Maximize2, Minimize2, ZoomIn, ZoomOut } from "lucide-react";
 
 const PDF_SCRIPT_SRC =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.js";
@@ -291,7 +284,7 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
             onClick={toggleFullscreen}
             aria-label="Toggle fullscreen"
           >
-            {isFullscreen ? <ArrowsMinimize className="h-4 w-4" /> : <ArrowsMaximize className="h-4 w-4" />}
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
         </div>
       </div>
