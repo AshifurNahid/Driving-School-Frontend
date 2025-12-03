@@ -13,10 +13,29 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Maximize2, Minimize2, ZoomIn, ZoomOut } from "lucide-react";
 
-const PDF_SCRIPT_SRC =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.js";
-const PDF_WORKER_SRC =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js";
+const PDF_SOURCES: { script: string; worker: string }[] = [
+  {
+    script: import.meta.env.VITE_PDFJS_SRC,
+    worker: import.meta.env.VITE_PDFJS_WORKER_SRC,
+  },
+  {
+    script: "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.min.js",
+    worker:
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.js",
+  },
+  {
+    script: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.js",
+    worker:
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.js",
+  },
+  {
+    script: "/pdfjs/pdf.min.js",
+    worker: "/pdfjs/pdf.worker.min.js",
+  },
+].filter(
+  (source): source is { script: string; worker: string } =>
+    Boolean(source.script) && Boolean(source.worker)
+);
 
 type PdfDocument = any;
 type PdfjsLib = any;
@@ -32,25 +51,55 @@ let pdfJsPromise: Promise<PdfjsLib> | null = null;
 const loadPdfJs = async () => {
   if (typeof window === "undefined") throw new Error("PDF viewer unavailable");
   if (window.pdfjsLib) return window.pdfjsLib;
+
   if (!pdfJsPromise) {
     pdfJsPromise = new Promise((resolve, reject) => {
-      const existing = document.querySelector<HTMLScriptElement>(
-        `script[src='${PDF_SCRIPT_SRC}']`
-      );
-      if (existing) {
-        existing.addEventListener("load", () => resolve(window.pdfjsLib));
-        existing.addEventListener("error", () => reject(new Error("Failed to load PDF.js")));
-        return;
-      }
+      let attempt = 0;
 
-      const script = document.createElement("script");
-      script.src = PDF_SCRIPT_SRC;
-      script.async = true;
-      script.onload = () => resolve(window.pdfjsLib);
-      script.onerror = () => reject(new Error("Failed to load PDF.js library"));
-      document.head.appendChild(script);
+      const tryLoad = () => {
+        const source = PDF_SOURCES[attempt];
+        if (!source) {
+          reject(new Error("Failed to load PDF.js library"));
+          return;
+        }
+
+        const existing = document.querySelector<HTMLScriptElement>(
+          `script[src='${source.script}']`
+        );
+
+        const onLoad = () => {
+          if (window.pdfjsLib?.GlobalWorkerOptions) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = source.worker;
+            resolve(window.pdfjsLib);
+            return;
+          }
+          attempt += 1;
+          tryLoad();
+        };
+
+        const onError = () => {
+          attempt += 1;
+          tryLoad();
+        };
+
+        if (existing) {
+          existing.addEventListener("load", onLoad, { once: true });
+          existing.addEventListener("error", onError, { once: true });
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = source.script;
+        script.async = true;
+        script.onload = onLoad;
+        script.onerror = onError;
+        document.head.appendChild(script);
+      };
+
+      tryLoad();
     });
   }
+
   return pdfJsPromise;
 };
 
@@ -155,7 +204,6 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
       try {
         const pdfjs = await loadPdfJs();
         if (!pdfjs?.GlobalWorkerOptions) throw new Error("PDF.js unavailable");
-        pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
         const documentProxy = await pdfjs.getDocument(src).promise;
         if (!isMounted) return;
         setPdfDoc(documentProxy);

@@ -470,7 +470,7 @@ export const bookDirectAppointment = (payload: BookDirectAppointmentPayload) => 
 export const getUserAppointments = (userId: number) => async (dispatch: any) => {
   try {
     dispatch({ type: USER_APPOINTMENTS_REQUEST });
-    
+
     const { data } = await api.get(`/appointments/user/${userId}`);
     
     // Get appointments from the response - handle both direct array or nested data object
@@ -482,6 +482,14 @@ export const getUserAppointments = (userId: number) => async (dispatch: any) => 
       payload: userAppointments,
     });
   } catch (error: any) {
+    if (error?.response?.status === 404) {
+      dispatch({
+        type: USER_APPOINTMENTS_SUCCESS,
+        payload: [],
+      });
+      return;
+    }
+
     dispatch({
       type: USER_APPOINTMENTS_FAIL,
       payload:
