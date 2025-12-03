@@ -8,6 +8,8 @@ import { QuizViewer } from "@/components/course-learn/QuizViewer";
 import { CourseLearnSkeleton } from "@/components/course-learn/CourseLearnSkeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useUserCourse } from "@/hooks/useUserCourse";
 import {
@@ -24,9 +26,18 @@ const CourseLearn = () => {
   const { data, isLoading, isError, error, refetch } = useUserCourse(id);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [selection, setSelection] = useState<LearningSelection | null>(null);
+  const [isContentOpen, setIsContentOpen] = useState(false);
 
   const course = data?.course;
   const modules = course?.course_modules || [];
+  const totalLessons = useMemo(
+    () => modules.reduce((sum, mod) => sum + (mod.course_module_lessons?.length || 0), 0),
+    [modules]
+  );
+  const totalQuizzes = useMemo(
+    () => modules.reduce((sum, mod) => sum + (mod.quizzes?.length || 0), 0),
+    [modules]
+  );
 
   useEffect(() => {
     if (modules.length) {
@@ -60,6 +71,11 @@ const CourseLearn = () => {
   const activeQuiz = useMemo(
     () => findQuizById(modules, selection?.moduleId, selection?.quizId),
     [modules, selection]
+  );
+
+  const activeModule = useMemo(
+    () => modules.find((mod) => mod.id === selection?.moduleId),
+    [modules, selection?.moduleId]
   );
 
   const totalHours = useMemo(() => {
@@ -110,32 +126,89 @@ const CourseLearn = () => {
 
         {!isLoading && !isError && course && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
-            <ModuleSidebar
-              modules={modules}
-              expanded={expanded}
-              onToggle={toggleModule}
-              onSelectLesson={selectLesson}
-              onSelectQuiz={selectQuiz}
-              activeLessonId={selection?.lessonId}
-              activeQuizId={selection?.quizId}
-            />
+            <div className="hidden lg:block">
+              <ModuleSidebar
+                courseTitle={course.title}
+                progressPercentage={data?.progress_percentage}
+                totalLessons={totalLessons}
+                totalQuizzes={totalQuizzes}
+                modules={modules}
+                expanded={expanded}
+                onToggle={toggleModule}
+                onSelectLesson={selectLesson}
+                onSelectQuiz={selectQuiz}
+                activeLessonId={selection?.lessonId}
+                activeQuizId={selection?.quizId}
+              />
+            </div>
 
             <section className="space-y-6">
-              <div className="rounded-lg border bg-card p-4 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-2">
+                  <Breadcrumb>
+                    <BreadcrumbList>
+                      <BreadcrumbItem className="text-muted-foreground">Course</BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem className="text-muted-foreground">
+                        {activeModule?.module_title || "Section"}
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem className="font-semibold text-foreground">
+                        {activeLesson?.lesson_title || activeQuiz?.title || "Choose content"}
+                      </BreadcrumbItem>
+                    </BreadcrumbList>
+                  </Breadcrumb>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {selection?.lessonId ? "Active Lesson" : "Active Quiz"}
+                      {selection?.lessonId ? "Active Lesson" : selection?.quizId ? "Active Quiz" : "Learning"}
                     </p>
-                    <h2 className="text-xl font-semibold text-foreground">
-                      {activeLesson?.lesson_title || activeQuiz?.title || "Select content"}
+                    <h2 className="text-2xl font-semibold leading-tight text-foreground">
+                      {activeLesson?.lesson_title || activeQuiz?.title || "Select content to get started"}
                     </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {activeModule?.module_title ? `Section: ${activeModule.module_title}` : "Pick a section from the course content"}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span>{modules.length} modules</span>
+                </div>
+
+                <div className="flex flex-col items-end gap-2 text-right text-sm text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <span>{modules.length} sections</span>
                     <Separator orientation="vertical" className="h-6" />
-                    <span>{course.total_number_of_quizzes || course.total_no_of_quizzes || 0} quizzes</span>
+                    <span>{totalLessons} lessons</span>
+                    <Separator orientation="vertical" className="h-6" />
+                    <span>{totalQuizzes} quizzes</span>
                   </div>
+                  <Sheet open={isContentOpen} onOpenChange={setIsContentOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="lg:hidden">
+                        Course content
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-full max-w-md p-0">
+                      <div className="h-full overflow-y-auto bg-muted/50 p-4">
+                        <ModuleSidebar
+                          courseTitle={course.title}
+                          progressPercentage={data?.progress_percentage}
+                          totalLessons={totalLessons}
+                          totalQuizzes={totalQuizzes}
+                          modules={modules}
+                          expanded={expanded}
+                          onToggle={toggleModule}
+                          onSelectLesson={(moduleId, lessonId) => {
+                            selectLesson(moduleId, lessonId);
+                            setIsContentOpen(false);
+                          }}
+                          onSelectQuiz={(moduleId, quizId) => {
+                            selectQuiz(moduleId, quizId);
+                            setIsContentOpen(false);
+                          }}
+                          activeLessonId={selection?.lessonId}
+                          activeQuizId={selection?.quizId}
+                        />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                 </div>
               </div>
 
@@ -149,7 +222,7 @@ const CourseLearn = () => {
                 <Alert>
                   <AlertTitle>Select a lesson or quiz</AlertTitle>
                   <AlertDescription>
-                    Use the module navigation on the left to open lessons and quizzes.
+                    Use the course content navigation to open lessons and quizzes.
                   </AlertDescription>
                 </Alert>
               )}
