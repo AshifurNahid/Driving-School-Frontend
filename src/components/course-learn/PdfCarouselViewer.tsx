@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Download, ExternalLink } from "lucide-react";
+import { Download, ExternalLink, RefreshCcw } from "lucide-react";
 
 interface PdfCarouselViewerProps {
   src?: string | null;
@@ -11,6 +11,8 @@ interface PdfCarouselViewerProps {
 
 export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
   const [loadError, setLoadError] = useState(false);
+
+  const encodedSrc = useMemo(() => (src ? encodeURI(src) : null), [src]);
 
   if (!src) {
     return (
@@ -21,36 +23,39 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
     );
   }
 
-  const encodedSrc = encodeURI(src);
-
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3 justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/70 px-4 py-3">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Course Material</p>
+          <p className="text-xs uppercase tracking-[0.1em] text-muted-foreground">Resource</p>
           <p className="text-lg font-semibold text-foreground leading-tight">
             {title || "PDF Attachment"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" asChild>
-            <a href={encodedSrc} target="_blank" rel="noreferrer">
-              <ExternalLink className="h-4 w-4 mr-2" />
+            <a href={encodedSrc || undefined} target="_blank" rel="noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />
               Open in new tab
             </a>
           </Button>
           <Button variant="default" size="sm" asChild>
-            <a href={encodedSrc} download>
-              <Download className="h-4 w-4 mr-2" />
+            <a href={encodedSrc || undefined} download>
+              <Download className="mr-2 h-4 w-4" />
               Download
             </a>
           </Button>
+          {loadError && (
+            <Button variant="outline" size="sm" onClick={() => setLoadError(false)}>
+              <RefreshCcw className="mr-2 h-4 w-4" /> Retry
+            </Button>
+          )}
         </div>
       </div>
 
       <Separator />
 
-      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-muted/80 via-background to-background shadow-inner">
         {loadError ? (
           <Alert variant="destructive" className="m-4">
             <AlertTitle>Unable to load PDF</AlertTitle>
@@ -63,7 +68,7 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
           <iframe
             title={title || "PDF Viewer"}
             src={`${encodedSrc}#toolbar=1&navpanes=0`}
-            className="h-[75vh] w-full bg-muted"
+            className="h-[78vh] w-full border-0 bg-muted"
             onError={() => setLoadError(true)}
           />
         )}

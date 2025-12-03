@@ -102,7 +102,7 @@ const CourseLearn = () => {
         offlineHours={Number(course?.offline_training_hours || 0)}
       />
 
-      <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-8">
+      <main className="mx-auto max-w-screen-2xl px-4 pb-12 pt-8 sm:px-6 lg:px-10">
         {isLoading && <CourseLearnSkeleton />}
 
         {isError && (
@@ -125,7 +125,7 @@ const CourseLearn = () => {
         )}
 
         {!isLoading && !isError && course && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
+          <div className="grid min-h-[calc(100vh-14rem)] grid-cols-1 gap-6 lg:grid-cols-[28%_1fr] xl:grid-cols-[340px_1fr]">
             <div className="hidden lg:block">
               <ModuleSidebar
                 courseTitle={course.title}
@@ -185,8 +185,8 @@ const CourseLearn = () => {
                         Course content
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-full max-w-md p-0">
-                      <div className="h-full overflow-y-auto bg-muted/50 p-4">
+                    <SheetContent side="left" className="w-full max-w-md border-0 bg-background p-0 shadow-2xl">
+                      <div className="h-full overflow-y-auto bg-muted/40 p-4">
                         <ModuleSidebar
                           courseTitle={course.title}
                           progressPercentage={data?.progress_percentage}
@@ -213,7 +213,12 @@ const CourseLearn = () => {
               </div>
 
               {activeLesson && (
-                <LessonViewer lesson={activeLesson} attachmentUrl={attachmentUrl} />
+                <LessonViewer
+                  lesson={activeLesson}
+                  attachmentUrl={attachmentUrl}
+                  moduleTitle={activeModule?.module_title}
+                  courseTitle={course.title}
+                />
               )}
 
               {activeQuiz && <QuizViewer quiz={activeQuiz} />}

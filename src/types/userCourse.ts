@@ -42,6 +42,7 @@ export interface ExtendedCourseModule extends CourseModule {
 
 export interface ExtendedLesson extends Lesson {
   lesson_attachment_path?: string;
+  is_completed?: boolean;
 }
 
 export interface ExtendedQuiz extends Quiz {
