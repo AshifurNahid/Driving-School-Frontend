@@ -125,7 +125,7 @@ const CourseLearn = () => {
         )}
 
         {!isLoading && !isError && course && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
             <div className="hidden lg:block">
               <ModuleSidebar
                 courseTitle={course.title}
