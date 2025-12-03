@@ -53,7 +53,7 @@ const ModuleSidebarItem = ({
       >
         <div className="flex flex-col gap-1">
           <span className="text-xs uppercase tracking-wide text-muted-foreground">Section</span>
-          <span className="text-sm font-semibold text-foreground">
+          <span className="text-base font-bold text-primary">
             {module.module_title || "Module"}
           </span>
           {module.module_description && (
@@ -80,7 +80,7 @@ const ModuleSidebarItem = ({
                 <FileText className="h-4 w-4" />
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-[13px] font-normal text-foreground">
                   {lesson.lesson_title || "Lesson"}
                 </span>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -151,7 +151,7 @@ export const ModuleSidebar = ({
   const progress = Math.round(progressPercentage || 0);
 
   return (
-    <aside className="sticky top-24 h-[calc(100vh-6rem)] w-full max-w-xs space-y-4 overflow-y-auto pb-10 pr-2">
+    <aside className="sticky top-24 h-[calc(100vh-6rem)] w-full max-w-sm sm:max-w-md lg:max-w-[420px] space-y-4 overflow-y-auto pb-10 pr-2">
       <div className="space-y-3 rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm backdrop-blur">
         <div className="flex items-start gap-3">
           <BookOpenCheck className="mt-0.5 h-5 w-5 text-primary" />
