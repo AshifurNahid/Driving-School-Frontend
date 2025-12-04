@@ -654,14 +654,21 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         thumbnail_photo_path = base64;
       }
 
+      // helper to clamp decimals to 2 digits in fractional part
+      const toTwoDecimals = (value: any): number => {
+        const num = parseFloat(String(value || 0));
+        if (isNaN(num)) return 0;
+        return Number(num.toFixed(2));
+      };
+
       const payload = {
         title: course?.title,
         description: course?.description,
         content: course?.content,
         category: course?.category,
-        price: parseFloat(String(course?.price)) || 0,
+        price: toTwoDecimals(course?.price),
         duration: course?.courseType === 'online' || course?.courseType === 'hybrid'
-          ? parseFloat(String(course?.duration)) || 0
+          ? toTwoDecimals(course?.duration)
           : 0,
         level: course?.level,
         language: course?.language,
@@ -675,7 +682,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         offline_training_hours: course?.courseType === 'online'
           ? 0
           : course?.courseType === 'physical' || course?.courseType === 'hybrid'
-          ? parseFloat(String(course?.offline_training_hours)) || 0
+          ? toTwoDecimals(course?.offline_training_hours)
           : 0,
         course_materials: null,
         course_modules:
@@ -703,7 +710,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                     lesson_title: sub.title,
                     lesson_description: sub.description,
                     lesson_attachment_path: attachmentPath,
-                    duration: parseFloat(String(sub.duration)) || 0,
+                    duration: toTwoDecimals(sub.duration),
                     sequence: subIdx,
                   };
                 }),
@@ -719,19 +726,14 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           // Ensure type is always a number
                           const questionType: number = q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2;
                           
-                          // Options: comma-separated STRING for MCQ, empty string for others
-                          // Ensure options is always a string (never an array)
-                          let optionsString = '';
-                          if (questionType === 0 && q.options) {
-                            if (Array.isArray(q.options)) {
-                              // Convert array to comma-separated string
-                              optionsString = q.options.join(',');
-                            } else if (typeof q.options === 'string') {
-                              // Already a string, use as-is
-                              optionsString = q.options;
-                            }
+                          // Options: array of { key, value } objects for MCQ / True-False, empty for short-answer
+                          let optionsArray: { key: string; value: string }[] = [];
+                          if (questionType !== 2 && q.options && Array.isArray(q.options)) {
+                            optionsArray = q.options.map((opt, optIdx) => ({
+                              key: String.fromCharCode(97 + optIdx), // a, b, c, ...
+                              value: opt,
+                            }));
                           }
-                          // For type 1 (True/False) and type 2 (Short Answer), optionsString remains ''
                           
                           // Correct answers: 
                           // - MCQ: string (single "a" or multiple "a,b")
@@ -739,7 +741,11 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           // - Short Answer: string (single or comma-separated "answer1,answer2")
                           let correctAnswersString = '';
                           if (typeof q.correctAnswer === 'string') {
-                            correctAnswersString = q.correctAnswer; // Already in correct format
+                            // already a string, ensure trimmed
+                            correctAnswersString = q.correctAnswer
+                              .split(',')
+                              .map((s) => s.trim())
+                              .join(',');
                           } else if (typeof q.correctAnswer === 'boolean') {
                             correctAnswersString = q.correctAnswer ? 'true' : 'false';
                           }
@@ -747,9 +753,9 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           return {
                             question: q.question,
                             type: questionType, // Number: 0, 1, or 2
-                            options: optionsString, // String: comma-separated for MCQ, empty for others
-                            correct_answers: correctAnswersString, // String
-                            points: q.points,
+                            options: optionsArray, // [{ key, value }] or []
+                            correct_answer_keys: correctAnswersString, // String
+                            points: toTwoDecimals(q.points),
                             order_index: qIdx,
                           };
                         }),
