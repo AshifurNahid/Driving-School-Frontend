@@ -19,6 +19,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import CourseSlotBookingModal from "@/components/course-learn/CourseSlotBookingModal";
 import BookingStatusModal from "@/components/appointments/BookingStatusModal";
+import { useToast } from "@/hooks/use-toast";
 import { useUserCourse } from "@/hooks/useUserCourse";
 import {
   LearningSelection,
@@ -75,6 +76,7 @@ const SlotCard = ({
 const CourseLearn = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const { toast } = useToast();
   const { data, isLoading, isError, error, refetch } = useUserCourse(id);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [selection, setSelection] = useState<LearningSelection | null>(null);
@@ -143,7 +145,24 @@ const CourseLearn = () => {
     setSelection({ moduleId, quizId, lessonId: undefined });
   };
 
+  const calculateHoursToConsume = (startTime: string, endTime: string): number => {
+    const start = new Date(`2000-01-01 ${startTime}`);
+    const end = new Date(`2000-01-01 ${endTime}`);
+    const diffInMs = end.getTime() - start.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    return Math.round(diffInHours * 100) / 100;
+  };
+
   const handleSlotSelect = (slot: AppointmentSlot) => {
+    const slotHours = calculateHoursToConsume(slot.startTime, slot.endTime);
+    if (remainingOfflineHours < slotHours) {
+      toast({
+        title: "Slot exceeds remaining hours",
+        description: `Hey we have only ${remainingOfflineHours} hour(s), you cannot select a slot longer than ${remainingOfflineHours}.`,
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedSlot(slot);
   };
 
