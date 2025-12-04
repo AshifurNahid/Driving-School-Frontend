@@ -24,6 +24,10 @@ import {
   APPOINTMENT_SLOT_BULK_SUCCESS,
   APPOINTMENT_SLOT_BULK_FAIL,
   APPOINTMENT_SLOT_BULK_RESET,
+  BOOK_COURSE_APPOINTMENT_REQUEST,
+  BOOK_COURSE_APPOINTMENT_SUCCESS,
+  BOOK_COURSE_APPOINTMENT_FAILURE,
+  BOOK_COURSE_APPOINTMENT_RESET,
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
@@ -376,6 +380,61 @@ export const bookDirectAppointmentReducer = (
     case BOOK_DIRECT_APPOINTMENT_RESET:
       return bookDirectAppointmentInitialState;
     
+    default:
+      return state;
+  }
+};
+
+// Course based appointment state
+interface BookCourseAppointmentState {
+  loading: boolean;
+  success: boolean;
+  message: string | null;
+  error: string | null;
+  data: any;
+}
+
+const bookCourseAppointmentInitialState: BookCourseAppointmentState = {
+  loading: false,
+  success: false,
+  message: null,
+  error: null,
+  data: null,
+};
+
+export const bookCourseAppointmentReducer = (
+  state = bookCourseAppointmentInitialState,
+  action: any
+): BookCourseAppointmentState => {
+  switch (action.type) {
+    case BOOK_COURSE_APPOINTMENT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: false,
+        message: null,
+        error: null,
+      };
+    case BOOK_COURSE_APPOINTMENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        message: action.payload.message,
+        data: action.payload.data,
+        error: null,
+      };
+    case BOOK_COURSE_APPOINTMENT_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        success: false,
+        message: null,
+        error: action.payload,
+        data: null,
+      };
+    case BOOK_COURSE_APPOINTMENT_RESET:
+      return bookCourseAppointmentInitialState;
     default:
       return state;
   }

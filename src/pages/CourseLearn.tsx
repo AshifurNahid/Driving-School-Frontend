@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { format, parse } from "date-fns";
 import RoleBasedNavigation from "@/components/navigation/RoleBasedNavigation";
 import { CourseLearnHeader } from "@/components/course-learn/CourseLearnHeader";
 import { ModuleSidebar } from "@/components/course-learn/ModuleSidebar";
@@ -9,8 +11,14 @@ import { CourseLearnSkeleton } from "@/components/course-learn/CourseLearnSkelet
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import CourseSlotBookingModal from "@/components/course-learn/CourseSlotBookingModal";
+import BookingStatusModal from "@/components/appointments/BookingStatusModal";
 import { useUserCourse } from "@/hooks/useUserCourse";
 import {
   LearningSelection,
@@ -20,13 +28,67 @@ import {
   resolveAttachmentUrl,
 } from "@/utils/courseLearn";
 import { ExtendedCourseModule } from "@/types/userCourse";
+import {
+  getAppointmentSlotsByDate,
+  bookCourseBasedAppointment,
+  bookCourseAppointmentReset,
+  BookCourseAppointmentPayload,
+} from "@/redux/actions/appointmentAction";
+import { RootState } from "@/redux/reducers";
+import { AppointmentSlot } from "@/redux/reducers/appointmentReducer";
+
+const formatTimeRange = (start: string, end: string) => {
+  const startDate = parse(start, "HH:mm:ss", new Date());
+  const endDate = parse(end, "HH:mm:ss", new Date());
+  return `${format(startDate, "h:mm a")} – ${format(endDate, "h:mm a")}`;
+};
+
+const SlotCard = ({
+  slot,
+  onSelect,
+  selected,
+}: {
+  slot: AppointmentSlot;
+  onSelect: (slot: AppointmentSlot) => void;
+  selected: boolean;
+}) => (
+  <button
+    onClick={() => onSelect(slot)}
+    className={`w-full text-left rounded-xl border p-4 transition hover:border-primary hover:shadow ${
+      selected ? "border-primary ring-2 ring-primary/30" : "border-border/70"
+    }`}
+  >
+    <div className="flex items-center justify-between gap-3">
+      <div className="space-y-1">
+        <p className="text-xs text-muted-foreground">Time</p>
+        <p className="font-semibold">{formatTimeRange(slot.startTime, slot.endTime)}</p>
+      </div>
+      <div className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">Available</div>
+    </div>
+    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-muted-foreground">
+      <span className="flex items-center gap-2">Instructor: {slot.instructorName || `Instructor ${slot.instructorId}`}</span>
+      <span className="flex items-center gap-2">Location: {slot.location || "TBD"}</span>
+    </div>
+  </button>
+);
 
 const CourseLearn = () => {
   const { id } = useParams();
+  const dispatch = useDispatch();
   const { data, isLoading, isError, error, refetch } = useUserCourse(id);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [selection, setSelection] = useState<LearningSelection | null>(null);
   const [isContentOpen, setIsContentOpen] = useState(false);
+  const [isSlotPickerOpen, setIsSlotPickerOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null);
+
+  const { appointmentSlots, loading: slotLoading } = useSelector(
+    (state: RootState) => state.appointmentSlots
+  );
+  const courseBooking = useSelector((state: RootState) => state.bookCourseAppointment);
 
   const course = data?.course;
   const modules = course?.course_modules || [];
@@ -38,6 +100,24 @@ const CourseLearn = () => {
     () => modules.reduce((sum, mod) => sum + (mod.quizzes?.length || 0), 0),
     [modules]
   );
+
+  useEffect(() => {
+    if (selectedDate) {
+      const dateString = format(selectedDate, "yyyy-MM-dd");
+      dispatch<any>(getAppointmentSlotsByDate(dateString));
+    }
+  }, [selectedDate, dispatch]);
+
+  useEffect(() => {
+    setSelectedSlot(null);
+  }, [selectedDate]);
+
+  useEffect(() => {
+    if (courseBooking.success || courseBooking.error) {
+      setIsStatusModalOpen(true);
+      setIsBookingModalOpen(false);
+    }
+  }, [courseBooking.success, courseBooking.error]);
 
   useEffect(() => {
     if (modules.length) {
@@ -61,6 +141,26 @@ const CourseLearn = () => {
 
   const selectQuiz = (moduleId: number, quizId: number) => {
     setSelection({ moduleId, quizId, lessonId: undefined });
+  };
+
+  const handleSlotSelect = (slot: AppointmentSlot) => {
+    setSelectedSlot(slot);
+  };
+
+  const handleBookingSubmit = (payload: BookCourseAppointmentPayload) => {
+    dispatch<any>(bookCourseBasedAppointment(payload));
+  };
+
+  const handleStatusClose = () => {
+    setIsStatusModalOpen(false);
+    dispatch<any>(bookCourseAppointmentReset());
+  };
+
+  const handleSlotPickerChange = (open: boolean) => {
+    setIsSlotPickerOpen(open);
+    if (!open) {
+      setSelectedSlot(null);
+    }
   };
 
   const activeLesson = useMemo(
@@ -90,6 +190,13 @@ const CourseLearn = () => {
     return 0;
   }, [course, modules]);
 
+  const courseType = course?.course_type ?? 0;
+  const totalOfflineHours = Number(data?.totalOfflineHours ?? course?.offline_training_hours ?? 0);
+  const consumedOfflineHours = Number(data?.consumedOfflineHours ?? 0);
+  const remainingOfflineHours = Number(
+    data?.remainingOfflineHours ?? Math.max(totalOfflineHours - consumedOfflineHours, 0)
+  );
+
   const attachmentUrl = resolveAttachmentUrl(activeLesson?.lesson_attachment_path);
 
   return (
@@ -99,7 +206,7 @@ const CourseLearn = () => {
         title={course?.title || "Course"}
         progress={data?.progress_percentage || 0}
         totalHours={Number(totalHours || 0)}
-        offlineHours={Number(course?.offline_training_hours || 0)}
+        offlineHours={totalOfflineHours}
       />
 
       <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-8">
@@ -125,100 +232,230 @@ const CourseLearn = () => {
         )}
 
         {!isLoading && !isError && course && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
-            <div className="hidden lg:block">
-              <ModuleSidebar
-                courseTitle={course.title}
-                progressPercentage={data?.progress_percentage}
-                totalLessons={totalLessons}
-                totalQuizzes={totalQuizzes}
-                modules={modules}
-                expanded={expanded}
-                onToggle={toggleModule}
-                onSelectLesson={selectLesson}
-                onSelectQuiz={selectQuiz}
-                activeLessonId={selection?.lessonId}
-                activeQuizId={selection?.quizId}
-              />
-            </div>
-
-            <section className="space-y-6">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex flex-col gap-2">
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem className="text-muted-foreground">Course</BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem className="text-muted-foreground">
-                        {activeModule?.module_title || "Section"}
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem className="font-semibold text-foreground">
-                        {activeLesson?.lesson_title || activeQuiz?.title || "Choose content"}
-                      </BreadcrumbItem>
-                    </BreadcrumbList>
-                  </Breadcrumb>
-             
-                </div>
-
-                <div className="flex flex-col items-end gap-2 text-right text-sm text-muted-foreground">
-                  <div className="flex items-center gap-3">
-                    <span>{modules.length} sections</span>
-                    <Separator orientation="vertical" className="h-6" />
-                    <span>{totalLessons} lessons</span>
-                    <Separator orientation="vertical" className="h-6" />
-                    <span>{totalQuizzes} quizzes</span>
+          <>
+            {courseType !== 0 && (
+              <Card className="mb-6 border border-border/70 shadow-sm">
+                <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <CardTitle className="text-xl">Offline training</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Schedule your in-person session for this course.
+                    </p>
                   </div>
-                  <Sheet open={isContentOpen} onOpenChange={setIsContentOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="sm" className="lg:hidden">
-                        Course content
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-full max-w-md p-0">
-                      <div className="h-full overflow-y-auto bg-muted/50 p-4">
-                        <ModuleSidebar
-                          courseTitle={course.title}
-                          progressPercentage={data?.progress_percentage}
-                          totalLessons={totalLessons}
-                          totalQuizzes={totalQuizzes}
-                          modules={modules}
-                          expanded={expanded}
-                          onToggle={toggleModule}
-                          onSelectLesson={(moduleId, lessonId) => {
-                            selectLesson(moduleId, lessonId);
-                            setIsContentOpen(false);
-                          }}
-                          onSelectQuiz={(moduleId, quizId) => {
-                            selectQuiz(moduleId, quizId);
-                            setIsContentOpen(false);
-                          }}
-                          activeLessonId={selection?.lessonId}
-                          activeQuizId={selection?.quizId}
-                        />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Total hours</p>
+                      <p className="font-semibold">{totalOfflineHours} hrs</p>
+                    </div>
+                    <Separator orientation="vertical" className="hidden h-10 md:block" />
+                    <div>
+                      <p className="text-muted-foreground">Consumed</p>
+                      <p className="font-semibold">{consumedOfflineHours} hrs</p>
+                    </div>
+                    <Separator orientation="vertical" className="hidden h-10 md:block" />
+                    <div>
+                      <p className="text-muted-foreground">Remaining</p>
+                      <p className="font-semibold">{remainingOfflineHours} hrs</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Book an available slot to continue your offline training hours.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setIsSlotPickerOpen(true);
+                      setSelectedDate(new Date());
+                    }}
+                  >
+                    Take a slot
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
+              <div className="hidden lg:block">
+                <ModuleSidebar
+                  courseTitle={course.title}
+                  progressPercentage={data?.progress_percentage}
+                  totalLessons={totalLessons}
+                  totalQuizzes={totalQuizzes}
+                  modules={modules}
+                  expanded={expanded}
+                  onToggle={toggleModule}
+                  onSelectLesson={selectLesson}
+                  onSelectQuiz={selectQuiz}
+                  activeLessonId={selection?.lessonId}
+                  activeQuizId={selection?.quizId}
+                />
               </div>
 
-              {activeLesson && (
-                <LessonViewer lesson={activeLesson} attachmentUrl={attachmentUrl} />
-              )}
+              <section className="space-y-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col gap-2">
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        <BreadcrumbItem className="text-muted-foreground">Course</BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem className="text-muted-foreground">
+                          {activeModule?.module_title || "Section"}
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem className="font-semibold text-foreground">
+                          {activeLesson?.lesson_title || activeQuiz?.title || "Choose content"}
+                        </BreadcrumbItem>
+                      </BreadcrumbList>
+                    </Breadcrumb>
 
-              {activeQuiz && <QuizViewer quiz={activeQuiz} />}
+                  </div>
 
-              {!activeLesson && !activeQuiz && (
-                <Alert>
-                  <AlertTitle>Select a lesson or quiz</AlertTitle>
-                  <AlertDescription>
-                    Use the course content navigation to open lessons and quizzes.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </section>
-          </div>
+                  <div className="flex flex-col items-end gap-2 text-right text-sm text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <span>{modules.length} sections</span>
+                      <Separator orientation="vertical" className="h-6" />
+                      <span>{totalLessons} lessons</span>
+                      <Separator orientation="vertical" className="h-6" />
+                      <span>{totalQuizzes} quizzes</span>
+                    </div>
+                    <Sheet open={isContentOpen} onOpenChange={setIsContentOpen}>
+                      <SheetTrigger asChild>
+                        <Button variant="outline" size="sm" className="lg:hidden">
+                          Course content
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="left" className="w-full max-w-md p-0">
+                        <div className="h-full overflow-y-auto bg-muted/50 p-4">
+                          <ModuleSidebar
+                            courseTitle={course.title}
+                            progressPercentage={data?.progress_percentage}
+                            totalLessons={totalLessons}
+                            totalQuizzes={totalQuizzes}
+                            modules={modules}
+                            expanded={expanded}
+                            onToggle={toggleModule}
+                            onSelectLesson={(moduleId, lessonId) => {
+                              selectLesson(moduleId, lessonId);
+                              setIsContentOpen(false);
+                            }}
+                            onSelectQuiz={(moduleId, quizId) => {
+                              selectQuiz(moduleId, quizId);
+                              setIsContentOpen(false);
+                            }}
+                            activeLessonId={selection?.lessonId}
+                            activeQuizId={selection?.quizId}
+                          />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                </div>
+
+                {activeLesson && (
+                  <LessonViewer lesson={activeLesson} attachmentUrl={attachmentUrl} />
+                )}
+
+                {activeQuiz && <QuizViewer quiz={activeQuiz} />}
+
+                {!activeLesson && !activeQuiz && (
+                  <Alert>
+                    <AlertTitle>Select a lesson or quiz</AlertTitle>
+                    <AlertDescription>
+                      Use the course content navigation to open lessons and quizzes.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </section>
+            </div>
+          </>
         )}
+
+        <Dialog open={isSlotPickerOpen} onOpenChange={handleSlotPickerChange}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Select an offline slot</DialogTitle>
+            </DialogHeader>
+
+            <div className="grid gap-6 md:grid-cols-[320px_1fr]">
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">Choose a date</p>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => setSelectedDate(date ?? new Date())}
+                  className="rounded-lg border"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Available slots</p>
+                  <p className="text-sm font-medium">
+                    {selectedDate ? format(selectedDate, "PPP") : "Select a date to view slots"}
+                  </p>
+                </div>
+
+                {slotLoading && <p className="text-sm text-muted-foreground">Loading slots...</p>}
+
+                {!slotLoading && selectedDate && appointmentSlots.length === 0 && (
+                  <Alert>
+                    <AlertTitle>No slots available</AlertTitle>
+                    <AlertDescription>
+                      There are no appointment slots for the selected date. Please choose another day.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {!slotLoading && selectedDate && appointmentSlots.length > 0 && (
+                  <div className="space-y-3">
+                    {appointmentSlots.map((slot) => (
+                      <SlotCard
+                        key={slot.id}
+                        slot={slot}
+                        onSelect={handleSlotSelect}
+                        selected={selectedSlot?.id === slot.id}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => handleSlotPickerChange(false)}>
+                Close
+              </Button>
+              <Button
+                disabled={!selectedSlot}
+                onClick={() => {
+                  setIsBookingModalOpen(true);
+                  setIsSlotPickerOpen(false);
+                }}
+              >
+                Continue
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <CourseSlotBookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          onSubmit={handleBookingSubmit}
+          slot={selectedSlot}
+          userCourseId={data?.id}
+          loading={courseBooking.loading}
+        />
+
+        <BookingStatusModal
+          isOpen={isStatusModalOpen}
+          onClose={handleStatusClose}
+          success={courseBooking.success}
+          message={courseBooking.message}
+          errorMessage={courseBooking.error}
+          appointmentData={courseBooking.data}
+        />
       </main>
     </div>
   );
