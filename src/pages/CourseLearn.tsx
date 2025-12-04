@@ -152,8 +152,12 @@ const CourseLearn = () => {
   };
 
   const handleStatusClose = () => {
+    const wasSuccess = courseBooking.success;
     setIsStatusModalOpen(false);
     dispatch<any>(bookCourseAppointmentReset());
+    if (wasSuccess) {
+      window.location.reload();
+    }
   };
 
   const handleSlotPickerChange = (open: boolean) => {
@@ -203,6 +207,14 @@ const CourseLearn = () => {
     data?.remainingOfflineHours ?? Math.max(totalOfflineHours - consumedOfflineHours, 0)
   );
 
+  const availableSlots = useMemo(
+    () =>
+      appointmentSlots.filter(
+        (slot) => !slot.isBooked && !(slot as any).isbooked && Number((slot as any).isbooked) !== 1
+      ),
+    [appointmentSlots]
+  );
+
   const attachmentUrl = resolveAttachmentUrl(activeLesson?.lesson_attachment_path);
 
   return (
@@ -244,9 +256,6 @@ const CourseLearn = () => {
                 <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
                     <CardTitle className="text-xl">Offline training</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Schedule and track your required in-person training hours.
-                    </p>
                   </div>
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div>
@@ -265,11 +274,10 @@ const CourseLearn = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="flex items-center justify-between gap-3">
-                  <div className="text-sm text-muted-foreground">
-                    <p>Book an available slot to continue your offline training hours.</p>
-                    <p className="mt-1">You can update or reschedule from your appointments page.</p>
-                  </div>
+                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Reserve your next in-car training session at a time that works for you.
+                  </p>
                   <Button
                     onClick={() => {
                       setIsSlotPickerOpen(true);
@@ -409,7 +417,7 @@ const CourseLearn = () => {
 
                 {slotLoading && <p className="text-sm text-muted-foreground">Loading slots...</p>}
 
-                {!slotLoading && selectedDate && appointmentSlots.length === 0 && (
+                {!slotLoading && selectedDate && availableSlots.length === 0 && (
                   <Alert>
                     <AlertTitle>No slots available</AlertTitle>
                     <AlertDescription>
@@ -418,9 +426,9 @@ const CourseLearn = () => {
                   </Alert>
                 )}
 
-                {!slotLoading && selectedDate && appointmentSlots.length > 0 && (
+                {!slotLoading && selectedDate && availableSlots.length > 0 && (
                   <div className="space-y-3">
-                    {appointmentSlots.map((slot) => (
+                    {availableSlots.map((slot) => (
                       <SlotCard
                         key={slot.id}
                         slot={slot}
