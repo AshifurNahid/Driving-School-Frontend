@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { format, parse } from 'date-fns';
+import { addDays, format, parse, startOfDay } from 'date-fns';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -62,6 +62,8 @@ interface RootState {
 
 const friendlyDate = (date?: Date) =>
   date ? format(date, 'EEEE, MMMM dd, yyyy') : 'Select a date';
+
+const nextAvailableDate = () => addDays(startOfDay(new Date()), 1);
 
 const formatTimeRange = (start: string, end: string) => {
   const startDate = parse(start, 'HH:mm:ss', new Date());
@@ -231,7 +233,7 @@ const BookingGuidance: React.FC = () => (
 const UserAppointment: React.FC = () => {
   const dispatch = useDispatch();
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => nextAvailableDate());
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -419,11 +421,11 @@ const UserAppointment: React.FC = () => {
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => {
-                        setSelectedDate(date ?? undefined);
+                        setSelectedDate(date ?? nextAvailableDate());
                         setSelectedSlot(null);
                         setShowDatePicker(false);
                       }}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => date < nextAvailableDate()}
                       className="rounded-lg"
                       classNames={{
                         day_selected: 'bg-primary text-primary-foreground hover:bg-primary/90',

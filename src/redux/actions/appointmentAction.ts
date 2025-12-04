@@ -15,6 +15,10 @@ import {
   APPOINTMENT_SLOT_ASSIGN_REQUEST,
   APPOINTMENT_SLOT_ASSIGN_SUCCESS,
   APPOINTMENT_SLOT_ASSIGN_FAIL,
+  BOOK_COURSE_APPOINTMENT_REQUEST,
+  BOOK_COURSE_APPOINTMENT_SUCCESS,
+  BOOK_COURSE_APPOINTMENT_FAILURE,
+  BOOK_COURSE_APPOINTMENT_RESET,
   BOOK_DIRECT_APPOINTMENT_REQUEST,
   BOOK_DIRECT_APPOINTMENT_SUCCESS,
   BOOK_DIRECT_APPOINTMENT_FAILURE,
@@ -71,6 +75,18 @@ export interface BookDirectAppointmentPayload {
   availableAppointmentSlotId: number;
   hoursToConsume: number;
   amountPaid: number;
+  note?: string;
+  learnerPermitIssueDate?: string;
+  permitNumber?: string;
+  permitExpirationDate?: string;
+  drivingExperience?: string;
+  isLicenceFromAnotherCountry?: boolean;
+}
+
+export interface BookCourseAppointmentPayload {
+  availableAppointmentSlotId: number;
+  userCourseId: number;
+  hoursToConsume: number;
   note?: string;
   learnerPermitIssueDate?: string;
   permitNumber?: string;
@@ -301,6 +317,25 @@ export const bookDirectAppointmentReset = () => ({
   type: BOOK_DIRECT_APPOINTMENT_RESET
 });
 
+// Course based Appointment Actions
+export const bookCourseAppointmentRequest = () => ({
+  type: BOOK_COURSE_APPOINTMENT_REQUEST
+});
+
+export const bookCourseAppointmentSuccess = (data: any) => ({
+  type: BOOK_COURSE_APPOINTMENT_SUCCESS,
+  payload: data
+});
+
+export const bookCourseAppointmentFailure = (error: string) => ({
+  type: BOOK_COURSE_APPOINTMENT_FAILURE,
+  payload: error
+});
+
+export const bookCourseAppointmentReset = () => ({
+  type: BOOK_COURSE_APPOINTMENT_RESET
+});
+
 // Guest Booking with Registration Actions
 export const bookGuestAppointmentRequest = () => ({
   type: BOOK_GUEST_APPOINTMENT_REQUEST
@@ -462,6 +497,59 @@ export const bookDirectAppointment = (payload: BookDirectAppointmentPayload) => 
       
       console.log("Dispatching failure with error:", errorMessage);
       dispatch(bookDirectAppointmentFailure(errorMessage));
+    }
+  };
+};
+
+// Book Course Based Appointment Thunk
+export const bookCourseBasedAppointment = (payload: BookCourseAppointmentPayload) => {
+  return async (dispatch: any) => {
+    dispatch(bookCourseAppointmentRequest());
+
+    try {
+      const response = await api.post('/appointments/course-based', payload);
+      const { status, data } = response.data;
+
+      if (status?.code === "200") {
+        const formattedAppointmentData = {
+          id: data.id,
+          status: data.status || 'Booked',
+          createdAt: data.createdAt,
+          appointmentSlot: data.appointmentSlot
+            ? {
+                date: data.appointmentSlot.date,
+                startTime: data.appointmentSlot.startTime,
+                endTime: data.appointmentSlot.endTime,
+                instructorId: data.appointmentSlot.instructorId,
+                instructorName:
+                  data.appointmentSlot.instructorName || `Instructor ${data.appointmentSlot.instructorId}`,
+                location: data.appointmentSlot.location || 'School Location',
+              }
+            : null,
+        };
+
+        dispatch(
+          bookCourseAppointmentSuccess({
+            message: status.message || 'Course session booked successfully!',
+            data: formattedAppointmentData,
+          })
+        );
+      } else {
+        const errorMessage = status?.message || 'Failed to book course appointment';
+        dispatch(bookCourseAppointmentFailure(errorMessage));
+      }
+    } catch (error: any) {
+      let errorMessage = 'Failed to book course appointment';
+
+      if (error?.response?.data?.status?.message) {
+        errorMessage = error.response.data.status.message;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      dispatch(bookCourseAppointmentFailure(errorMessage));
     }
   };
 };
