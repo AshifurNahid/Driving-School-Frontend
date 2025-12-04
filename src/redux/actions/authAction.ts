@@ -37,23 +37,41 @@ export const login = (email: string, password: string) => async (dispatch: any) 
 };
 
 // Register Action
-export const register = (
-  first_name: string,
-  last_name: string,
-  email: string,
-  password: string,
-  phone: string
-) => async (dispatch: any) => {
+
+export interface RegistrationPayload {
+  region_id: string | number;
+  first_name: string;
+  last_name: string;
+  birth_date: { year: string; month: string; day: string };
+  address: {
+    street_address: string;
+    street_address2?: string;
+    city: string;
+    state: string;
+    postal: string;
+  };
+  student_email: string;
+  parent_email?: string;
+  student_phone: string;
+  parent_phone?: string;
+  learners_permit_issue_date: { year: string; month: string; day: string };
+  has_license_from_another_country: string;
+  driving_experience: string;
+  course_id: string | number;
+  password: string;
+  confirm_password: string;
+  agreements: {
+    paid_policy: boolean;
+    completion_policy: boolean;
+    instructor_ready_policy: boolean;
+    refund_policy: boolean;
+  };
+}
+
+export const register = (payload: RegistrationPayload) => async (dispatch: any) => {
   try {
     dispatch({ type: USER_REGISTER_REQUEST });
-    const { data } = await api.post("/register", {
-      first_name,
-      last_name,
-      email,
-      password,
-      phone,
-    });
-    // Save tokens if returned (adjust if your register API returns tokens)
+    const { data } = await api.post("/register", payload);
     dispatch({ type: USER_REGISTER_SUCCESS, payload: data.data });
   } catch (error: any) {
     dispatch({

@@ -54,7 +54,7 @@ const LearnerCourseList = ({ courses }: LearnerCourseListProps) => {
               </div>
               <div className="flex space-x-2">
                 {course?.user_course ? (
-                  <Button asChild className="flex-1">
+                <Button asChild className="flex-1">
                     <Link to={`/course/${course.user_course}/learn`}>
                       <Play className="h-4 w-4 mr-2" />
                       {course?.completed ? "Review" : "Continue"}
@@ -64,7 +64,7 @@ const LearnerCourseList = ({ courses }: LearnerCourseListProps) => {
                   <Button className="flex-1" disabled>
                     <Play className="h-4 w-4 mr-2" />
                     {course?.completed ? "Review" : "Continue"}
-                  </Button>
+                </Button>
                 )}
                 <Button variant="outline" asChild>
                   <Link to={`/course/${course?.id}`}>

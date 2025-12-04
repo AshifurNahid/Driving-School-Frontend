@@ -38,10 +38,10 @@ const CourseDetail = () => {
   // Check if user is enrolled in this course
   useEffect(() => {
     if (enrolledCourse) {
-      setIsEnrolled(true);
+    setIsEnrolled(true);
     } else {
       setIsEnrolled(false);
-    }
+   }
   }, [enrolledCourse]);
 
   
