@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useCourseDetails } from '@/hooks/useCourseDetail';
 import { RootState } from '@/redux/store';
 import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/redux/actions/reviewAction';
+import { getUserCourses } from '@/redux/actions/userCourseAction';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
@@ -30,7 +31,14 @@ const CourseDetail = () => {
   }
   const dispatch = useDispatch();
   const { course, loading, error } = useCourseDetails(Number(id));
-  const {courses:userCourseList} = useSelector((state: RootState) => state.userCourseList);
+  const {courses:userCourseList, loading: userCoursesLoading} = useSelector((state: RootState) => state.userCourseList);
+
+  // Fetch user courses when component mounts and user is logged in
+  useEffect(() => {
+    if (userInfo?.id && (!userCourseList || userCourseList.length === 0)) {
+      dispatch(getUserCourses(userInfo.id) as any);
+    }
+  }, [dispatch, userInfo?.id]);
 
   // Find the enrolled course for this course ID
   const enrolledCourse = userCourseList.find((uc: any) => uc?.course_id === Number(id));
@@ -38,11 +46,11 @@ const CourseDetail = () => {
   // Check if user is enrolled in this course
   useEffect(() => {
     if (enrolledCourse) {
-    setIsEnrolled(true);
+      setIsEnrolled(true);
     } else {
       setIsEnrolled(false);
-   }
-  }, [enrolledCourse]);
+    }
+  }, [enrolledCourse, userCourseList]);
 
   
 
@@ -518,20 +526,24 @@ const CourseDetail = () => {
                 </div>
 
                 {userInfo ? (
-  isEnrolled && enrolledCourse?.id ? (
-    <Button className="w-full mb-4" asChild>
-      <Link to={`/course/${enrolledCourse.id}/learn`}>Continue Learning</Link>
-    </Button>
-  ) : (
-    <Button className="w-full mb-4" onClick={handleEnroll}>
-      Enroll Now
-    </Button>
-  )
-) : (
-  <Button className="w-full mb-4" asChild>
-    <Link to="/login">Login to Enroll</Link>
-  </Button>
-)}
+                  userCoursesLoading ? (
+                    <Button className="w-full mb-4" disabled>
+                      Loading...
+                    </Button>
+                  ) : isEnrolled && enrolledCourse?.id ? (
+                    <Button className="w-full mb-4" asChild>
+                      <Link to={`/course/${enrolledCourse.id}/learn`}>Continue Learning</Link>
+                    </Button>
+                  ) : (
+                    <Button className="w-full mb-4" onClick={handleEnroll}>
+                      Enroll Now
+                    </Button>
+                  )
+                ) : (
+                  <Button className="w-full mb-4" asChild>
+                    <Link to="/login">Login to Enroll</Link>
+                  </Button>
+                )}
                 {/* <Button variant="outline" className="w-full mb-6">
                   Add to Wishlist
                 </Button> */}

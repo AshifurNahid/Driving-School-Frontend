@@ -15,7 +15,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PhysicalCourseForm from '@/components/course/PhysicalCourseForm';
 import { QuizModal } from '@/components/course/QuizModal';
-import { MaterialModal } from '@/components/course/MaterialModal';
 import { createAdminCourse, getAdminCourseDetails, updateAdminCourse, getAdminRegionList } from '@/redux/actions/adminAction';
 import { toast } from '@/components/ui/use-toast';
 import { RootState, AppDispatch } from '@/redux/store';
@@ -326,7 +325,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
 
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
   const [isLoading, setIsLoading] = useState(false);
-console.log(course);
 
   // Effect to handle edit mode data loading
   useEffect(() => {
@@ -383,16 +381,6 @@ console.log(course);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [quizModal, setQuizModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
-  const [materialModal, setMaterialModal] = useState<{ open: boolean; moduleIdx: number | null }>({ open: false, moduleIdx: null });
-  const handleMaterialSave = (materials: ModuleMaterial[]) => {
-    if (materialModal.moduleIdx === -1) {
-      setCourse(prev => ({ ...prev, materials }));
-    } else if (materialModal.moduleIdx !== null) {
-      const newModules = [...course.modules];
-      newModules[materialModal.moduleIdx].materials = materials;
-      setCourse({ ...course, modules: newModules });
-    }
-  };
 
   // Dynamically compute steps: remove Content step for physical/hybrid
   const computedSteps = React.useMemo(() => {
@@ -479,8 +467,8 @@ console.log(course);
             if (!subsection.title?.trim()) {
               missingFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
             }
-            if (!subsection.videoUrl?.trim()) {
-              missingFields.push(`Lesson ${lessonIndex + 1} Video URL in Module ${moduleIndex + 1}`);
+            if (!subsection.lesson_attachment_path?.trim()) {
+              missingFields.push(`Lesson ${lessonIndex + 1} PDF in Module ${moduleIndex + 1}`);
             }
           });
         }
@@ -632,21 +620,13 @@ console.log(course);
               if (!subsection.title?.trim()) {
                 requiredFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
               }
-              if (!subsection.videoUrl?.trim()) {
-                requiredFields.push(`Lesson ${lessonIndex + 1} Video URL in Module ${moduleIndex + 1}`);
+              if (!subsection.lesson_attachment_path?.trim()) {
+                requiredFields.push(`Lesson ${lessonIndex + 1} PDF in Module ${moduleIndex + 1}`);
               }
             });
           }
         });
       }
-    }
-    
-    // Validate course materials if any are added
-    if (course?.materials && course.materials.length > 0) {
-      course.materials.forEach((material, index) => {
-        if (!material.name?.trim()) requiredFields.push(`Material ${index + 1} Title`);
-        if (!material.url?.trim()) requiredFields.push(`Material ${index + 1} File Path`);
-      });
     }
     
     // If there are missing required fields, show alert and return
@@ -679,46 +659,54 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         description: course?.description,
         content: course?.content,
         category: course?.category,
-        price: Number(course?.price),
-        // For hybrid, send both online and offline fields
+        price: parseFloat(String(course?.price)) || 0,
         duration: course?.courseType === 'online' || course?.courseType === 'hybrid'
-          ? parseFloat(String(course?.duration))
-          : null,
+          ? parseFloat(String(course?.duration)) || 0
+          : 0,
         level: course?.level,
         language: course?.language,
         prerequisites: course?.prerequisites,
         ...(thumbnail_photo_base64_code && { thumbnail_photo_base64_code }),
         ...(thumbnail_photo_path && { thumbnail_photo_path }),
         course_type: course?.courseType === 'online' ? 0 : course?.courseType === 'physical' ? 1 : 2,
-        // For hybrid, send both region_id and offline_training_hours
         region_id: course?.courseType === 'physical' || course?.courseType === 'hybrid'
-          ? course?.region_id
-          : null,
-        offline_training_hours: course?.courseType === 'physical' || course?.courseType === 'hybrid'
-          ? course?.offline_training_hours
-          : null,
-        course_materials: course?.materials?.map(material => {
-          if (material.url && material.url.trim() !== '') {
-            return {
-              title: material.name,
-              file_path: material.url
-            };
-          }
-          return null;
-        }).filter(Boolean) || [],
+          ? course?.region_id || 0
+          : 0,
+        offline_training_hours: course?.courseType === 'online'
+          ? 0
+          : course?.courseType === 'physical' || course?.courseType === 'hybrid'
+          ? parseFloat(String(course?.offline_training_hours)) || 0
+          : 0,
+        course_materials: null,
         course_modules:
           course?.courseType === 'online' || course?.courseType === 'hybrid'
             ? course?.modules.map((mod, idx) => ({
                 module_title: mod.title,
                 module_description: mod.description,
                 sequence: idx,
-                course_module_lessons: mod.subsections.map((sub, subIdx) => ({
-                  lesson_title: sub.title,
-                  lesson_description: sub.description,
-                  lesson_attachment_path: sub.lesson_attachment_path || null,
-                  duration: parseFloat(String(sub.duration)) || 0,
-                  sequence: subIdx,
-                })),
+                course_module_lessons: mod.subsections.map((sub, subIdx) => {
+                  // Extract base64 from data URL if it's a base64 string
+                  let attachmentPath = null;
+                  if (sub.lesson_attachment_path) {
+                    if (sub.lesson_attachment_path.startsWith('data:application/pdf;base64,')) {
+                      // Extract base64 part from data URL
+                      attachmentPath = sub.lesson_attachment_path.split(',')[1];
+                    } else if (sub.lesson_attachment_path.startsWith('data:')) {
+                      // Generic data URL, extract base64
+                      attachmentPath = sub.lesson_attachment_path.split(',')[1];
+                    } else {
+                      // Already base64 or path, use as is
+                      attachmentPath = sub.lesson_attachment_path;
+                    }
+                  }
+                  return {
+                    lesson_title: sub.title,
+                    lesson_description: sub.description,
+                    lesson_attachment_path: attachmentPath,
+                    duration: parseFloat(String(sub.duration)) || 0,
+                    sequence: subIdx,
+                  };
+                }),
                 quizzes: mod.quiz
                   ? [
                       {
@@ -726,14 +714,45 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                         description: mod.quiz.description,
                         passing_score: mod.quiz.passPercentage,
                         max_attempts: Number(mod.quiz.max_attempts) || 1,
-                        quiz_questions: mod.quiz.questions.map((q, qIdx) => ({
-                          question: q.question,
-                          type: q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2,
-                          options: q.options ? q.options.join(',') : '',
-                          correct_answers: typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer ? 'true' : 'false',
-                          points: q.points,
-                          order_index: qIdx,
-                        })),
+                        quiz_questions: mod.quiz.questions.map((q, qIdx) => {
+                          // Map question types: mcq=0, true-false=1, short-answer=2
+                          // Ensure type is always a number
+                          const questionType: number = q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2;
+                          
+                          // Options: comma-separated STRING for MCQ, empty string for others
+                          // Ensure options is always a string (never an array)
+                          let optionsString = '';
+                          if (questionType === 0 && q.options) {
+                            if (Array.isArray(q.options)) {
+                              // Convert array to comma-separated string
+                              optionsString = q.options.join(',');
+                            } else if (typeof q.options === 'string') {
+                              // Already a string, use as-is
+                              optionsString = q.options;
+                            }
+                          }
+                          // For type 1 (True/False) and type 2 (Short Answer), optionsString remains ''
+                          
+                          // Correct answers: 
+                          // - MCQ: string (single "a" or multiple "a,b")
+                          // - True/False: "true" or "false" (converted from boolean)
+                          // - Short Answer: string (single or comma-separated "answer1,answer2")
+                          let correctAnswersString = '';
+                          if (typeof q.correctAnswer === 'string') {
+                            correctAnswersString = q.correctAnswer; // Already in correct format
+                          } else if (typeof q.correctAnswer === 'boolean') {
+                            correctAnswersString = q.correctAnswer ? 'true' : 'false';
+                          }
+                          
+                          return {
+                            question: q.question,
+                            type: questionType, // Number: 0, 1, or 2
+                            options: optionsString, // String: comma-separated for MCQ, empty for others
+                            correct_answers: correctAnswersString, // String
+                            points: q.points,
+                            order_index: qIdx,
+                          };
+                        }),
                       },
                     ]
                   : [],
@@ -1267,19 +1286,14 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                                         placeholder="Duration (in minutes)"
                                         className="bg-background"
                                       />
-                                      <Input
-                                        value={subsection.videoUrl}
-                                        onChange={(e) => updateSubsection(moduleIndex, subsectionIndex, 'videoUrl', e.target.value)}
-                                        placeholder="Video URL (YouTube, Vimeo, or direct link)"
-                                        className="bg-background"
-                                      />
                                       {/* PDF upload input */}
                                       <div>
-                                        <label className="block text-sm font-medium mb-1" htmlFor={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}>Lesson PDF (optional)</label>
+                                        <label className="block text-sm font-medium mb-1" htmlFor={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}>Lesson PDF <span className="text-red-500">*</span></label>
                                         <Input
                                           id={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}
                                           type="file"
                                           accept="application/pdf"
+                                          required
                                           onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
@@ -1295,8 +1309,10 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                                           }}
                                           className="bg-background"
                                         />
-                                        {Boolean(subsection.lesson_attachment_path) && (
-                                          <div className="text-xs text-muted-foreground mt-1">PDF selected</div>
+                                        {Boolean(subsection.lesson_attachment_path) ? (
+                                          <div className="text-xs text-green-600 mt-1">✓ PDF selected</div>
+                                        ) : (
+                                          <div className="text-xs text-red-500 mt-1">PDF is required</div>
                                         )}
                                       </div>
                                     </div>
@@ -1306,7 +1322,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                               {module.subsections.length === 0 && (
                                 <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-lg">
                                   <Video className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                                  <p className="text-sm">No lessons yet. Click "Add Lesson" to create your first video lesson.</p>
+                                  <p className="text-sm">No lessons yet. Click "Add Lesson" to create your first lesson.</p>
                                 </div>
                               )}
                             </div>
@@ -1394,7 +1410,6 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                     <div>Category: {course?.category}</div>
                     <div>Price: ${course?.price}</div>
                     <div>Type: {course?.courseType}</div>
-                    <div>Materials: {course?.materials.length} file(s)</div>
                   </div>
                   <Button onClick={handleSubmit} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                     {mode === 'edit' ? 'Update Course' : 'Publish Course'}
@@ -1446,7 +1461,11 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                       </p>
                     </div>
                     <Badge variant={course?.courseType === 'physical' ? 'default' : 'secondary'} className="ml-2">
-                      {course?.courseType === 'physical' ? 'Physical' : 'Online'}
+                      {course?.courseType === 'physical' 
+                        ? 'Physical' 
+                        : course?.courseType === 'hybrid' 
+                        ? 'Online + Offline' 
+                        : 'Online'}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
