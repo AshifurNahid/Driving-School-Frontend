@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { format, parse } from "date-fns";
+import { addDays, format, parse } from "date-fns";
 import RoleBasedNavigation from "@/components/navigation/RoleBasedNavigation";
 import { CourseLearnHeader } from "@/components/course-learn/CourseLearnHeader";
 import { ModuleSidebar } from "@/components/course-learn/ModuleSidebar";
@@ -163,6 +163,12 @@ const CourseLearn = () => {
     }
   };
 
+  const nextAvailableDate = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return addDays(today, 1);
+  };
+
   const activeLesson = useMemo(
     () => findLessonById(modules, selection?.moduleId, selection?.lessonId),
     [modules, selection]
@@ -239,7 +245,7 @@ const CourseLearn = () => {
                   <div>
                     <CardTitle className="text-xl">Offline training</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Schedule your in-person session for this course.
+                      Schedule and track your required in-person training hours.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-4 text-sm">
@@ -260,16 +266,17 @@ const CourseLearn = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="flex items-center justify-between gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    Book an available slot to continue your offline training hours.
-                  </p>
+                  <div className="text-sm text-muted-foreground">
+                    <p>Book an available slot to continue your offline training hours.</p>
+                    <p className="mt-1">You can update or reschedule from your appointments page.</p>
+                  </div>
                   <Button
                     onClick={() => {
                       setIsSlotPickerOpen(true);
-                      setSelectedDate(new Date());
+                      setSelectedDate(nextAvailableDate());
                     }}
                   >
-                    Take a slot
+                    Book offline slot
                   </Button>
                 </CardContent>
               </Card>
@@ -375,6 +382,9 @@ const CourseLearn = () => {
           <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Select an offline slot</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Choose a date after today to see the available in-car training times.
+              </p>
             </DialogHeader>
 
             <div className="grid gap-6 md:grid-cols-[320px_1fr]">
@@ -383,7 +393,8 @@ const CourseLearn = () => {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={(date) => setSelectedDate(date ?? new Date())}
+                  onSelect={(date) => setSelectedDate(date ?? nextAvailableDate())}
+                  disabled={(date) => date < nextAvailableDate()}
                   className="rounded-lg border"
                 />
               </div>

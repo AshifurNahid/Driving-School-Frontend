@@ -135,9 +135,9 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card text-foreground border border-border/70 shadow-xl">
         <DialogHeader className="space-y-2 pb-2 border-b border-border/70">
-          <DialogTitle className="text-xl font-semibold">Book offline session</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">Confirm offline booking</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
-            Provide the required permit details to confirm your slot.
+            Review your session details and share the required permit information to finalize the booking.
           </DialogDescription>
         </DialogHeader>
 
@@ -179,7 +179,7 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
                 <Clock className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Hours to consume</p>
+                <p className="text-xs text-muted-foreground">Session duration</p>
                 <p className="font-semibold leading-tight">{hoursToConsume} hours</p>
               </div>
             </div>
@@ -188,10 +188,10 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="note" className="text-sm font-medium">Note (Optional)</Label>
+            <Label htmlFor="note" className="text-sm font-medium">Notes for instructor (optional)</Label>
             <Textarea
               id="note"
-              placeholder="Any additional notes..."
+              placeholder="Share any guidance for your instructor or accessibility needs."
               value={formData.note}
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               rows={3}
@@ -218,7 +218,7 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
               <Label htmlFor="drivingExperience" className="text-sm font-medium">Driving Experience</Label>
               <Input
                 id="drivingExperience"
-                placeholder="e.g., 6 months"
+                placeholder="e.g., 6 months behind the wheel"
                 value={formData.drivingExperience}
                 onChange={(e) => setFormData({ ...formData, drivingExperience: e.target.value })}
                 className={errors.drivingExperience ? "border-destructive" : ""}
