@@ -446,7 +446,7 @@ const CourseLearn = () => {
                 )}
 
                 {!slotLoading && selectedDate && availableSlots.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
                     {availableSlots.map((slot) => (
                       <SlotCard
                         key={slot.id}
