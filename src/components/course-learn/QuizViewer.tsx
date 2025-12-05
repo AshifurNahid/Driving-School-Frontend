@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { ExtendedQuiz } from "@/types/userCourse";
 import { QuizQuestion } from "@/types/courses";
 
@@ -92,6 +93,11 @@ const parseCorrectAnswers = (question?: QuizQuestion): string[] => {
 
 const normalizeSelection = (selection?: string): string => selection?.trim().toLowerCase() ?? "";
 
+const FALLBACK_TRUE_FALSE: ParsedOption[] = [
+  { key: "true", label: "True" },
+  { key: "false", label: "False" },
+];
+
 export const QuizViewer = ({ quiz }: QuizViewerProps) => {
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [submitted, setSubmitted] = useState(false);
@@ -101,6 +107,11 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
   const handleSelect = (questionId?: number, option?: string) => {
     if (!questionId || !option) return;
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
+  };
+
+  const handleInputChange = (questionId?: number, value?: string) => {
+    if (!questionId) return;
+    setAnswers((prev) => ({ ...prev, [questionId]: value ?? "" }));
   };
 
   const handleSubmit = () => {
@@ -124,16 +135,17 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
       </CardHeader>
       <CardContent className="space-y-6">
         {questions.map((question, idx) => {
-          const options = parseOptions(question);
-          const selected = answers[question.id ?? idx];
+          const questionType = question.type ?? 0;
+          const parsedOptions = parseOptions(question);
+          const options =
+            questionType === 1 && parsedOptions.length === 0 ? FALLBACK_TRUE_FALSE : parsedOptions;
+          const selectionKey = question.id ?? idx;
+          const selected = answers[selectionKey];
           const correctAnswers = parseCorrectAnswers(question);
           const normalizedSelected = normalizeSelection(selected);
-          const isCorrect = submitted && normalizedSelected && correctAnswers.includes(normalizedSelected);
-          const isIncorrect =
-            submitted &&
-            normalizedSelected &&
-            correctAnswers.length > 0 &&
-            !correctAnswers.includes(normalizedSelected);
+          const hasCorrectAnswers = correctAnswers.length > 0;
+          const isCorrect = submitted && normalizedSelected && hasCorrectAnswers && correctAnswers.includes(normalizedSelected);
+          const isIncorrect = submitted && normalizedSelected && hasCorrectAnswers && !correctAnswers.includes(normalizedSelected);
 
           return (
             <div key={question.id ?? idx} className="space-y-3 rounded-lg border p-4">
@@ -152,23 +164,38 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
                   </Badge>
                 )}
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {options.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No options provided for this question.</p>
-                ) : (
-                  options.map((option) => (
-                    <button
-                      key={option.key}
-                      onClick={() => handleSelect(question.id ?? idx, option.key)}
-                      className={`rounded-lg border px-4 py-3 text-left transition hover:border-primary hover:bg-primary/5 ${
-                        selected === option.key ? "border-primary bg-primary/10" : "border-muted"
-                      }`}
-                    >
-                      <span className="text-sm text-foreground">{option.label}</span>
-                    </button>
-                  ))
-                )}
-              </div>
+              {questionType === 2 ? (
+                <Input
+                  placeholder="Type your answer"
+                  value={selected ?? ""}
+                  onChange={(event) => handleInputChange(selectionKey, event.target.value)}
+                />
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {options.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No options provided for this question.</p>
+                  ) : (
+                    options.map((option) => (
+                      <button
+                        key={option.key}
+                        onClick={() => handleSelect(selectionKey, option.key)}
+                        className={`rounded-lg border px-4 py-3 text-left transition hover:border-primary hover:bg-primary/5 ${
+                          selected === option.key ? "border-primary bg-primary/10" : "border-muted"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm text-foreground">{option.label}</span>
+                          {submitted && hasCorrectAnswers && correctAnswers.includes(normalizeSelection(option.key)) && (
+                            <Badge variant="outline" className="text-[11px]">
+                              Correct answer
+                            </Badge>
+                          )}
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
