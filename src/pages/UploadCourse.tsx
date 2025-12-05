@@ -170,6 +170,16 @@ function quizToModalFormat(quiz: Quiz | undefined): ModalQuizDto | undefined {
   };
 }
 
+// Helper to restrict user decimal input to max 2 digits after the dot
+const limitToTwoDecimalPlaces = (value: string): string => {
+  if (!value) return value;
+  // Allow leading minus or plus and one decimal point
+  const parts = value.split('.');
+  if (parts.length === 1) return value;
+  const [intPart, fracPart] = parts;
+  return fracPart.length > 2 ? `${intPart}.${fracPart.slice(0, 2)}` : value;
+};
+
 function modalToQuizFormat(modalQuiz: ModalQuizDto): Quiz {
   return {
     title: modalQuiz.title,
@@ -195,11 +205,18 @@ interface ApiLesson {
   lesson_attachment_path?: string;
 }
 
+interface ApiQuestionOption {
+  key: string;
+  value: string;
+}
+
 interface ApiQuestion {
   id?: number | string;
-  type: number;
+  type: number; // 0: mcq, 1: true/false, 2: short-answer
   question?: string;
-  options?: string;
+  options?: ApiQuestionOption[]; // array of { key, value }
+  correct_answer_keys?: string; // e.g. "a" or "a,b" or "a"/"b" for true/false
+  // tolerate legacy field name from older API responses
   correct_answers?: string;
   explanation?: string;
   points?: number;
@@ -266,12 +283,33 @@ const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Cour
       description: module.quizzes[0].description || '',
       questions: module.quizzes[0].questions?.map((question: ApiQuestion) => {
         const mappedType: Question['type'] = question.type === 0 ? 'mcq' : question.type === 1 ? 'true-false' : 'short-answer';
+
+        // Map options back to simple string[] for the form/QuizModal
+        const optionValues: string[] = Array.isArray(question.options)
+          ? question.options.map((o) => o.value)
+          : [];
+
+        // Prefer new correct_answer_keys but fall back to legacy correct_answers
+        const rawKeys = (question.correct_answer_keys ?? question.correct_answers ?? '').trim();
+
+        // Map keys back into the internal correctAnswer format
+        let correct: string | boolean = '';
+        if (mappedType === 'true-false') {
+          // Accept both legacy 'true'/'false' and new 'a'/'b' keys
+          const key = rawKeys.toLowerCase();
+          if (key === 'a' || key === 'true') correct = 'true';
+          else if (key === 'b' || key === 'false') correct = 'false';
+        } else {
+          // MCQ or short-answer: keep the raw keys string (e.g. 'a' or 'a,b' or 'answer1,answer2')
+          correct = rawKeys;
+        }
+
         return {
           id: question.id?.toString() || undefined,
           type: mappedType,
           question: question.question || '',
-          options: question.options ? question.options.split(',') : [],
-          correctAnswer: mappedType === 'true-false' ? (question.correct_answers === 'true') : (question.correct_answers || ''),
+          options: optionValues,
+          correctAnswer: correct,
           explanation: question.explanation || '',
           points: question.points || 1,
         } as Question;
@@ -654,14 +692,21 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         thumbnail_photo_path = base64;
       }
 
+      // helper to clamp decimals to 2 digits in fractional part
+      const toTwoDecimals = (value: any): number => {
+        const num = parseFloat(String(value || 0));
+        if (isNaN(num)) return 0;
+        return Number(num.toFixed(2));
+      };
+
       const payload = {
         title: course?.title,
         description: course?.description,
         content: course?.content,
         category: course?.category,
-        price: parseFloat(String(course?.price)) || 0,
+        price: toTwoDecimals(course?.price),
         duration: course?.courseType === 'online' || course?.courseType === 'hybrid'
-          ? parseFloat(String(course?.duration)) || 0
+          ? toTwoDecimals(course?.duration)
           : 0,
         level: course?.level,
         language: course?.language,
@@ -675,7 +720,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         offline_training_hours: course?.courseType === 'online'
           ? 0
           : course?.courseType === 'physical' || course?.courseType === 'hybrid'
-          ? parseFloat(String(course?.offline_training_hours)) || 0
+          ? toTwoDecimals(course?.offline_training_hours)
           : 0,
         course_materials: null,
         course_modules:
@@ -703,7 +748,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                     lesson_title: sub.title,
                     lesson_description: sub.description,
                     lesson_attachment_path: attachmentPath,
-                    duration: parseFloat(String(sub.duration)) || 0,
+                    duration: toTwoDecimals(sub.duration),
                     sequence: subIdx,
                   };
                 }),
@@ -718,38 +763,59 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           // Map question types: mcq=0, true-false=1, short-answer=2
                           // Ensure type is always a number
                           const questionType: number = q.type === 'mcq' ? 0 : q.type === 'true-false' ? 1 : 2;
-                          
-                          // Options: comma-separated STRING for MCQ, empty string for others
-                          // Ensure options is always a string (never an array)
-                          let optionsString = '';
-                          if (questionType === 0 && q.options) {
-                            if (Array.isArray(q.options)) {
-                              // Convert array to comma-separated string
-                              optionsString = q.options.join(',');
-                            } else if (typeof q.options === 'string') {
-                              // Already a string, use as-is
-                              optionsString = q.options;
-                            }
+
+                          // Options: 
+                          // - MCQ: [{ key: 'a', value: 'Option 1' }, ...]
+                          // - True/False: always two options a=true, b=false
+                          // - Short Answer: []
+                          let optionsArray: { key: string; value: string }[] = [];
+
+                          if (questionType === 1) {
+                            // True/False: fixed options
+                            optionsArray = [
+                              { key: 'a', value: 'true' },
+                              { key: 'b', value: 'false' },
+                            ];
+                          } else if (questionType === 0 && q.options && Array.isArray(q.options)) {
+                            // MCQ
+                            optionsArray = q.options.map((opt, optIdx) => ({
+                              key: String.fromCharCode(97 + optIdx), // a, b, c, ...
+                              value: opt,
+                            }));
                           }
-                          // For type 1 (True/False) and type 2 (Short Answer), optionsString remains ''
-                          
+
                           // Correct answers: 
                           // - MCQ: string (single "a" or multiple "a,b")
-                          // - True/False: "true" or "false" (converted from boolean)
+                          // - True/False: "a" for true, "b" for false
                           // - Short Answer: string (single or comma-separated "answer1,answer2")
                           let correctAnswersString = '';
-                          if (typeof q.correctAnswer === 'string') {
-                            correctAnswersString = q.correctAnswer; // Already in correct format
+
+                          if (questionType === 1) {
+                            // True/False mapping
+                            if (typeof q.correctAnswer === 'boolean') {
+                              correctAnswersString = q.correctAnswer ? 'a' : 'b';
+                            } else if (typeof q.correctAnswer === 'string') {
+                              const v = q.correctAnswer.trim().toLowerCase();
+                              if (v === 'true' || v === 'a') correctAnswersString = 'a';
+                              else if (v === 'false' || v === 'b') correctAnswersString = 'b';
+                            }
+                          } else if (typeof q.correctAnswer === 'string') {
+                            // MCQ or short-answer: already a string, normalize commas/spaces
+                            correctAnswersString = q.correctAnswer
+                              .split(',')
+                              .map((s) => s.trim())
+                              .join(',');
                           } else if (typeof q.correctAnswer === 'boolean') {
+                            // Fallback, should not normally hit for MCQ/short-answer
                             correctAnswersString = q.correctAnswer ? 'true' : 'false';
                           }
-                          
+
                           return {
                             question: q.question,
                             type: questionType, // Number: 0, 1, or 2
-                            options: optionsString, // String: comma-separated for MCQ, empty for others
-                            correct_answers: correctAnswersString, // String
-                            points: q.points,
+                            options: optionsArray, // [{ key, value }] or []
+                            correct_answer_keys: correctAnswersString, // String
+                            points: toTwoDecimals(q.points),
                             order_index: qIdx,
                           };
                         }),
@@ -761,14 +827,15 @@ thumbnail_photo_base64_code = base64.split(',')[1];
       };
 
       if (mode === 'edit' && course?.id) {
-        //console.log(payload);
+        // console.log(payload);
       await dispatch(updateAdminCourse(course?.id, payload));
         toast({
           title: "Course updated!",
           description: "Your course has been successfully updated.",
         });
       } else {
-        
+                console.log("Newwww",payload);
+
       await dispatch(createAdminCourse(payload));
         toast({
           title: "Course published!",
@@ -1000,7 +1067,8 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           inputMode="decimal"
                         value={course?.price || ''}
                         onChange={(e) => {
-                          setCourse({ ...course, price: parseFloat(e.target.value) || 0 });
+                          const formatted = limitToTwoDecimalPlaces(e.target.value);
+                          setCourse({ ...course, price: parseFloat(formatted) || 0 });
                         }}
                         placeholder="e.g. 99.99"
                       />
@@ -1014,7 +1082,10 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           step="0.01"
                           inputMode="decimal"
                           value={course?.duration || ''}
-                          onChange={(e) => setCourse({ ...course, duration: parseFloat(e.target.value) || 0 })}
+                          onChange={(e) => {
+                            const formatted = limitToTwoDecimalPlaces(e.target.value);
+                            setCourse({ ...course, duration: parseFloat(formatted) || 0 });
+                          }}
                           placeholder="e.g. 20.5"
                         />
                       </div>
@@ -1078,7 +1149,13 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           step="0.01"
                           inputMode="decimal"
                           value={course?.offline_training_hours?.toString() || ''}
-                          onChange={(e) => setCourse({ ...course, offline_training_hours: parseFloat(e.target.value) || null })}
+                          onChange={(e) => {
+                            const formatted = limitToTwoDecimalPlaces(e.target.value);
+                            setCourse({
+                              ...course,
+                              offline_training_hours: formatted ? parseFloat(formatted) : null,
+                            });
+                          }}
                           placeholder="e.g. 10.5"
                         />
                       </div>
@@ -1282,7 +1359,10 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                                       <Input
                                         type="text"
                                         value={subsection.duration || ''}
-                                        onChange={(e) => updateSubsection(moduleIndex, subsectionIndex, 'duration', e.target.value)}
+                                        onChange={(e) => {
+                                          const formatted = limitToTwoDecimalPlaces(e.target.value);
+                                          updateSubsection(moduleIndex, subsectionIndex, 'duration', formatted);
+                                        }}
                                         placeholder="Duration (in minutes)"
                                         className="bg-background"
                                       />
