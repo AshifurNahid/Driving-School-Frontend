@@ -297,15 +297,22 @@ const CourseDetail = () => {
                           {isOpen && (
                             <CardContent>
                               <div className="space-y-2">
-                                {section?.course_module_lessons.map((item, itemIndex) => (
-                                  <div key={itemIndex} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
-                                    <div className="flex items-center">
-                                      <Play className="h-4 w-4 text-muted-foreground mr-2" />
-                                      <span className="text-foreground">{item?.lesson_title}</span>
+                                {section?.course_module_lessons.map((item, itemIndex) => {
+                                  const lessonNumber = `${index + 1}.${itemIndex + 1}`;
+                                  return (
+                                    <div
+                                      key={itemIndex}
+                                      className="flex justify-between items-center py-2 border-b border-border last:border-b-0"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <span className="text-xs font-medium text-muted-foreground">{lessonNumber}</span>
+                                        <Play className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-foreground">{item?.lesson_title}</span>
+                                      </div>
+                                      <span className="text-sm text-muted-foreground">{item?.duration}</span>
                                     </div>
-                                    <span className="text-sm text-muted-foreground">{item?.duration}</span>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </CardContent>
                           )}
