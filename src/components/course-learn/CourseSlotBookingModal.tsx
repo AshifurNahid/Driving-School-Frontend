@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Clock, User, MapPin } from "lucide-react";
 import { AppointmentSlot } from "@/redux/reducers/appointmentReducer";
 import { BookCourseAppointmentPayload } from "@/redux/actions/appointmentAction";
-import { format, parse } from "date-fns";
+import { format, isValid, parse } from "date-fns";
 
 interface CourseSlotBookingModalProps {
   isOpen: boolean;
@@ -57,18 +57,43 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
 
   if (!slot || !userCourseId) return null;
 
+  const parseSlotTime = (time: string) => {
+    const normalized = time?.trim();
+    if (!normalized) return new Date(NaN);
+
+    const candidates = [
+      parse(normalized, "HH:mm:ss", new Date()),
+      parse(normalized, "HH:mm", new Date()),
+    ];
+
+    const validCandidate = candidates.find(isValid);
+    if (validCandidate) return validCandidate;
+
+    const [hours = "0", minutes = "0"] = normalized.split(":");
+    const fallback = new Date();
+    fallback.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0);
+    return fallback;
+  };
+
   const calculateHoursToConsume = (startTime: string, endTime: string): number => {
-    const start = new Date(`2000-01-01 ${startTime}`);
-    const end = new Date(`2000-01-01 ${endTime}`);
+    const start = parseSlotTime(startTime);
+    const end = parseSlotTime(endTime);
+
+    if (!isValid(start) || !isValid(end)) return 0;
+
     const diffInMs = end.getTime() - start.getTime();
     const diffInHours = diffInMs / (1000 * 60 * 60);
     return Math.round(diffInHours * 100) / 100;
   };
 
   const formatTimeRange = (start: string, end: string) => {
-    const startDate = parse(start, "HH:mm:ss", new Date());
-    const endDate = parse(end, "HH:mm:ss", new Date());
-    return `${format(startDate, "h:mm a")} – ${format(endDate, "h:mm a")}`;
+    const startDate = parseSlotTime(start);
+    const endDate = parseSlotTime(end);
+
+    const safeStart = isValid(startDate) ? format(startDate, "h:mm a") : start;
+    const safeEnd = isValid(endDate) ? format(endDate, "h:mm a") : end;
+
+    return `${safeStart} – ${safeEnd}`;
   };
 
   const validateForm = () => {
