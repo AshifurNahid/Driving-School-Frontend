@@ -10,7 +10,7 @@ export interface UserCourseResponse {
   user_id?: number;
   course_id?: number;
   progress_percentage?: number;
-  completetion_date?: string;
+  completion_date?: string;
   certificate_attachment?: string;
   certificate_issue_date?: string;
   status?: number;
