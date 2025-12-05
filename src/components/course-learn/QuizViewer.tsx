@@ -12,19 +12,85 @@ interface QuizViewerProps {
 
 type QuizAnswers = Record<number, string>;
 
-const parseOptions = (question?: QuizQuestion): string[] => {
-  if (!question?.options) return [];
-  try {
-    const parsed = JSON.parse(question.options);
-    if (Array.isArray(parsed)) return parsed.map(String);
-  } catch (err) {
-    // ignore JSON parse errors and fall back to comma split
+type ParsedOption = { key: string; label: string };
+
+const normalizeOption = (option: unknown, index: number): ParsedOption | null => {
+  if (typeof option === "string") {
+    const trimmed = option.trim();
+    return trimmed ? { key: trimmed, label: trimmed } : null;
   }
-  return String(question.options)
-    .split(/\r?\n|,/) // support new lines or comma separated
-    .map((opt) => opt.trim())
-    .filter(Boolean);
+
+  if (option && typeof option === "object") {
+    const opt = option as Record<string, unknown>;
+    const label = opt.value ?? opt.label ?? opt.key;
+    if (!label) return null;
+    const key = opt.key ?? opt.value ?? `option-${index}`;
+    return { key: String(key), label: String(label) };
+  }
+
+  return null;
 };
+
+const parseOptions = (question?: QuizQuestion): ParsedOption[] => {
+  if (!question?.options) return [];
+
+  const rawOptions = question.options;
+
+  if (Array.isArray(rawOptions)) {
+    return rawOptions
+      .map((opt, idx) => normalizeOption(opt, idx))
+      .filter(Boolean) as ParsedOption[];
+  }
+
+  const rawString = String(rawOptions);
+
+  try {
+    const parsed = JSON.parse(rawString);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((opt, idx) => normalizeOption(opt, idx))
+        .filter(Boolean) as ParsedOption[];
+    }
+  } catch (err) {
+    // ignore JSON parse errors and fall back to comma/newline split
+  }
+
+  return rawString
+    .split(/\r?\n|,/)
+    .map((opt) => opt.trim())
+    .filter(Boolean)
+    .map((opt) => ({ key: opt, label: opt }));
+};
+
+const parseCorrectAnswers = (question?: QuizQuestion): string[] => {
+  if (!question) return [];
+
+  const answers: string[] = [];
+
+  if (Array.isArray(question.correct_answer_keys)) {
+    answers.push(...question.correct_answer_keys.map((key) => String(key)));
+  } else if (typeof question.correct_answer_keys === "string") {
+    answers.push(
+      ...question.correct_answer_keys
+        .split(",")
+        .map((key) => key.trim())
+        .filter(Boolean)
+    );
+  }
+
+  if (typeof question.correct_answers === "string") {
+    answers.push(
+      ...question.correct_answers
+        .split(",")
+        .map((ans) => ans.trim())
+        .filter(Boolean)
+    );
+  }
+
+  return answers.map((ans) => ans.toLowerCase());
+};
+
+const normalizeSelection = (selection?: string): string => selection?.trim().toLowerCase() ?? "";
 
 export const QuizViewer = ({ quiz }: QuizViewerProps) => {
   const [answers, setAnswers] = useState<QuizAnswers>({});
@@ -60,8 +126,14 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
         {questions.map((question, idx) => {
           const options = parseOptions(question);
           const selected = answers[question.id ?? idx];
-          const isCorrect = submitted && selected && question.correct_answers?.includes(selected);
-          const isIncorrect = submitted && selected && question.correct_answers && !question.correct_answers.includes(selected);
+          const correctAnswers = parseCorrectAnswers(question);
+          const normalizedSelected = normalizeSelection(selected);
+          const isCorrect = submitted && normalizedSelected && correctAnswers.includes(normalizedSelected);
+          const isIncorrect =
+            submitted &&
+            normalizedSelected &&
+            correctAnswers.length > 0 &&
+            !correctAnswers.includes(normalizedSelected);
 
           return (
             <div key={question.id ?? idx} className="space-y-3 rounded-lg border p-4">
@@ -81,17 +153,21 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
                 )}
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
-                {options.map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => handleSelect(question.id ?? idx, option)}
-                    className={`rounded-lg border px-4 py-3 text-left transition hover:border-primary hover:bg-primary/5 ${
-                      selected === option ? "border-primary bg-primary/10" : "border-muted"
-                    }`}
-                  >
-                    <span className="text-sm text-foreground">{option}</span>
-                  </button>
-                ))}
+                {options.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No options provided for this question.</p>
+                ) : (
+                  options.map((option) => (
+                    <button
+                      key={option.key}
+                      onClick={() => handleSelect(question.id ?? idx, option.key)}
+                      className={`rounded-lg border px-4 py-3 text-left transition hover:border-primary hover:bg-primary/5 ${
+                        selected === option.key ? "border-primary bg-primary/10" : "border-muted"
+                      }`}
+                    >
+                      <span className="text-sm text-foreground">{option.label}</span>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           );

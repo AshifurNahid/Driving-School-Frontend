@@ -9,13 +9,20 @@ export type CourseReview = {
   updated_at?: string;
 };
 
+export type QuizQuestionOption = {
+  key?: string;
+  value?: string;
+  label?: string;
+};
+
 export type QuizQuestion = {
   id?: number;
   quiz_id?: number;
   question?: string;
   type?: number;
-  options?: string;
+  options?: string | (string | QuizQuestionOption)[];
   correct_answers?: string;
+  correct_answer_keys?: string | string[] | null;
   points?: number;
   order_index?: number;
   status?: number;
@@ -91,7 +98,7 @@ export type EnrolledCourses={
   user_id?:number;
   course_id?:number;
   progress_percentage?:number;
-  completetion_date?:string;
+  completion_date?:string;
   certificate_attachment?:string;
   certificate_issue_date?:string;
   status?:number;
