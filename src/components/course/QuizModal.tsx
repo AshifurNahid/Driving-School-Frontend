@@ -22,12 +22,20 @@ export function QuizModal({ open, onClose, quiz, onSave }) {
 
   useEffect(() => {
     if (quiz) {
+      const questionsWithFlags = (quiz.questions || []).map((q) => ({
+        ...q,
+        // if MCQ and stored correct_answers has multiple keys (e.g. 'a,b'), enable multi-select mode
+        allowMultiple:
+          q.type === 0 && typeof q.correct_answers === 'string' && q.correct_answers.includes(',')
+            ? true
+            : q.allowMultiple || false,
+      }));
       setLocalQuiz({
         title: quiz.title || "",
         description: quiz.description || "",
         passing_score: quiz.passing_score || "",
         max_attempts: quiz.max_attempts?.toString() || "",
-        questions: quiz.questions || [],
+        questions: questionsWithFlags,
       });
     } else {
       setLocalQuiz({
