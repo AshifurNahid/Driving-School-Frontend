@@ -57,7 +57,7 @@ export interface RegistrationPayload {
   learners_permit_issue_date: { year: string; month: string; day: string };
   has_license_from_another_country: string;
   driving_experience: string;
-  course_id: string | number;
+  course_id?: string | number;
   password: string;
   confirm_password: string;
   agreements: {

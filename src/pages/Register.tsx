@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { register } from '@/redux/actions/authAction';
 import { getAdminRegionList } from '@/redux/actions/adminAction';
-import { getCourses } from '@/redux/actions/courseAction';
 import { useToast } from '@/hooks/use-toast';
 
 import { RootState } from '@/redux/store';
@@ -24,9 +23,14 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 const BIRTH_YEAR_FROM = 1920;
 const BIRTH_YEAR_TO = new Date().getFullYear() - 12;
+const MIN_PHONE_DIGITS = 10;
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -34,9 +38,9 @@ const MONTHS = [
 
 const steps = [
   { label: 'Location & Personal', fields: [ 'regionId', 'firstName', 'lastName', 'birthYear', 'birthMonth', 'birthDay' ] },
-  { label: 'Address', fields: [ 'address1', 'address2', 'city', 'state', 'postal' ] },
-  { label: 'Contact', fields: [ 'studentEmail', 'parentEmail', 'studentPhone', 'parentPhone' ] },
-  { label: 'Permit & Course', fields: [ 'permitYear', 'permitMonth', 'permitDay', 'hasLicenseAnotherCountry', 'drivingExperience', 'courseId' ] },
+  { label: 'Address', fields: [ 'address1', 'city', 'state', 'postal' ] },
+  { label: 'Contact', fields: [ 'studentEmail', 'studentPhone', ] },
+  { label: 'Permit & Experience', fields: [ 'permitYear', 'permitMonth', 'permitDay', 'hasLicenseAnotherCountry', 'drivingExperience' ] },
   { label: 'Security & Agreements', fields: [ 'password', 'confirmPassword', 'agreements' ] }
 ];
 
@@ -47,8 +51,8 @@ const Register = () => {
     address1: '', address2: '', city: '', state: '', postal: '',
     studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
     permitYear: '', permitMonth: '', permitDay: '',
-    hasLicenseAnotherCountry: '', drivingExperience: '', courseId: '',
-    password: '', confirmPassword: '', agreements: [false, false, false, false],
+    hasLicenseAnotherCountry: '', drivingExperience: '',
+    password: '', confirmPassword: '', agreements: [null, null, null, null] as (boolean | null)[],
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -59,13 +63,11 @@ const Register = () => {
 
   // Redux selectors
   const { regions } = useSelector((state: RootState) => state.regionList);
-  const { courses } = useSelector((state: RootState) => state.guest_course);
   const { loading, error } = useAuth();
 
   useEffect(() => {
     if (!regions || regions.length === 0) { dispatch(getAdminRegionList() as any); }
-    if (!courses || courses.length === 0) { dispatch(getCourses(1, 30) as any); }
-  }, [dispatch, regions, courses]);
+  }, [dispatch, regions]);
 
   const years = Array.from({length: BIRTH_YEAR_TO - BIRTH_YEAR_FROM + 1}, (_, i) => (BIRTH_YEAR_TO - i).toString());
   const days = Array.from({length: 31}, (_, i) => (i+1).toString());
@@ -88,23 +90,42 @@ const Register = () => {
 
   // Step validation helpers
   function fieldsValidFor(stepIdx: number) {
-    // const s = steps[stepIdx].fields;
-    // if (s.includes('agreements')) {
-    //   return [form.password, form.confirmPassword, ...form.agreements].every(Boolean) && form.password === form.confirmPassword;
-    // } else if (s.includes('studentEmail')) {
-    //   return form.studentEmail && form.studentPhone; // keep email & phone required for demo
-    // } else if (s.includes('address1')) {
-    //   return form.address1 && form.city && form.state && form.postal;
-    // } else if (s.includes('regionId')) {
-    //   return form.regionId && form.firstName && form.lastName && form.birthYear && form.birthMonth && form.birthDay;
-    // } else if (s.includes('permitYear')) {
-    //   return form.permitYear && form.permitMonth && form.permitDay && form.hasLicenseAnotherCountry && form.drivingExperience && form.courseId;
-    // }
+    const s = steps[stepIdx].fields;
+    if (s.includes('agreements')) {
+      return (
+        !!form.password &&
+        !!form.confirmPassword &&
+        form.password === form.confirmPassword &&
+        form.agreements.every((a) => a !== null)
+      );
+    } else if (s.includes('studentEmail')) {
+      const studentDigits = (form.studentPhone || '').replace(/\D/g, '');
+      return !!form.studentEmail && studentDigits.length >= MIN_PHONE_DIGITS;
+    } else if (s.includes('address1')) {
+      return !!form.address1 && !!form.city && !!form.state && !!form.postal;
+    } else if (s.includes('regionId')) {
+      return (
+        !!form.regionId &&
+        !!form.firstName &&
+        !!form.lastName &&
+        !!form.birthYear &&
+        !!form.birthMonth &&
+        !!form.birthDay
+      );
+    } else if (s.includes('permitYear')) {
+      return (
+        !!form.permitYear &&
+        !!form.permitMonth &&
+        !!form.permitDay &&
+        !!form.hasLicenseAnotherCountry &&
+        !!form.drivingExperience
+      );
+    }
     return true;
   }
 
-  // Final validation
-  const canSubmit = fieldsValidFor(steps.length-1) && steps.slice(0, -1).every((_, i) => fieldsValidFor(i));
+  // Final validation: all steps must be valid
+  const canSubmit = steps.every((_, i) => fieldsValidFor(i));
 
   // Animate step transitions (simple fade)
   const stepFadeStyle = {
@@ -116,6 +137,41 @@ const Register = () => {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
+
+    const today = new Date();
+
+    if (form.birthYear && form.birthMonth && form.birthDay) {
+      const dob = new Date(
+        `${form.birthYear}-${form.birthMonth.toString().padStart(2, '0')}-${form.birthDay.toString().padStart(2, '0')}`
+      );
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age < 16) {
+        toast({
+          title: 'Invalid Date of Birth',
+          description: 'You must be at least 16 years old to register.',
+          variant: 'destructive',
+        } as any);
+        return;
+      }
+    }
+
+    if (form.permitYear && form.permitMonth && form.permitDay) {
+      const permitDate = new Date(
+        `${form.permitYear}-${form.permitMonth.toString().padStart(2, '0')}-${form.permitDay.toString().padStart(2, '0')}`
+      );
+      if (permitDate > today) {
+        toast({
+          title: "Invalid Learner's Permit Date",
+          description: 'Learner\'s permit issue date cannot be in the future.',
+          variant: 'destructive',
+        } as any);
+        return;
+      }
+    }
     const payload = {
       region_id: form.regionId,
       first_name: form.firstName,
@@ -135,14 +191,13 @@ const Register = () => {
       learners_permit_issue_date: { year: form.permitYear, month: form.permitMonth, day: form.permitDay },
       has_license_from_another_country: form.hasLicenseAnotherCountry,
       driving_experience: form.drivingExperience,
-      course_id: form.courseId,
       password: form.password,
       confirm_password: form.confirmPassword,
       agreements: {
-        paid_policy: form.agreements[0],
-        completion_policy: form.agreements[1],
-        instructor_ready_policy: form.agreements[2],
-        refund_policy: form.agreements[3],
+        paid_policy: form.agreements[0] === true,
+        completion_policy: form.agreements[1] === true,
+        instructor_ready_policy: form.agreements[2] === true,
+        refund_policy: form.agreements[3] === true,
       }
     };
     dispatch(register(payload) as any);
@@ -154,84 +209,163 @@ const Register = () => {
 
   // --- Step Contents Rendered ---
   function renderStepContent(idx: number) {
+    const birthDateISO =
+      form.birthYear && form.birthMonth && form.birthDay
+        ? `${form.birthYear}-${form.birthMonth.toString().padStart(2, '0')}-${form.birthDay.toString().padStart(2, '0')}`
+        : '';
+    const permitDateISO =
+      form.permitYear && form.permitMonth && form.permitDay
+        ? `${form.permitYear}-${form.permitMonth.toString().padStart(2, '0')}-${form.permitDay.toString().padStart(2, '0')}`
+        : '';
+
+    const birthDate = birthDateISO ? new Date(birthDateISO) : undefined;
+    const permitDate = permitDateISO ? new Date(permitDateISO) : undefined;
+    const todayISO = new Date().toISOString().split('T')[0];
+
+    const handleBirthDateChange = (val: string) => {
+      const [y, m, d] = val.split('-');
+      handleFieldChange('birthYear', y || '');
+      handleFieldChange('birthMonth', m || '');
+      handleFieldChange('birthDay', d || '');
+    };
+
+    const handlePermitDateChange = (val: string) => {
+      const [y, m, d] = val.split('-');
+      handleFieldChange('permitYear', y || '');
+      handleFieldChange('permitMonth', m || '');
+      handleFieldChange('permitDay', d || '');
+    };
     switch(idx) {
       case 0:
         return (
           <div style={stepFadeStyle}>
-            <Label className="font-semibold text-lg mb-1">Please choose a location</Label>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">Please choose a location <span className="text-red-500">*</span></Label>
             <Select value={form.regionId} onValueChange={val => handleFieldChange('regionId', val)}>
               <SelectTrigger className="mt-2"><SelectValue placeholder="Please Select" /></SelectTrigger>
               <SelectContent>{regions?.map(r => <SelectItem key={r.id} value={r.id?.toString() || ''}>{r.region_name || `Region ${r.id}`}</SelectItem>)}</SelectContent>
             </Select>
             <div className="grid grid-cols-2 gap-2 mt-6">
-              <Input placeholder="First Name" value={form.firstName} onChange={e => handleFieldChange('firstName', e.target.value)} />
-              <Input placeholder="Last Name" value={form.lastName} onChange={e => handleFieldChange('lastName', e.target.value)} />
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">First Name <span className="text-red-500">*</span></Label>
+                <Input placeholder="First Name" value={form.firstName} onChange={e => handleFieldChange('firstName', e.target.value)} />
+              </div>
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Last Name <span className="text-red-500">*</span></Label>
+                <Input placeholder="Last Name" value={form.lastName} onChange={e => handleFieldChange('lastName', e.target.value)} />
+              </div>
             </div>
-            <label htmlFor="">Date of Birth</label>
-
-            <div className="flex gap-2 mt-4">
-              <Select value={form.birthYear} onValueChange={val => handleFieldChange('birthYear', val)}>
-                <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-                <SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={form.birthMonth} onValueChange={val => handleFieldChange('birthMonth', val)}>
-                <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
-                <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={(i+1)+''}>{m}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={form.birthDay} onValueChange={val => handleFieldChange('birthDay', val)}>
-                <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
-                <SelectContent>{days.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-              </Select>
+            <Label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
+            <div className="mt-1 border rounded-md p-2 bg-white">
+              <DayPicker
+                mode="single"
+                selected={birthDate}
+                onSelect={(date) => {
+                  if (!date) {
+                    handleBirthDateChange('');
+                    return;
+                  }
+                  const y = date.getFullYear().toString();
+                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                  const d = date.getDate().toString().padStart(2, '0');
+                  handleBirthDateChange(`${y}-${m}-${d}`);
+                }}
+                fromYear={BIRTH_YEAR_FROM}
+                toYear={BIRTH_YEAR_TO}
+                captionLayout="dropdown"
+              />
             </div>
           </div>
         );
       case 1:
         return (
           <div style={stepFadeStyle}>
-            <Label className="font-semibold text-lg mb-1">Address</Label>
-            <Input className="mt-2" placeholder="Street Address" value={form.address1} onChange={e => handleFieldChange('address1', e.target.value)} />
-            <Input className="mt-2" placeholder="Street Address Line 2 (optional)" value={form.address2} onChange={e => handleFieldChange('address2', e.target.value)} />
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <Input placeholder="City" value={form.city} onChange={e => handleFieldChange('city', e.target.value)} />
-              <Input placeholder="State / Province" value={form.state} onChange={e => handleFieldChange('state', e.target.value)} />
+            <Label className="block text-sm font-medium text-gray-700 mb-1">Address <span className="text-red-500">*</span></Label>
+            <div className="flex flex-col mt-2">
+              <Label className="block text-sm font-medium text-gray-700 mb-1">Street Address <span className="text-red-500">*</span></Label>
+              <Input placeholder="Street Address" value={form.address1} onChange={e => handleFieldChange('address1', e.target.value)} />
             </div>
-            <Input className="mt-2" placeholder="Postal / Zip Code" value={form.postal} onChange={e => handleFieldChange('postal', e.target.value)} />
+            <div className="flex flex-col mt-2">
+              <Label className="block text-sm font-medium text-gray-700 mb-1">Street Address Line 2 (optional)</Label>
+              <Input placeholder="Street Address Line 2 (optional)" value={form.address2} onChange={e => handleFieldChange('address2', e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">City <span className="text-red-500">*</span></Label>
+                <Input placeholder="City" value={form.city} onChange={e => handleFieldChange('city', e.target.value)} />
+              </div>
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">State / Province <span className="text-red-500">*</span></Label>
+                <Input placeholder="State / Province" value={form.state} onChange={e => handleFieldChange('state', e.target.value)} />
+              </div>
+            </div>
+            <div className="flex flex-col mt-2">
+              <Label className="block text-sm font-medium text-gray-700 mb-1">Postal / Zip Code <span className="text-red-500">*</span></Label>
+              <Input placeholder="Postal / Zip Code" value={form.postal} onChange={e => handleFieldChange('postal', e.target.value)} />
+            </div>
           </div>
         );
       case 2:
         return (
           <div style={stepFadeStyle}>
-            <Label className="font-semibold text-lg mb-1">Contact Information</Label>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">Contact Information <span className="text-red-500">*</span></Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <Input type="email" placeholder="Student's E-mail" value={form.studentEmail} onChange={e => handleFieldChange('studentEmail', e.target.value)} />
-              <Input type="email" placeholder="Parent's E-mail (optional)" value={form.parentEmail} onChange={e => handleFieldChange('parentEmail', e.target.value)} />
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Student's E-mail <span className="text-red-500">*</span></Label>
+                <Input type="email" placeholder="Student's E-mail" value={form.studentEmail} onChange={e => handleFieldChange('studentEmail', e.target.value)} />
+              </div>
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Parent's E-mail (optional)</Label>
+                <Input type="email" placeholder="Parent's E-mail (optional)" value={form.parentEmail} onChange={e => handleFieldChange('parentEmail', e.target.value)} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <Input placeholder="Student Phone" value={form.studentPhone} onChange={e => handleFieldChange('studentPhone', e.target.value)} />
-              <Input placeholder="Parent/Guardian Phone (optional)" value={form.parentPhone} onChange={e => handleFieldChange('parentPhone', e.target.value)} />
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Student Phone <span className="text-red-500">*</span></Label>
+                <PhoneInput
+                  international
+                  defaultCountry="CA"
+                  value={form.studentPhone}
+                  onChange={val => handleFieldChange('studentPhone', val || '')}
+                  className="border rounded-md px-3 py-2 text-sm bg-white"
+                />
+              </div>
+              <div className="flex flex-col">
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Parent/Guardian Phone (optional)</Label>
+                <PhoneInput
+                  international
+                  defaultCountry="CA"
+                  value={form.parentPhone}
+                  onChange={val => handleFieldChange('parentPhone', val || '')}
+                  className="border rounded-md px-3 py-2 text-sm bg-white"
+                />
+              </div>
             </div>
           </div>
         );
       case 3:
         return (
           <div style={stepFadeStyle}>
-            <Label className="font-semibold text-lg mb-1">Permit, Experience & Course</Label>
-            <div className="flex gap-2 mt-2">
-              <Select value={form.permitYear} onValueChange={val => handleFieldChange('permitYear', val)}>
-                <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-                <SelectContent>{permitYears.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={form.permitMonth} onValueChange={val => handleFieldChange('permitMonth', val)}>
-                <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
-                <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={(i+1)+''}>{m}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={form.permitDay} onValueChange={val => handleFieldChange('permitDay', val)}>
-                <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
-                <SelectContent>{days.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-              </Select>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">Learner's Permit Issue Date <span className="text-red-500">*</span></Label>
+            <div className="mt-2 border rounded-md p-2 bg-white">
+              <DayPicker
+                mode="single"
+                selected={permitDate}
+                onSelect={(date) => {
+                  if (!date) {
+                    handlePermitDateChange('');
+                    return;
+                  }
+                  const y = date.getFullYear().toString();
+                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                  const d = date.getDate().toString().padStart(2, '0');
+                  handlePermitDateChange(`${y}-${m}-${d}`);
+                }}
+                captionLayout="dropdown"
+              />
             </div>
+            <p className="text-xs text-gray-500 mt-1">Date cannot be in the future.</p>
             <div className="mt-5">
-              <Label>Do you have a driver licence from another country?</Label>
+              <Label className="block text-sm font-medium text-gray-700 mb-1">Do you have a driver licence from another country? <span className="text-red-500">*</span></Label>
               <Select value={form.hasLicenseAnotherCountry} onValueChange={val => handleFieldChange('hasLicenseAnotherCountry', val)}>
                 <SelectTrigger><SelectValue placeholder="Please Select" /></SelectTrigger>
                 <SelectContent>
@@ -241,7 +375,7 @@ const Register = () => {
               </Select>
             </div>
             <div className="mt-3">
-              <Label>How much driving experience do you have?</Label>
+              <Label className="block text-sm font-medium text-gray-700 mb-1">How much driving experience do you have? <span className="text-red-500">*</span></Label>
               <Select value={form.drivingExperience} onValueChange={val => handleFieldChange('drivingExperience', val)}>
                 <SelectTrigger><SelectValue placeholder="Please Select" /></SelectTrigger>
                 <SelectContent>
@@ -253,24 +387,15 @@ const Register = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="mt-3">
-              <Label>Course Choice</Label>
-              <Select value={form.courseId} onValueChange={val => handleFieldChange('courseId', val)}>
-                <SelectTrigger><SelectValue placeholder="Please Select" /></SelectTrigger>
-                <SelectContent>{courses?.map(course => (
-                  <SelectItem key={course.id} value={course.id?.toString() || ''}>{course.title || `Course ${course.id}`}</SelectItem>
-                ))}</SelectContent>
-              </Select>
-            </div>
           </div>
         );
       case 4:
         return (
           <div style={stepFadeStyle}>
-            <Label className="font-semibold text-lg mb-2">Account Security & Agreements</Label>
+            <Label className="block text-sm font-medium text-gray-700 mb-2">Account Security & Agreements <span className="text-red-500">*</span></Label>
             <div className="grid grid-cols-2 gap-4">
               <div className="relative">
-                <Label htmlFor="password">Password</Label>
+                <Label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Password <span className="text-red-500">*</span></Label>
                 <Input
                   id="password" name="password" type={showPassword ? 'text' : 'password'}
                   placeholder="Create a strong password"
@@ -287,7 +412,7 @@ const Register = () => {
                 </button>
               </div>
               <div className="relative">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></Label>
                 <Input
                   id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm your password"
@@ -302,22 +427,32 @@ const Register = () => {
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
+                {form.password && form.confirmPassword && form.password !== form.confirmPassword && (
+                  <p className="mt-1 text-xs text-red-500">Passwords do not match.</p>
+                )}
               </div>
             </div>
             <div className="space-y-2 mt-4">
-              <div className="font-semibold">Agreements <span className="text-red-500">*</span></div>
+              <div className="block text-sm font-medium text-gray-700">Agreements <span className="text-red-500">*</span></div>
               {AGREE_TEXTS.map((text, i) => (
                 <div key={i} className="mb-2">
                   <span className="text-xs">{i + 1}. {text}</span>
                   <RadioGroup className="flex space-x-6 mt-1"
-                    value={form.agreements[i] ? 'agree' : ''} onValueChange={val => handleAgreement(i, val)}>
+                    value={
+                      form.agreements[i] === null
+                        ? ''
+                        : form.agreements[i]
+                        ? 'agree'
+                        : 'disagree'
+                    }
+                    onValueChange={val => handleAgreement(i, val)}>
                     <div className="flex items-center space-x-1">
                       <RadioGroupItem id={`agree${i}`} value="agree" className="mr-2" />
                       <Label htmlFor={`agree${i}`}>I AGREE</Label>
                     </div>
                     <div className="flex items-center space-x-1">
                       <RadioGroupItem id={`disagree${i}`} value="disagree" className="mr-2" />
-                      <Label htmlFor={`disagree${i}`}>I DISAGREE</Label>
+                      <Label htmlFor={`disagree${i}`}>I DO NOT AGREE</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -360,7 +495,7 @@ const Register = () => {
                 <Button
                   type="button"
                   className="px-8"
-                  // disabled={!fieldsValidFor(step)}
+                  disabled={!fieldsValidFor(step)}
                   onClick={() => fieldsValidFor(step) && setStep(s => Math.min(steps.length-1, s+1))}
                 >
                   Next

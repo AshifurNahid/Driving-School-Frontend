@@ -9,10 +9,39 @@ import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 // Helper for default options
 const defaultOptions = { a: '', b: '', c: '', d: '' };
 
+const blockNonNumericKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const controlKeys = [
+    "Backspace",
+    "Tab",
+    "ArrowLeft",
+    "ArrowRight",
+    "Delete",
+    "Home",
+    "End",
+  ];
+
+  if (controlKeys.includes(e.key)) return;
+
+  // Allow a single decimal point
+  if (e.key === ".") {
+    const value = (e.currentTarget.value || "");
+    if (value.includes(".")) {
+      e.preventDefault();
+    }
+    return;
+  }
+
+  // Block anything that is not a digit 0-9
+  if (!/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+  }
+};
+
 export function QuizModal({ open, onClose, quiz, onSave }) {
   const [localQuiz, setLocalQuiz] = useState(quiz || {
     title: "",
     description: "",
+    // start empty; will be converted to numbers on save
     passing_score: "",
     max_attempts: "",
     questions: [],
@@ -33,8 +62,8 @@ export function QuizModal({ open, onClose, quiz, onSave }) {
       setLocalQuiz({
         title: quiz.title || "",
         description: quiz.description || "",
-        passing_score: quiz.passing_score || "",
-        max_attempts: quiz.max_attempts?.toString() || "",
+        passing_score: quiz.passing_score ?? "",
+        max_attempts: quiz.max_attempts ?? "",
         questions: questionsWithFlags,
       });
     } else {
@@ -165,18 +194,32 @@ console.log(localQuiz.max_attempts);
           />
           <div className="flex gap-4">
             <Input
-              type="text"
+              type="number"
               required={true}
-              value={localQuiz.passing_score}
-              onChange={(e) => setLocalQuiz((q) => ({ ...q, passing_score: e.target.value }))}
+              onKeyDown={blockNonNumericKeys}
+              value={localQuiz.passing_score ?? ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                setLocalQuiz((q) => ({
+                  ...q,
+                  passing_score: value,
+                }));
+              }}
               placeholder="Passing Score (%)"
               className="w-40"
             />
             <Input
-              type="text"
+              type="number"
               required={true}
-              value={localQuiz.max_attempts}
-              onChange={(e) => setLocalQuiz((q) => ({ ...q, max_attempts: e.target.value}))}
+              onKeyDown={blockNonNumericKeys}
+              value={localQuiz.max_attempts ?? ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                setLocalQuiz((q) => ({
+                  ...q,
+                  max_attempts: value,
+                }));
+              }}
               placeholder="Max Attempts"
               className="w-40"
             />
@@ -260,6 +303,7 @@ console.log(localQuiz.max_attempts);
                       <Input
                         type="number"
                         className="w-24"
+                        onKeyDown={blockNonNumericKeys}
                         value={q.points}
                         onChange={(e) => updateQuestion(idx, "points", parseInt(e.target.value) || 1)}
                         placeholder="Points"
@@ -406,8 +450,9 @@ console.log(localQuiz.max_attempts);
               onSave({
                 title: localQuiz.title,
                 description: localQuiz.description,
-                passing_score: localQuiz.passing_score,
-                max_attempts: localQuiz.max_attempts,
+                // coerce to numbers for ModalQuizDto / API
+                passing_score: Number(localQuiz.passing_score) || 0,
+                max_attempts: Number(localQuiz.max_attempts) || 1,
                 questions,
               });
               onClose();

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import PublicHeader from '@/components/PublicHeader';
@@ -21,6 +21,10 @@ const CoursesPage = () => {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('popularity');
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Use the hook for paginated courses
   const { courses, loading, error, currentPage, setCurrentPage } = useCourses(1, 10);
@@ -62,7 +66,7 @@ const CoursesPage = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {user ? <RoleBasedNavigation /> : <PublicHeader />}
-      <main className="flex-grow py-8 md:py-12">
+      <main className="flex-grow pt-24 md:pt-28 pb-8 md:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Browse Our Courses</h1>
