@@ -73,11 +73,13 @@ export const register = (payload: RegistrationPayload) => async (dispatch: any) 
     dispatch({ type: USER_REGISTER_REQUEST });
     const { data } = await api.post("/register", payload);
     dispatch({ type: USER_REGISTER_SUCCESS, payload: data.data });
+    return data;
   } catch (error: any) {
     dispatch({
       type: USER_REGISTER_FAIL,
       payload: error.response?.data?.message || error.message,
     });
+    throw error;
   }
 };
 

@@ -7,13 +7,14 @@ import { getAdminRegionList } from '@/redux/actions/adminAction';
 import { useToast } from '@/hooks/use-toast';
 
 import { RootState } from '@/redux/store';
-import { Eye, EyeOff, Lock, User } from 'lucide-react';
+import { CalendarIcon, Eye, EyeOff, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -25,10 +26,16 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 const BIRTH_YEAR_FROM = 1920;
 const BIRTH_YEAR_TO = new Date().getFullYear() - 12;
 const MIN_PHONE_DIGITS = 10;
+const birthMinDate = new Date(BIRTH_YEAR_FROM, 0, 1);
+const birthMaxDate = new Date(BIRTH_YEAR_TO, 11, 31);
+const permitMinDate = new Date(new Date().getFullYear() - 40, 0, 1);
 
 const steps = [
   { label: 'Location & Personal', fields: [ 'regionId', 'firstName', 'lastName', 'birthYear', 'birthMonth', 'birthDay' ] },
@@ -37,6 +44,12 @@ const steps = [
   { label: 'Permit & Experience', fields: [ 'permitYear', 'permitMonth', 'permitDay', 'hasLicenseAnotherCountry', 'drivingExperience' ] },
   { label: 'Security & Agreements', fields: [ 'password', 'confirmPassword', 'agreements' ] }
 ];
+
+const toDateFromParts = (year?: string, month?: string, day?: string) => {
+  if (!year || !month || !day) return undefined;
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+};
 
 const Register = () => {
   const [step, setStep] = useState(0);
@@ -50,22 +63,17 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   // Redux selectors
   const { regions } = useSelector((state: RootState) => state.regionList);
-  const { loading, error } = useAuth();
+  const { loading } = useAuth();
 
   useEffect(() => {
     if (!regions || regions.length === 0) { dispatch(getAdminRegionList() as any); }
   }, [dispatch, regions]);
-
-  const years = Array.from({length: BIRTH_YEAR_TO - BIRTH_YEAR_FROM + 1}, (_, i) => (BIRTH_YEAR_TO - i).toString());
-  const days = Array.from({length: 31}, (_, i) => (i+1).toString());
-  const permitYears = Array.from({length: 40}, (_, i) => (new Date().getFullYear() - i).toString());
 
   const AGREE_TEXTS = [
     'I agree that 50% of the Certificate Programs needs to be paid before Online portion begins and the remaining 50% before 1st IN CAR lesson.',
@@ -75,11 +83,9 @@ const Register = () => {
   ];
   const handleFieldChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setTouched((prev) => ({ ...prev, [field]: true }));
   };
   const handleAgreement = (idx: number, value: string) => {
     setForm((prev) => ({ ...prev, agreements: prev.agreements.map((a, i) => i === idx ? value === 'agree' : a) }));
-    setTouched((prev) => ({ ...prev, [`agreements${idx}`]: true }));
   };
 
   // Step validation helpers
@@ -128,7 +134,7 @@ const Register = () => {
     animation: 'fadeIn .7s'
   };
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
 
@@ -194,25 +200,28 @@ const Register = () => {
         refund_policy: form.agreements[3] === true,
       }
     };
-    dispatch(register(payload) as any);
-    if (!loading && error == null) {
-      toast({ title: 'Registration Successful', description: 'You can now sign in with your credentials.' });
+
+    try {
+      const response = await dispatch(register(payload) as any);
+      const fullName = response?.data?.full_name || `${form.firstName} ${form.lastName}`.trim();
+      const statusMessage = response?.status?.message || 'Success';
+      toast({
+        title: statusMessage,
+        description: response
+          ? `${fullName ? `Registered user: ${fullName}. ` : ''}${JSON.stringify(response, null, 2)}`
+          : 'Registration completed successfully.',
+      });
       navigate('/login');
+    } catch (err: any) {
+      const apiMessage = err?.response?.data?.message || err?.message || 'Registration failed.';
+      toast({ title: 'Registration Failed', description: apiMessage, variant: 'destructive' } as any);
     }
   }
 
   // --- Step Contents Rendered ---
   function renderStepContent(idx: number) {
-    const birthDateISO =
-      form.birthYear && form.birthMonth && form.birthDay
-        ? `${form.birthYear}-${form.birthMonth.toString().padStart(2, '0')}-${form.birthDay.toString().padStart(2, '0')}`
-        : '';
-    const permitDateISO =
-      form.permitYear && form.permitMonth && form.permitDay
-        ? `${form.permitYear}-${form.permitMonth.toString().padStart(2, '0')}-${form.permitDay.toString().padStart(2, '0')}`
-        : '';
-
-    const todayISO = new Date().toISOString().split('T')[0];
+    const birthDate = toDateFromParts(form.birthYear, form.birthMonth, form.birthDay);
+    const permitDate = toDateFromParts(form.permitYear, form.permitMonth, form.permitDay);
 
     const handleBirthDateChange = (val: string) => {
       const [y, m, d] = val.split('-');
@@ -247,14 +256,31 @@ const Register = () => {
               </div>
             </div>
             <Label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
-            <Input
-              type="date"
-              value={birthDateISO}
-              min={`${BIRTH_YEAR_FROM}-01-01`}
-              max={`${BIRTH_YEAR_TO}-12-31`}
-              onChange={(e) => handleBirthDateChange(e.target.value)}
-              className="bg-white"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start text-left font-normal bg-white',
+                    !birthDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {birthDate ? format(birthDate, 'PPP') : <span>Select your date of birth</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  captionLayout="dropdown-buttons"
+                  selected={birthDate}
+                  onSelect={(date) =>
+                    date && handleBirthDateChange(format(date, 'yyyy-MM-dd'))
+                  }
+                  disabled={(date) => date > birthMaxDate || date < birthMinDate}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         );
       case 1:
@@ -327,13 +353,31 @@ const Register = () => {
         return (
           <div style={stepFadeStyle}>
             <Label className="block text-sm font-medium text-gray-700 mb-1">Learner's Permit Issue Date <span className="text-red-500">*</span></Label>
-            <Input
-              type="date"
-              value={permitDateISO}
-              max={todayISO}
-              onChange={(e) => handlePermitDateChange(e.target.value)}
-              className="bg-white"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start text-left font-normal bg-white',
+                    !permitDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {permitDate ? format(permitDate, 'PPP') : <span>Select permit issue date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  captionLayout="dropdown-buttons"
+                  selected={permitDate}
+                  onSelect={(date) =>
+                    date && handlePermitDateChange(format(date, 'yyyy-MM-dd'))
+                  }
+                  disabled={(date) => date > new Date() || date < permitMinDate}
+                />
+              </PopoverContent>
+            </Popover>
             <p className="text-xs text-gray-500 mt-1">Date cannot be in the future.</p>
             <div className="mt-5">
               <Label className="block text-sm font-medium text-gray-700 mb-1">Do you have a driver licence from another country? <span className="text-red-500">*</span></Label>
