@@ -7,14 +7,13 @@ import { getAdminRegionList } from '@/redux/actions/adminAction';
 import { useToast } from '@/hooks/use-toast';
 
 import { RootState } from '@/redux/store';
-import { CalendarIcon, Eye, EyeOff, Lock, User } from 'lucide-react';
+import { CalendarIcon, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -26,8 +25,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
-import { cn } from '@/lib/utils';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 
 const BIRTH_YEAR_FROM = 1920;
@@ -256,31 +253,18 @@ const Register = () => {
               </div>
             </div>
             <Label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal bg-white',
-                    !birthDate && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {birthDate ? format(birthDate, 'PPP') : <span>Select your date of birth</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  captionLayout="dropdown-buttons"
-                  selected={birthDate}
-                  onSelect={(date) =>
-                    date && handleBirthDateChange(format(date, 'yyyy-MM-dd'))
-                  }
-                  disabled={(date) => date > birthMaxDate || date < birthMinDate}
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="relative mt-1">
+              <CalendarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+              <Input
+                type="date"
+                value={birthDate ? format(birthDate, 'yyyy-MM-dd') : ''}
+                onChange={(e) => handleBirthDateChange(e.target.value)}
+                onFocus={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                min={format(birthMinDate, 'yyyy-MM-dd')}
+                max={format(birthMaxDate, 'yyyy-MM-dd')}
+                className="pl-10 bg-white"
+              />
+            </div>
           </div>
         );
       case 1:
@@ -353,31 +337,18 @@ const Register = () => {
         return (
           <div style={stepFadeStyle}>
             <Label className="block text-sm font-medium text-gray-700 mb-1">Learner's Permit Issue Date <span className="text-red-500">*</span></Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal bg-white',
-                    !permitDate && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {permitDate ? format(permitDate, 'PPP') : <span>Select permit issue date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  captionLayout="dropdown-buttons"
-                  selected={permitDate}
-                  onSelect={(date) =>
-                    date && handlePermitDateChange(format(date, 'yyyy-MM-dd'))
-                  }
-                  disabled={(date) => date > new Date() || date < permitMinDate}
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="relative mt-1">
+              <CalendarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+              <Input
+                type="date"
+                value={permitDate ? format(permitDate, 'yyyy-MM-dd') : ''}
+                onChange={(e) => handlePermitDateChange(e.target.value)}
+                onFocus={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                min={format(permitMinDate, 'yyyy-MM-dd')}
+                max={format(new Date(), 'yyyy-MM-dd')}
+                className="pl-10 bg-white"
+              />
+            </div>
             <p className="text-xs text-gray-500 mt-1">Date cannot be in the future.</p>
             <div className="mt-5">
               <Label className="block text-sm font-medium text-gray-700 mb-1">Do you have a driver licence from another country? <span className="text-red-500">*</span></Label>
