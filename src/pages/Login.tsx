@@ -18,6 +18,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -25,7 +26,6 @@ const Login = () => {
 
   useEffect(() => {
     if (userInfo) {
-
       toast({
         title: 'Login Successful',
         description: `Welcome back, ${userInfo.full_name}!`
@@ -38,9 +38,18 @@ const Login = () => {
     }
   }, [userInfo, navigate, toast]);
 
+  // Show error toast when Redux error is set (now prioritizes status.message)
+  useEffect(() => {
+    if (error && submitted) {
+      toast({ title: 'Login Failed', description: error, variant: 'destructive' });
+      setSubmitted(false);
+    }
+  }, [error, submitted, toast]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     dispatch(login(email, password) as any);
+    setSubmitted(true);
   };
 
 

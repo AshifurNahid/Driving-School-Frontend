@@ -243,6 +243,15 @@ export const adminCourseListReducer = (
         courses: [action.payload, ...state.courses], // add new course to list
         error: null,
       };
+    case "ADMIN_COURSE_UPDATE_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        courses: state.courses.map(course =>
+          course?.id === action.payload.id ? action.payload : course
+        ),
+        error: null,
+      };
     case "ADMIN_COURSE_DELETE_SUCCESS":
       return {
         ...state,
