@@ -117,12 +117,12 @@ const CardCheckout = ({
       <CardContent className="space-y-5 p-0 mt-4">
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-slate-200">
-            Email
+            Contact (optional)
           </Label>
           <Input
             id="email"
-            type="email"
-            placeholder="you@example.com"
+            type="text"
+            placeholder="Phone or email"
             value={receiptEmail}
             onChange={(event) => setReceiptEmail(event.target.value)}
             className="h-11 rounded-xl border-gray-200 bg-white/80 text-gray-900 shadow-inner focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
