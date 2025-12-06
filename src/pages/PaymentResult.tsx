@@ -58,8 +58,8 @@ const PaymentResult = () => {
             </CardTitle>
             <CardDescription className="text-gray-600 text-sm dark:text-slate-300">
               {isSuccess
-                ? "Your purchase is confirmed."
-                : "We could not process your payment. Please try again."}
+                ? "Your enrollment is confirmed and your course access is being prepared."
+                : "We couldn't complete your payment this time. You can start a new checkout from the course page."}
             </CardDescription>
           </CardHeader>
 
@@ -74,8 +74,14 @@ const PaymentResult = () => {
             </div>
             <Separator className="bg-gray-200 dark:bg-slate-700" />
             <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300">
-              <p>{isSuccess ? "Your purchase is confirmed." : "Please retry checkout or use another card."}</p>
-              <p>If it failed, you can return to the course and retry checkout.</p>
+              <p>
+                {isSuccess
+                  ? "You can review your enrollment details in My Courses."
+                  : "Return to the course page to retry checkout or use another payment method."}
+              </p>
+              <p className="text-gray-500 dark:text-slate-400">
+                Need help? Our support team can assist if you're seeing repeated failures.
+              </p>
             </div>
           </CardContent>
 
@@ -92,15 +98,6 @@ const PaymentResult = () => {
               <ShoppingBag className="h-4 w-4" />
               My Courses
             </Button>
-            {state.courseId && (
-              <Button
-                variant="secondary"
-                onClick={() => navigate(`/course/${state.courseId}`)}
-                className="gap-2 w-full sm:w-auto bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-3 rounded-lg font-medium transition dark:bg-slate-800 dark:text-indigo-200 dark:hover:bg-slate-700"
-              >
-                Retry checkout
-              </Button>
-            )}
           </CardFooter>
         </Card>
       </main>
