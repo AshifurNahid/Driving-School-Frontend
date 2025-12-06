@@ -31,55 +31,39 @@ const CardCheckout = ({
   const navigate = useNavigate();
   const [cardholderName, setCardholderName] = useState("");
   const [receiptEmail, setReceiptEmail] = useState(userEmail || "");
-  const [isSavingMethod, setIsSavingMethod] = useState(false);
-  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
   const [cardError, setCardError] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const handleSaveCard = async () => {
+  const handleConfirmPayment = async () => {
     if (!stripe || !elements) return;
-
-    setIsSavingMethod(true);
     setCardError(null);
 
     const card = elements.getElement(CardElement);
+
     if (!card) {
       setCardError("Unable to load card input. Please refresh the page.");
-      setIsSavingMethod(false);
-      return;
-    }
-
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card,
-      billing_details: { name: cardholderName || undefined },
-    });
-
-    if (error) {
-      setCardError(error.message || "Unable to save card details.");
-      setIsSavingMethod(false);
-      return;
-    }
-
-    if (paymentMethod) {
-      setPaymentMethodId(paymentMethod.id);
-      toast.success("Card details saved", { description: "Confirm to complete the payment." });
-    }
-
-    setIsSavingMethod(false);
-  };
-
-  const handleConfirmPayment = async () => {
-    if (!paymentMethodId) {
-      setCardError("Please save a payment method first.");
       return;
     }
 
     try {
       setIsConfirming(true);
+      const { error: methodError, paymentMethod } = await stripe.createPaymentMethod({
+        type: "card",
+        card,
+        billing_details: {
+          name: cardholderName || undefined,
+          email: receiptEmail || undefined,
+        },
+      });
+
+      if (methodError || !paymentMethod?.id) {
+        setCardError(methodError?.message || "Unable to create payment method. Please try again.");
+        return;
+      }
+
       const { data } = await api.put(`/payment-transactions-confirm/${transaction.id}`, {
         payment_intent_id: transaction.payment_intent_id,
-        payment_method: paymentMethodId,
+        payment_method: paymentMethod.id,
       });
 
       const paymentStatus = data?.data?.payment_status;
@@ -114,14 +98,9 @@ const CardCheckout = ({
   return (
     <Card className="bg-white/95 p-8 rounded-3xl shadow-2xl border border-indigo-50 dark:bg-slate-900/80 dark:border-slate-800">
       <CardHeader className="space-y-3 p-0">
-        <div className="flex items-center justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle className="text-2xl font-semibold text-gray-900 dark:text-slate-50">Secure checkout</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-slate-300">Complete your payment to unlock the course.</CardDescription>
-          </div>
-          <Button variant="secondary" className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg">
-            Pay with Link
-          </Button>
+        <div className="space-y-1">
+          <CardTitle className="text-2xl font-semibold text-gray-900 dark:text-slate-50">Secure checkout</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-slate-300">Enter your details to complete payment.</CardDescription>
         </div>
         <Separator className="bg-gray-200 dark:bg-slate-700" />
         <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-300">
@@ -129,8 +108,8 @@ const CardCheckout = ({
             <CreditCard className="h-5 w-5" />
           </div>
           <div>
-            <p className="font-medium text-gray-800 dark:text-slate-100">Pay with card</p>
-            <p className="text-xs">Enter your payment information to continue.</p>
+            <p className="font-medium text-gray-800 dark:text-slate-100">Card payment</p>
+            <p className="text-xs">We use Stripe to process payments securely.</p>
           </div>
         </div>
       </CardHeader>
@@ -148,23 +127,6 @@ const CardCheckout = ({
             onChange={(event) => setReceiptEmail(event.target.value)}
             className="h-11 rounded-xl border-gray-200 bg-white/80 text-gray-900 shadow-inner focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
           />
-        </div>
-
-        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/60">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-slate-200">Payment method</p>
-          <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
-            {["Card", "iDEAL", "bancontact"].map((method) => (
-              <div
-                key={method}
-                className="flex items-center justify-center gap-2 rounded-xl border border-indigo-100 bg-white px-3 py-3 font-medium text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shadow-inner dark:bg-slate-800">
-                  <CreditCard className="h-4 w-4" />
-                </span>
-                {method}
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="space-y-2">
@@ -197,13 +159,6 @@ const CardCheckout = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-slate-300">
-          <input type="checkbox" id="save-info" className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-          <Label htmlFor="save-info" className="text-xs font-medium text-gray-700 dark:text-slate-200">
-            Save my information for future checkout
-          </Label>
-        </div>
-
         {cardError && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm flex items-center gap-2 dark:bg-red-950/40 dark:border-red-900 dark:text-red-200">
             <AlertCircle className="h-4 w-4" />
@@ -213,24 +168,8 @@ const CardCheckout = ({
       </CardContent>
       <CardFooter className="flex flex-col items-stretch gap-3 p-0 mt-6">
         <Button
-          onClick={handleSaveCard}
-          disabled={isSavingMethod}
-          variant="outline"
-          className="w-full border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
-        >
-          {isSavingMethod ? (
-            <span className="flex items-center gap-2 justify-center">
-              <div className="animate-spin h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full" />
-              <span>Saving card...</span>
-            </span>
-          ) : (
-            "Save card"
-          )}
-        </Button>
-
-        <Button
           onClick={handleConfirmPayment}
-          disabled={!paymentMethodId || isConfirming}
+          disabled={isConfirming}
           className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isConfirming ? (
@@ -326,9 +265,9 @@ const CheckoutContent = () => {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="space-y-6">
           <div className="flex flex-col gap-2">
-            <p className="text-sm uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300">Course checkout</p>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-50">Complete your enrollment</h1>
-            <p className="text-gray-600 max-w-3xl dark:text-slate-300">Follow the steps below to confirm your purchase. Your payment is processed securely and your course will unlock right after a successful payment.</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300">Checkout</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-50">Confirm your enrollment</h1>
+            <p className="text-gray-600 max-w-3xl dark:text-slate-300">Review the course summary and finish payment to access the content.</p>
           </div>
 
           <div className="grid lg:grid-cols-[1.05fr,1.2fr] gap-6 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
@@ -360,9 +299,6 @@ const CheckoutContent = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Securely processed by Stripe
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Save your card for faster checkout
                     </li>
                   </ul>
                 </div>
