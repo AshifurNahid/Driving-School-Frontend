@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '@/redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/redux/store';
 import { logout } from '@/redux/actions/authAction';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -60,6 +60,7 @@ const AdminSidebar = ({
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast();
+  const { userInfo } = useSelector((state: RootState) => state.auth);
 
   const sidebarItems: SidebarItem[] = [
     { id: 'overview', label: 'Dashboard', icon: Grid3X3 },
@@ -324,8 +325,12 @@ const AdminSidebar = ({
             </div>
             {isOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold">Admin User</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@example.com</p>
+                <p className="text-sm font-semibold">
+                  {[userInfo?.first_name, userInfo?.last_name].filter(Boolean).join(' ') || 'Admin User'}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                  {userInfo?.email || 'No email available'}
+                </p>
               </div>
             )}
             <div className={cn("ml-auto flex items-center gap-2", collapsed && "mx-auto")}>

@@ -216,7 +216,7 @@ const ProfileSidebar = ({ userInfo, activeSection, setActiveSection, sidebarItem
           <div className="border-t border-slate-200/70 dark:border-slate-900 px-4 py-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
-              <span>Support: hello@drivingschool.com</span>
+              <span>Support: support@drivingschool.com</span>
             </div>
             <p className="text-[11px]">Your progress is saved across devices.</p>
           </div>

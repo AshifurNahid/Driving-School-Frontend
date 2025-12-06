@@ -7,14 +7,12 @@ import { getUserAppointments } from "@/redux/actions/appointmentAction";
 import { RootState } from "@/redux/store";
 import ProfileSidebar from '@/components/learnerProfile/ProfileSidebar';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
-import { User, Calendar, BookOpen, Download, Award } from 'lucide-react';
+import { User, Calendar, BookOpen } from 'lucide-react';
 
 // Import learner components
 import OverviewSection from '@/components/learner/OverviewSection';
 import AppointmentsSection from '@/components/learner/AppointmentsSection';
 import CoursesSection from '@/components/learner/CoursesSection';
-import MaterialsSection from '@/components/learner/MaterialsSection';
-import AchievementsSection from '@/components/learner/AchievementsSection';
 import ProfileHeader from '@/components/learner/ProfileHeader';
 import { mapAppointmentsData, mapCoursesData } from '@/components/learner/utils/dataMappers';
 
@@ -22,6 +20,7 @@ const DrivingSchoolLearnerProfile = () => {
   const location = useLocation();
   const sectionFromState = (location.state as any)?.section;
   const [activeSection, setActiveSection] = useState(sectionFromState || 'overview');
+  const availableSections = ['overview', 'appointments', 'courses'] as const;
 
   // Redux state
   const { userInfo } = useSelector((state: RootState) => state.auth);
@@ -40,8 +39,10 @@ const DrivingSchoolLearnerProfile = () => {
   // Update active section when location state changes
   useEffect(() => {
     const sectionFromState = (location.state as any)?.section;
-    if (sectionFromState) {
+    if (sectionFromState && availableSections.includes(sectionFromState)) {
       setActiveSection(sectionFromState);
+    } else if (sectionFromState && !availableSections.includes(sectionFromState)) {
+      setActiveSection('overview');
     }
   }, [location.state]);
 
@@ -56,8 +57,6 @@ const DrivingSchoolLearnerProfile = () => {
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'appointments', label: 'My Appointments', icon: Calendar },
     { id: 'courses', label: 'My Courses', icon: BookOpen },
-    { id: 'materials', label: 'Materials', icon: Download },
-    { id: 'achievements', label: 'Achievements', icon: Award },
   ];
 
   const renderContent = () => {
@@ -85,10 +84,6 @@ const DrivingSchoolLearnerProfile = () => {
         return <AppointmentsSection {...appointmentProps} />;
       case 'courses':
         return <CoursesSection {...commonProps} />;
-      case 'materials':
-        return <MaterialsSection />;
-      case 'achievements':
-        return <AchievementsSection />;
       default:
         return null;
     }

@@ -4,6 +4,7 @@ import {
   adminUserListReducer,
   adminUserDetailsReducer,
   adminUserDeleteReducer,
+  adminUserCreateReducer,
   adminRoleListReducer,
   adminCourseListReducer,
   adminRegionListReducer
@@ -42,6 +43,7 @@ const rootReducer = combineReducers({
   adminUserList: adminUserListReducer,
   adminUserDetails: adminUserDetailsReducer,
   adminUserDelete: adminUserDeleteReducer,
+  adminUserCreate: adminUserCreateReducer,
   adminRoleList: adminRoleListReducer,
   adminCourseList:adminCourseListReducer,
   userCourseList: userCourseListReducer,

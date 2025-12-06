@@ -3,6 +3,9 @@ import {
   ADMIN_USER_LIST_REQUEST,
   ADMIN_USER_LIST_SUCCESS,
   ADMIN_USER_LIST_FAIL,
+  ADMIN_USER_CREATE_REQUEST,
+  ADMIN_USER_CREATE_SUCCESS,
+  ADMIN_USER_CREATE_FAIL,
   ROLE_LIST_REQUEST,
   ROLE_LIST_SUCCESS,
   ROLE_LIST_FAIL,
@@ -67,6 +70,20 @@ export const deleteAdminUser = (userId: number | string) => async (dispatch: any
   } catch (error: any) {
     dispatch({
       type: "ADMIN_USER_DELETE_FAIL",
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
+// Create User (Admin)
+export const createAdminUser = (payload: any) => async (dispatch: any) => {
+  try {
+    dispatch({ type: ADMIN_USER_CREATE_REQUEST });
+    const { data } = await api.post('/users', payload);
+    dispatch({ type: ADMIN_USER_CREATE_SUCCESS, payload: data.data });
+  } catch (error: any) {
+    dispatch({
+      type: ADMIN_USER_CREATE_FAIL,
       payload: error.response?.data?.message || error.message,
     });
   }
