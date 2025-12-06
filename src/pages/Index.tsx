@@ -62,20 +62,20 @@ const CanadianDrivingSchool = () => {
       {/* Hero Section */}
 
       {/* Enhanced Hero Section */}
-<section className="relative py-24 overflow-hidden bg-gray-950 text-white">
+<section className="relative overflow-hidden py-24 bg-gradient-to-b from-gray-50 via-white to-gray-50 text-slate-900 transition-colors dark:from-gray-950 dark:via-gray-950 dark:to-black dark:text-white">
   {/* Advanced gradient overlay system */}
-  <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-transparent z-[1]" />
-  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 z-[1]" />
-  
+  <div className="absolute inset-0 z-[1] bg-gradient-to-br from-white/80 via-white/40 to-transparent dark:from-black/60 dark:via-black/40 dark:to-transparent" />
+  <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white/70 via-transparent to-white/40 dark:from-black/80 dark:via-transparent dark:to-black/40" />
+
   {/* Enhanced background carousel with better transitions */}
-  <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+  <div className="absolute inset-0 z-0 h-full w-full overflow-hidden">
     {heroImages.map((img, idx) => (
       <div
         key={img}
         className={`
-          absolute inset-0 w-full h-full transition-all duration-[2000ms] ease-out
-          ${idx === currentHeroImage 
-            ? "opacity-100 scale-100" 
+          absolute inset-0 h-full w-full transition-all duration-[2000ms] ease-out
+          ${idx === currentHeroImage
+            ? "opacity-100 scale-100"
             : "opacity-0 scale-105"
           }
         `}
@@ -83,8 +83,8 @@ const CanadianDrivingSchool = () => {
         <img
           src={img}
           alt=""
-          className="w-full h-full object-cover"
-          style={{ filter: 'brightness(0.7) contrast(1.1)' }}
+          className="h-full w-full object-cover"
+          style={{ filter: 'brightness(0.9) contrast(1.05)' }}
           draggable={false}
         />
       </div>
@@ -93,93 +93,93 @@ const CanadianDrivingSchool = () => {
 
   {/* Animated background elements */}
   <div className="absolute inset-0 z-[1]">
-    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse" />
-    <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-red-400/10 blur-3xl animate-pulse dark:bg-red-500/10" />
+    <div className="absolute bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl animate-pulse delay-1000 dark:bg-blue-500/10" />
   </div>
 
   {/* Main content container */}
-  <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
+  <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+
     {/* Premium badge with glassmorphism */}
-    <div className="text-center mb-8">
-      <div className="inline-flex items-center px-6 py-3 rounded-full mb-8 bg-white/15 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/20 transition-all duration-300">
-        <Award className="w-5 h-5 text-yellow-400 mr-3 drop-shadow-lg" />
-        <span className="font-bold text-white text-base tracking-wide">
+    <div className="mb-8 text-center">
+      <div className="mb-8 inline-flex items-center rounded-full border border-gray-200 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 shadow-2xl backdrop-blur-md transition-all duration-300 hover:bg-white dark:border-white/20 dark:bg-white/15 dark:text-white">
+        <Award className="mr-3 h-5 w-5 text-yellow-500 drop-shadow-lg" />
+        <span className="font-bold tracking-wide">
         Government Recognized Curriculum • Experienced Instructors • Focused on Safety & Confidence        </span>
       </div>
-      
+
       {/* Enhanced headline with better typography */}
-      <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-[0.9] tracking-tight">
+      <h1 className="mb-6 text-4xl font-black leading-[0.9] tracking-tight text-gray-900 md:text-6xl dark:text-white">
         Learn to Drive with{' '}
-        <span className="bg-gradient-to-r from-red-400 via-pink-500 to-red-600 bg-clip-text text-transparent drop-shadow-2xl">
+        <span className="bg-gradient-to-r from-red-500 via-pink-500 to-red-600 bg-clip-text text-transparent drop-shadow-2xl">
           Canada's Best
         </span>
       </h1>
-      
+
       {/* Refined description */}
-      <p className="text-lg md:text-xl text-white/95 font-medium mb-12 max-w-4xl mx-auto leading-relaxed drop-shadow-lg">
-        Professional driving instruction across St. John’s and  Corner Brook. From learner's license (Level I) to full Class 5 license, 
+      <p className="mx-auto mb-12 max-w-4xl text-lg font-medium leading-relaxed text-gray-700 drop-shadow-lg md:text-xl dark:text-white/90">
+        Professional driving instruction across St. John’s and  Corner Brook. From learner's license (Level I) to full Class 5 license,
         we'll get you road-ready with confidence and safety.
       </p>
 
       {/* Modern trust indicators */}
-      <div className="flex flex-wrap justify-center items-center gap-8 mb-12">
-        <div className="flex items-center group">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mr-3 shadow-lg group-hover:scale-110 transition-transform">
-            <CheckCircle className="w-5 h-5 text-white" />
+      <div className="mb-12 flex flex-wrap items-center justify-center gap-8">
+        <div className="group flex items-center">
+          <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-green-600 shadow-lg transition-transform group-hover:scale-110">
+            <CheckCircle className="h-5 w-5 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-2xl font-black text-white">Personalized Training for Every Student</div>
+            <div className="text-2xl font-black text-gray-900 dark:text-white">Personalized Training for Every Student</div>
           </div>
         </div>
-        <div className="flex items-center group">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center mr-3 shadow-lg group-hover:scale-110 transition-transform">
-            <CheckCircle className="w-5 h-5 text-white" />
+        <div className="group flex items-center">
+          <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg transition-transform group-hover:scale-110">
+            <CheckCircle className="h-5 w-5 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-2xl font-black text-white">Fully Licensed & Certified Instructors</div>
+            <div className="text-2xl font-black text-gray-900 dark:text-white">Fully Licensed & Certified Instructors</div>
           </div>
         </div>
-        <div className="flex items-center group">
-          <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center mr-3 shadow-lg group-hover:scale-110 transition-transform">
-            <CheckCircle className="w-5 h-5 text-white" />
+        <div className="group flex items-center">
+          <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg transition-transform group-hover:scale-110">
+            <CheckCircle className="h-5 w-5 text-white" />
           </div>
           <div className="text-left">
-            <div className="text-2xl font-black text-white">Easy Online Scheduling</div>
+            <div className="text-2xl font-black text-gray-900 dark:text-white">Easy Online Scheduling</div>
           </div>
         </div>
       </div>
     </div>
 
     {/* Premium search section with advanced glassmorphism */}
-    <div className="max-w-5xl mx-auto mb-16">
-      <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-500">
-        <h3 className="text-xl font-bold text-white text-center mb-6 tracking-wide">
+    <div className="mx-auto mb-16 max-w-5xl">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl transition-all duration-500 hover:shadow-amber-100 dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15">
+        <h3 className="mb-6 text-center text-xl font-bold tracking-wide text-gray-900 dark:text-white">
           Find Your Perfect Driving Course
         </h3>
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row">
           <div className="flex-1">
-            <div className="relative group">
-              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5 group-hover:text-white/80 transition-colors" />
+            <div className="group relative">
+              <Search className="absolute left-6 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400 transition-colors group-hover:text-gray-600 dark:text-white/60 dark:group-hover:text-white/80" />
               <input
                 type="text"
                 placeholder="Search courses (G1, G2, Winter Driving, etc.)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-16 pr-6 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-red-500/50 focus:border-red-400 text-base text-white placeholder-white/60 hover:bg-white/25 transition-all duration-300"
+                className="w-full rounded-2xl border border-gray-200 bg-white px-16 py-4 text-base text-gray-900 placeholder:text-gray-500 shadow-sm transition-all duration-300 focus:border-red-400 focus:ring-4 focus:ring-red-200 hover:border-gray-300 dark:border-white/20 dark:bg-white/15 dark:text-white dark:placeholder:text-white/60 dark:focus:border-red-400 dark:focus:ring-red-500/30"
               />
             </div>
           </div>
-          
+
           <div className="lg:w-80">
-            <select 
-              value={selectedCategory} 
+            <select
+              value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-5 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-red-500/50 focus:border-red-400 text-base text-white hover:bg-white/25 transition-all duration-300"
+              className="w-full rounded-2xl border border-gray-200 bg-white px-5 py-4 text-base text-gray-900 shadow-sm transition-all duration-300 focus:border-red-400 focus:ring-4 focus:ring-red-200 hover:border-gray-300 dark:border-white/20 dark:bg-white/15 dark:text-white dark:focus:border-red-400 dark:focus:ring-red-500/30"
             >
-              <option value="all" className="bg-gray-800 text-white">All Course Types</option>
+              <option value="all" className="bg-white text-gray-900">All Course Types</option>
               {categories.map(category => (
-                <option key={category} value={category} className="bg-gray-800 text-white">{category}</option>
+                <option key={category} value={category} className="bg-white text-gray-900 dark:bg-gray-800 dark:text-white">{category}</option>
               ))}
             </select>
           </div>
@@ -187,16 +187,16 @@ const CanadianDrivingSchool = () => {
             <select
               value={selectedRegion}
               onChange={e => setSelectedRegion(e.target.value)}
-              className="w-full px-6 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-400 text-base text-white hover:bg-white/25 transition-all duration-300"
+              className="w-full rounded-2xl border border-gray-200 bg-white px-6 py-4 text-base text-gray-900 shadow-sm transition-all duration-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-200 hover:border-gray-300 dark:border-white/20 dark:bg-white/15 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-500/30"
             >
-              <option value="all" className="bg-gray-800 text-white">All Regions</option>
+              <option value="all" className="bg-white text-gray-900">All Regions</option>
               {regions.map(region => (
-                <option key={region.id} value={region.id} className="bg-gray-800 text-white">{region.region_name}</option>
+                <option key={region.id} value={region.id} className="bg-white text-gray-900 dark:bg-gray-800 dark:text-white">{region.region_name}</option>
               ))}
             </select>
           </div>
-          <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-base rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1">
-            <Search className="w-5 h-5 mr-2 inline" />
+          <button className="rounded-2xl bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-base font-bold text-white shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:from-red-700 hover:to-red-800 hover:shadow-red-200/60 dark:hover:shadow-red-500/25">
+            <Search className="mr-2 inline h-5 w-5" />
             Search
           </button>
         </div>
@@ -205,7 +205,7 @@ const CanadianDrivingSchool = () => {
 
     {/* Enhanced CTA section */}
     <div className="text-center">
-      <p className="text-lg text-white/95 font-medium mb-6 max-w-2xl mx-auto">
+      <p className="mb-6 max-w-2xl mx-auto text-lg font-medium text-gray-700 dark:text-white/90">
         Book your driving lesson today! Choose from morning, afternoon, or evening slots.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -216,9 +216,9 @@ const CanadianDrivingSchool = () => {
             <span className="relative z-10">Book Driving Lesson</span>
           </button>
         </Link>
-        <button className="group relative bg-white/15 backdrop-blur-md border-2 border-white/40 text-white hover:bg-white/25 text-lg px-10 py-4 font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:-translate-y-2 shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <PlayCircle className="mr-3 h-6 w-6 inline relative z-10" />
+        <button className="group relative rounded-2xl border-2 border-gray-200 bg-white px-10 py-4 text-lg font-bold text-gray-900 shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-gray-300 hover:shadow-amber-100 dark:border-white/40 dark:bg-white/15 dark:text-white dark:hover:bg-white/25">
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-gray-100 to-white opacity-0 transition-opacity duration-300 group-hover:opacity-70 dark:from-white/10 dark:to-white/20" />
+          <PlayCircle className="relative z-10 mr-3 inline h-6 w-6" />
           <span className="relative z-10">Watch Demo Video</span>
         </button>
       </div>
@@ -227,8 +227,8 @@ const CanadianDrivingSchool = () => {
 
   {/* Scroll indicator */}
   <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-    <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center">
-      <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-bounce" />
+    <div className="flex h-10 w-6 justify-center rounded-full border-2 border-slate-300 dark:border-white/40">
+      <div className="mt-2 h-3 w-1 animate-bounce rounded-full bg-slate-500 dark:bg-white/60" />
     </div>
   </div>
 </section>
@@ -357,41 +357,41 @@ const CanadianDrivingSchool = () => {
 </section>
 
       {/* Featured Courses Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-20 px-4 sm:px-6 lg:px-8" id="courses">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_45%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.08),_transparent_45%)]" />
-        <div className="relative max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/5 text-cyan-200 mb-4 border border-cyan-500/30">
-              <Car className="w-4 h-4 mr-2" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 py-20 px-4 sm:px-6 lg:px-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-white" id="courses">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.05),_transparent_45%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(14,165,233,0.05),_transparent_45%)] dark:bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.08),_transparent_45%)]" />
+        <div className="relative mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <div className="mb-4 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-blue-700 dark:border-cyan-500/30 dark:bg-white/5 dark:text-cyan-200">
+              <Car className="mr-2 h-4 w-4" />
               <span className="text-sm font-semibold tracking-wide">Our Driving Programs</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+            <h2 className="mb-4 text-4xl font-bold text-gray-900 drop-shadow-lg md:text-5xl dark:text-white">
               Professional Driving Courses
             </h2>
-            <p className="text-lg text-slate-200 max-w-3xl mx-auto">
+            <p className="mx-auto max-w-3xl text-lg text-slate-700 dark:text-slate-200">
               Explore our curated courses and pick the right path for your driving journey.
             </p>
           </div>
 
           {loading ? (
-            <div className="text-center py-16 rounded-lg border border-slate-800 bg-slate-900/80 text-slate-200 shadow-inner shadow-blue-900/20">
+            <div className="rounded-lg border border-gray-200 bg-white py-16 text-center text-slate-700 shadow-inner shadow-blue-100 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:shadow-blue-900/20">
               Loading...
             </div>
           ) : error ? (
-            <div className="text-center py-16 rounded-lg border border-red-800/60 bg-red-950/40 text-red-200 shadow-inner shadow-red-900/30">
+            <div className="rounded-lg border border-red-200 bg-red-50/80 py-16 text-center text-red-700 shadow-inner shadow-red-100 dark:border-red-800/60 dark:bg-red-950/40 dark:text-red-200 dark:shadow-red-900/30">
               {error}
             </div>
           ) : filteredCourses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
               {filteredCourses.map((course) => (
                 <CourseCard key={course?.id} course={course} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 rounded-lg border border-slate-800 bg-slate-900/70 text-white">
+            <div className="rounded-lg border border-gray-200 bg-white py-16 text-center text-slate-700 shadow-inner dark:border-slate-800 dark:bg-slate-900/70 dark:text-white">
               <h3 className="text-2xl font-semibold">No Courses Found</h3>
-              <p className="text-slate-300 mt-2">Try adjusting your search or filters.</p>
+              <p className="mt-2 text-slate-500 dark:text-slate-300">Try adjusting your search or filters.</p>
             </div>
           )}
           <div className="text-center">
@@ -399,9 +399,9 @@ const CanadianDrivingSchool = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500 text-white shadow-lg shadow-blue-900/40 hover:from-cyan-500 hover:via-blue-500 hover:to-cyan-400 font-semibold px-8 py-6 text-lg"
+                className="border-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500 px-8 py-6 text-lg font-semibold text-white shadow-lg shadow-blue-200/60 hover:from-cyan-500 hover:via-blue-500 hover:to-cyan-400 dark:shadow-blue-900/40"
               >
-                <Car className="mr-2 h-5 w-5 inline" />
+                <Car className="mr-2 inline h-5 w-5" />
                 View All Courses
               </Button>
             </Link>

@@ -28,12 +28,12 @@ export const CourseCard = ({ course }: { course: Course }) => {
   return (
     <Link
       to={`/course/${course.id}`}
-      className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+      className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950"
       aria-label={`View details for ${course.title}`}
     >
-      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 shadow-xl shadow-blue-900/20 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/70 hover:shadow-blue-700/30">
+      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 dark:shadow-xl dark:shadow-blue-900/20 dark:hover:shadow-blue-700/30">
         <div className="relative p-4">
-          <div className="overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-800">
+          <div className="overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
             <img
               src={imageSrc}
               alt={course.title}
@@ -44,49 +44,49 @@ export const CourseCard = ({ course }: { course: Course }) => {
               }}
             />
           </div>
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent dark:from-slate-950/70" />
 
           <div className="absolute left-6 top-6">
-            <span className="rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-lg shadow-purple-500/30">
+            <span className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-lg shadow-blue-500/20 dark:from-purple-500 dark:to-fuchsia-500 dark:shadow-purple-500/30">
               Online
             </span>
           </div>
-          <div className="absolute right-6 top-6 rounded-full bg-white/10 px-3 py-1 backdrop-blur">
-            <div className="flex items-center space-x-1 text-xs font-semibold text-amber-300">
-              <Star className="h-3 w-3 fill-amber-300" />
-              <span>{course.rating}</span>
+          <div className="absolute right-6 top-6 rounded-full bg-white/80 px-3 py-1 text-slate-800 shadow-sm backdrop-blur dark:bg-white/10 dark:text-amber-300">
+            <div className="flex items-center space-x-1 text-xs font-semibold text-amber-500 dark:text-amber-300">
+              <Star className="h-3 w-3 fill-amber-500 dark:fill-amber-300" />
+              <span className="text-xs font-semibold">{course.rating}</span>
             </div>
           </div>
         </div>
 
         <div className="flex flex-1 flex-col space-y-3 px-5 pb-6">
-          <div className="flex items-center justify-between text-xs text-slate-300">
-            <span className="rounded-full bg-slate-800/80 px-3 py-1 font-semibold text-emerald-300">
+          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+            <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold text-emerald-700 dark:bg-slate-800/80 dark:text-emerald-300">
               {course.category}
             </span>
             <span className="flex items-center gap-1 font-medium">
-              <Clock className="h-4 w-4 text-blue-300" />
-              <span className="text-slate-200">{course.duration}</span>
+              <Clock className="h-4 w-4 text-blue-500 dark:text-blue-300" />
+              <span className="text-slate-700 dark:text-slate-200">{course.duration}</span>
             </span>
           </div>
 
-          <h3 className="line-clamp-2 text-xl font-bold text-white transition-colors duration-300 group-hover:text-blue-200">
+          <h3 className="line-clamp-2 text-xl font-bold text-slate-900 transition-colors duration-300 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-200">
             {course.title}
           </h3>
-          <p className="line-clamp-3 text-sm leading-relaxed text-slate-300/90">
+          <p className="line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300/90">
             {course.description}
           </p>
 
           <div className="mt-auto flex items-center justify-between pt-2">
             <div>
-              <span className="text-2xl font-extrabold text-emerald-300">
+              <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-300">
                 ${course.price?.toFixed(2)}
               </span>
-              <div className="text-xs font-semibold text-slate-400">
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 {course.course_reviews?.length || 0} reviews
               </div>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-blue-800/30 transition-all duration-300 group-hover:from-cyan-500 group-hover:to-blue-400">
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/40 transition-all duration-300 group-hover:from-cyan-500 group-hover:to-blue-500 dark:from-blue-500 dark:to-cyan-500 dark:shadow-blue-800/30">
               <span>View Details</span>
               <ArrowRight className="h-4 w-4" />
             </div>
