@@ -264,11 +264,7 @@ const CheckoutContent = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="space-y-6">
-          <div className="flex flex-col gap-2">
-            <p className="text-sm uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300">Checkout</p>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-50">Confirm your enrollment</h1>
-            <p className="text-gray-600 max-w-3xl dark:text-slate-300">Review the course summary and finish payment to access the content.</p>
-          </div>
+    
 
           <div className="grid lg:grid-cols-[1.05fr,1.2fr] gap-6 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-br from-sky-50 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-8 flex flex-col gap-8">
@@ -279,13 +275,12 @@ const CheckoutContent = () => {
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-semibold text-gray-900 dark:text-slate-50">{course?.title || "Course"}</h2>
-                  <p className="text-gray-700 text-sm leading-relaxed dark:text-slate-300">Review your enrollment details before continuing to payment.</p>
                 </div>
                 <div className="rounded-2xl border border-white/80 bg-white/60 p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900/70">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <p className="text-sm text-gray-600 dark:text-slate-300">Total due</p>
-                      <p className="text-3xl font-bold text-gray-900 dark:text-slate-50">${amountLabel} {course?.currency || "CAD"}</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-slate-50">${amountLabel} { "CAD"}</p>
                     </div>
                     <div className="text-right space-y-1">
                       <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400">Course</p>
@@ -316,7 +311,7 @@ const CheckoutContent = () => {
                       <span>Starting secure payment...</span>
                     </span>
                   ) : (
-                    `Start checkout • ${amountLabel} ${course?.currency || "CAD"}`
+                    `Start checkout • ${amountLabel} ${"CAD"}`
                   )}
                 </Button>
                 <p className="text-xs text-gray-600 text-center dark:text-slate-400">
