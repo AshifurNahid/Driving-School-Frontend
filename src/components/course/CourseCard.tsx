@@ -75,7 +75,7 @@ export const CourseCard = ({ course }: { course: Course }) => {
               <span className="text-lg font-bold text-red-600 dark:text-[#7dd3fc]">${course.price?.toFixed(2)}</span>
               <div className="text-xs text-muted-foreground dark:text-slate-300">{course.course_reviews?.length || 0} reviews</div>
             </div>
-            <span className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm dark:bg-gradient-to-r dark:from-[#1dd3b0] dark:to-[#2e8bff] dark:text-[#0a1623] dark:hover:from-[#2af0c6] dark:hover:to-[#4c9dff]">
+            <span className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors text-sm dark:bg-[#2e8bff] dark:hover:bg-[#4c9dff] dark:text-white">
               View Details
             </span>
           </div>
