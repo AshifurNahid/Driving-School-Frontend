@@ -357,26 +357,31 @@ const CanadianDrivingSchool = () => {
 </section>
 
       {/* Featured Courses Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 transition-colors dark:bg-gray-900" id="courses">
-        <div className="max-w-7xl mx-auto">
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 py-20 px-4 sm:px-6 lg:px-8" id="courses">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.08),_transparent_45%)]" />
+        <div className="relative max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 mb-4 dark:bg-blue-900/30 dark:text-blue-200">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/5 text-cyan-200 mb-4 border border-cyan-500/30">
               <Car className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">Our Driving Programs</span>
+              <span className="text-sm font-semibold tracking-wide">Our Driving Programs</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
               Professional Driving Courses
             </h2>
-            {/* <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              From beginner to advanced, our MTO-approved courses are designed to make you a safe, 
-              confident driver on Canadian roads.
-            </p> */}
+            <p className="text-lg text-slate-200 max-w-3xl mx-auto">
+              Explore our curated courses and pick the right path for your driving journey.
+            </p>
           </div>
 
           {loading ? (
-            <div className="text-center py-16 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200">Loading...</div>
+            <div className="text-center py-16 rounded-lg border border-slate-800 bg-slate-900/80 text-slate-200 shadow-inner shadow-blue-900/20">
+              Loading...
+            </div>
           ) : error ? (
-            <div className="text-center py-16 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 text-red-600 dark:text-red-400">{error}</div>
+            <div className="text-center py-16 rounded-lg border border-red-800/60 bg-red-950/40 text-red-200 shadow-inner shadow-red-900/30">
+              {error}
+            </div>
           ) : filteredCourses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {filteredCourses.map((course) => (
@@ -384,9 +389,9 @@ const CanadianDrivingSchool = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-              <h3 className="text-2xl font-semibold text-foreground dark:text-white">No Courses Found</h3>
-              <p className="text-muted-foreground dark:text-gray-300 mt-2">Try adjusting your search or filters.</p>
+            <div className="text-center py-16 rounded-lg border border-slate-800 bg-slate-900/70 text-white">
+              <h3 className="text-2xl font-semibold">No Courses Found</h3>
+              <p className="text-slate-300 mt-2">Try adjusting your search or filters.</p>
             </div>
           )}
           <div className="text-center">
@@ -394,7 +399,7 @@ const CanadianDrivingSchool = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-blue-500 text-blue-600 dark:text-blue-300 dark:border-blue-300 hover:bg-blue-500 hover:text-white dark:hover:bg-blue-700 dark:hover:text-white font-semibold px-8 py-6 text-lg"
+                className="border-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500 text-white shadow-lg shadow-blue-900/40 hover:from-cyan-500 hover:via-blue-500 hover:to-cyan-400 font-semibold px-8 py-6 text-lg"
               >
                 <Car className="mr-2 h-5 w-5 inline" />
                 View All Courses

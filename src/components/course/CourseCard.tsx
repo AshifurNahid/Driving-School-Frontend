@@ -1,4 +1,4 @@
-import { Star, Clock } from 'lucide-react';
+import { Star, Clock, ArrowRight } from 'lucide-react';
 import { type Course } from '@/types/courses';
 import { Link } from 'react-router-dom';
 
@@ -26,57 +26,73 @@ export const CourseCard = ({ course }: { course: Course }) => {
   const imageSrc = getImageUrl(course.thumbnail_photo_path);
 
   return (
-    <div className="bg-card dark:bg-slate-950 border  rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group h-full min-h-[420px] text-card-foreground">
-      <div className="relative p-3">
-        <img 
-          src={imageSrc}
-          alt={course.title}
-          className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 bg-white"
-          onError={(e) => {
-            console.error(`CourseCard - Failed to load image: ${imageSrc}`);
-            (e.target as HTMLImageElement).src = '/placeholder.svg';
-          }}
-        />
-        <div className="absolute top-5 left-5">
-          <span className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-            Popular
-          </span>
+    <Link
+      to={`/course/${course.id}`}
+      className="group block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+      aria-label={`View details for ${course.title}`}
+    >
+      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 shadow-xl shadow-blue-900/20 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/70 hover:shadow-blue-700/30">
+        <div className="relative p-4">
+          <div className="overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-800">
+            <img
+              src={imageSrc}
+              alt={course.title}
+              className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => {
+                console.error(`CourseCard - Failed to load image: ${imageSrc}`);
+                (e.target as HTMLImageElement).src = '/placeholder.svg';
+              }}
+            />
+          </div>
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+
+          <div className="absolute left-6 top-6">
+            <span className="rounded-full bg-gradient-to-r from-purple-500 to-fuchsia-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-lg shadow-purple-500/30">
+              Online
+            </span>
+          </div>
+          <div className="absolute right-6 top-6 rounded-full bg-white/10 px-3 py-1 backdrop-blur">
+            <div className="flex items-center space-x-1 text-xs font-semibold text-amber-300">
+              <Star className="h-3 w-3 fill-amber-300" />
+              <span>{course.rating}</span>
+            </div>
+          </div>
         </div>
-        <div className="absolute top-5 right-5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full px-2 py-1">
-          <div className="flex items-center">
-            <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-            <span className="text-xs font-medium">{course.rating}</span>
+
+        <div className="flex flex-1 flex-col space-y-3 px-5 pb-6">
+          <div className="flex items-center justify-between text-xs text-slate-300">
+            <span className="rounded-full bg-slate-800/80 px-3 py-1 font-semibold text-emerald-300">
+              {course.category}
+            </span>
+            <span className="flex items-center gap-1 font-medium">
+              <Clock className="h-4 w-4 text-blue-300" />
+              <span className="text-slate-200">{course.duration}</span>
+            </span>
+          </div>
+
+          <h3 className="line-clamp-2 text-xl font-bold text-white transition-colors duration-300 group-hover:text-blue-200">
+            {course.title}
+          </h3>
+          <p className="line-clamp-3 text-sm leading-relaxed text-slate-300/90">
+            {course.description}
+          </p>
+
+          <div className="mt-auto flex items-center justify-between pt-2">
+            <div>
+              <span className="text-2xl font-extrabold text-emerald-300">
+                ${course.price?.toFixed(2)}
+              </span>
+              <div className="text-xs font-semibold text-slate-400">
+                {course.course_reviews?.length || 0} reviews
+              </div>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-blue-800/30 transition-all duration-300 group-hover:from-cyan-500 group-hover:to-blue-400">
+              <span>View Details</span>
+              <ArrowRight className="h-4 w-4" />
+            </div>
           </div>
         </div>
       </div>
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="bg-gray-100 dark:bg-slate-700 text-muted-foreground px-2 py-1 rounded-full text-xs font-medium">
-            {course.category}
-          </span>
-          <span className="text-muted-foreground dark:text-slate-300 text-xs flex items-center">
-            <Clock className="w-3 h-3 mr-1" />
-            {course.duration}
-          </span>
-        </div>
-        <h3 className="text-lg font-bold text-card-foreground mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors line-clamp-2">
-          {course.title}
-        </h3>
-        <p className="text-muted-foreground mb-3 line-clamp-7">
-          {course.description}
-        </p>
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-lg font-bold text-red-600 dark:text-red-400">${course.price?.toFixed(2)}</span>
-            <div className="text-xs text-muted-foreground">{course.course_reviews?.length || 0} reviews</div>
-          </div>
-          <Link to={`/course/${course.id}`}>
-            <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
-              Enroll
-            </button>
-          </Link>
-        </div>
-      </div>
-    </div>
+    </Link>
   );
 }
