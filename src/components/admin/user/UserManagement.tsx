@@ -50,6 +50,7 @@ const UserManagement = () => {
     email: '',
     phone: '',
     password: '',
+    confirm_password: '',
     role_id: ''
   });
   const pageSize = 10;
@@ -146,7 +147,7 @@ const UserManagement = () => {
         description: "New user has been created successfully.",
       });
       setCreateUserModalOpen(false);
-      setNewUserData({ first_name: '', last_name: '', email: '', phone: '', password: '', role_id: '' });
+      setNewUserData({ first_name: '', last_name: '', email: '', phone: '', password: '', confirm_password: '', role_id: '' });
       dispatch(getAdminUsers(currentPage, pageSize));
     }
   }, [createSuccess, dispatch, toast, currentPage, pageSize]);
@@ -198,6 +199,14 @@ const UserManagement = () => {
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
+    if (newUserData.password !== newUserData.confirm_password) {
+      toast({
+        title: "Passwords do not match",
+        description: "Please ensure the password and confirmation match before creating the user.",
+        variant: "destructive",
+      });
+      return;
+    }
     const payload = {
       ...newUserData,
       role_id: newUserData.role_id ? Number(newUserData.role_id) : undefined,
@@ -606,6 +615,17 @@ const UserManagement = () => {
                 type="password"
                 value={newUserData.password}
                 onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Confirm Password</Label>
+              <Input
+                id="confirm_password"
+                type="password"
+                value={newUserData.confirm_password}
+                onChange={(e) => setNewUserData({ ...newUserData, confirm_password: e.target.value })}
                 required
               />
             </div>
