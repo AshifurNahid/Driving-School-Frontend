@@ -36,6 +36,8 @@ import { getAdminRegionList } from '@/redux/actions/adminAction';
 import { Region } from '@/types/region';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -47,6 +49,8 @@ const UserManagement = () => {
   const [editUser, setEditUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
+  const [birthDateOpen, setBirthDateOpen] = useState(false);
+  const [permitDateOpen, setPermitDateOpen] = useState(false);
   const [form, setForm] = useState({
     regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
     address1: '', address2: '', city: '', state: '', postal: '',
@@ -57,6 +61,16 @@ const UserManagement = () => {
   });
   const [formErrors, setFormErrors] = useState<string | null>(null);
   const pageSize = 10;
+
+  const birthDateValue =
+    form.birthYear && form.birthMonth && form.birthDay
+      ? new Date(`${form.birthYear}-${form.birthMonth.toString().padStart(2, '0')}-${form.birthDay.toString().padStart(2, '0')}`)
+      : undefined;
+
+  const permitDateValue =
+    form.permitYear && form.permitMonth && form.permitDay
+      ? new Date(`${form.permitYear}-${form.permitMonth.toString().padStart(2, '0')}-${form.permitDay.toString().padStart(2, '0')}`)
+      : undefined;
 
   const dispatch = useDispatch<AppDispatch>();
   const { 
@@ -118,9 +132,6 @@ const UserManagement = () => {
     }
   };
 
-  const years = Array.from({ length: new Date().getFullYear() - 1920 + 1 }, (_, i) => (new Date().getFullYear() - i).toString());
-  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
-  const permitYears = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
   const AGREE_TEXTS = [
     'I agree that 50% of the Certificate Programs needs to be paid before Online portion begins and the remaining 50% before 1st IN CAR lesson.',
     'Online learning is to be completed within 90 days from payment. If an extension is needed, student is required to let instructor know.',
@@ -130,6 +141,32 @@ const UserManagement = () => {
 
   const handleFieldChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleBirthDateChange = (date?: Date) => {
+    if (!date) {
+      setForm((prev) => ({ ...prev, birthYear: '', birthMonth: '', birthDay: '' }));
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      birthYear: date.getFullYear().toString(),
+      birthMonth: (date.getMonth() + 1).toString(),
+      birthDay: date.getDate().toString(),
+    }));
+  };
+
+  const handlePermitDateChange = (date?: Date) => {
+    if (!date) {
+      setForm((prev) => ({ ...prev, permitYear: '', permitMonth: '', permitDay: '' }));
+      return;
+    }
+    setForm((prev) => ({
+      ...prev,
+      permitYear: date.getFullYear().toString(),
+      permitMonth: (date.getMonth() + 1).toString(),
+      permitDay: date.getDate().toString(),
+    }));
   };
 
   const handleAgreement = (idx: number, value: string) => {
@@ -253,25 +290,41 @@ const UserManagement = () => {
       return;
     }
 
-    if (form.birthYear && form.birthMonth && form.birthDay) {
-      const dob = new Date(`${form.birthYear}-${form.birthMonth.padStart(2, '0')}-${form.birthDay.padStart(2, '0')}`);
-      let age = today.getFullYear() - dob.getFullYear();
-      const m = today.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-        age--;
-      }
-      if (age < 16) {
-        setFormErrors('User must be at least 16 years old.');
-        return;
-      }
+    if (!birthDateValue || isNaN(birthDateValue.getTime())) {
+      setFormErrors('Birth date is required.');
+      return;
     }
 
-    if (form.permitYear && form.permitMonth && form.permitDay) {
-      const permitDate = new Date(`${form.permitYear}-${form.permitMonth.padStart(2, '0')}-${form.permitDay.padStart(2, '0')}`);
-      if (permitDate > today) {
-        setFormErrors("Learner's permit issue date cannot be in the future.");
-        return;
-      }
+    const ageDate = new Date(
+      `${birthDateValue.getFullYear()}-${(birthDateValue.getMonth() + 1).toString().padStart(2, '0')}-${birthDateValue
+        .getDate()
+        .toString()
+        .padStart(2, '0')}`
+    );
+    let age = today.getFullYear() - ageDate.getFullYear();
+    const m = today.getMonth() - ageDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < ageDate.getDate())) {
+      age--;
+    }
+    if (age < 16) {
+      setFormErrors('User must be at least 16 years old.');
+      return;
+    }
+
+    if (!permitDateValue || isNaN(permitDateValue.getTime())) {
+      setFormErrors("Learner's permit issue date is required.");
+      return;
+    }
+
+    const permitDate = new Date(
+      `${permitDateValue.getFullYear()}-${(permitDateValue.getMonth() + 1).toString().padStart(2, '0')}-${permitDateValue
+        .getDate()
+        .toString()
+        .padStart(2, '0')}`
+    );
+    if (permitDate > today) {
+      setFormErrors("Learner's permit issue date cannot be in the future.");
+      return;
     }
 
     const payload = {
@@ -279,9 +332,9 @@ const UserManagement = () => {
       first_name: form.firstName,
       last_name: form.lastName,
       birth_date: {
-        year: Number(form.birthYear),
-        month: Number(form.birthMonth),
-        day: Number(form.birthDay),
+        year: birthDateValue.getFullYear(),
+        month: birthDateValue.getMonth() + 1,
+        day: birthDateValue.getDate(),
       },
       address: {
         street_address: form.address1,
@@ -295,9 +348,9 @@ const UserManagement = () => {
       student_phone: form.studentPhone,
       parent_phone: form.parentPhone,
       learners_permit_issue_date: {
-        year: Number(form.permitYear),
-        month: Number(form.permitMonth),
-        day: Number(form.permitDay),
+        year: permitDateValue.getFullYear(),
+        month: permitDateValue.getMonth() + 1,
+        day: permitDateValue.getDate(),
       },
       has_license_from_another_country: form.hasLicenseAnotherCountry,
       driving_experience: form.drivingExperience,
@@ -632,12 +685,12 @@ const UserManagement = () => {
       )}
 
       <Dialog open={createUserModalOpen} onOpenChange={setCreateUserModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[92vh]">
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
             <p className="text-sm text-slate-500">Fill out the same details as the registration form to create a user.</p>
           </DialogHeader>
-          <ScrollArea className="max-h-[70vh] pr-2">
+          <ScrollArea className="max-h-[78vh] pr-2">
             <form className="space-y-6" onSubmit={handleCreateUserSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -670,47 +723,33 @@ const UserManagement = () => {
               </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Birth Year</Label>
-                <Select value={form.birthYear} onValueChange={(val) => handleFieldChange('birthYear', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map((year) => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Date of Birth</Label>
+                <Popover open={birthDateOpen} onOpenChange={setBirthDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {birthDateValue ? birthDateValue.toLocaleDateString() : 'Select date of birth'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="p-0 w-auto">
+                    <CalendarPicker
+                      mode="single"
+                      selected={birthDateValue}
+                      onSelect={(date) => {
+                        handleBirthDateChange(date || undefined);
+                        setBirthDateOpen(false);
+                      }}
+                      disabled={(date) => date > new Date()}
+                      className="bg-white"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              <div className="space-y-2">
-                <Label>Birth Month</Label>
-                <Select value={form.birthMonth} onValueChange={(val) => handleFieldChange('birthMonth', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map((month) => (
-                      <SelectItem key={month} value={month}>{month}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Birth Day</Label>
-                <Select value={form.birthDay} onValueChange={(val) => handleFieldChange('birthDay', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Day" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {days.map((day) => (
-                      <SelectItem key={day} value={day}>{day}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -758,46 +797,32 @@ const UserManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Permit Year</Label>
-                  <Select value={form.permitYear} onValueChange={(val) => handleFieldChange('permitYear', val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {permitYears.map((year) => (
-                        <SelectItem key={year} value={year}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Permit Month</Label>
-                  <Select value={form.permitMonth} onValueChange={(val) => handleFieldChange('permitMonth', val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map((month) => (
-                        <SelectItem key={month} value={month}>{month}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Permit Day</Label>
-                  <Select value={form.permitDay} onValueChange={(val) => handleFieldChange('permitDay', val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Day" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {days.map((day) => (
-                        <SelectItem key={day} value={day}>{day}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Learner's Permit Issue Date</Label>
+                <Popover open={permitDateOpen} onOpenChange={setPermitDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {permitDateValue ? permitDateValue.toLocaleDateString() : 'Select permit issue date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="start" className="p-0 w-auto">
+                    <CalendarPicker
+                      mode="single"
+                      selected={permitDateValue}
+                      onSelect={(date) => {
+                        handlePermitDateChange(date || undefined);
+                        setPermitDateOpen(false);
+                      }}
+                      disabled={(date) => date > new Date()}
+                      className="bg-white"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
