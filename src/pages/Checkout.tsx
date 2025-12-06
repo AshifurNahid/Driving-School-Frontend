@@ -282,10 +282,7 @@ const CheckoutContent = () => {
                       <p className="text-sm text-gray-600 dark:text-slate-300">Total due</p>
                       <p className="text-3xl font-bold text-gray-900 dark:text-slate-50">${amountLabel} { "CAD"}</p>
                     </div>
-                    <div className="text-right space-y-1">
-                      <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400">Course</p>
-                      <p className="text-sm font-medium text-gray-800 dark:text-slate-100">{course?.title}</p>
-                    </div>
+                    
                   </div>
                   <Separator className="my-4 bg-gray-200 dark:bg-slate-700" />
                   <ul className="space-y-2 text-sm text-gray-700 dark:text-slate-300">
