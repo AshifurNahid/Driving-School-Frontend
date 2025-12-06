@@ -1,13 +1,11 @@
 // components/ui/AppointmentForm.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Clock, MapPin, Save, X, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
@@ -64,7 +62,6 @@ const AppointmentForm = ({
   selectedDate = null,
   className = ""
 }) => {
-  const [calendarOpen, setCalendarOpen] = useState(false);
   const timeOptions = generateTimeOptions();
 
   const defaultValues = {
@@ -167,45 +164,21 @@ const AppointmentForm = ({
                     Date
                     <span className="text-red-500">*</span>
                   </FormLabel>
-                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className={cn(
-                            "w-full h-12 justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all",
-                            !field.value && "text-gray-500 dark:text-gray-400"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 z-[60] shadow-xl" 
-                      align="start"
-                      side="bottom"
-                      sideOffset={4}
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          setCalendarOpen(false);
+                  <FormControl>
+                    <div className="relative">
+                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <Input
+                        type="date"
+                        value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                        min={format(new Date(), 'yyyy-MM-dd')}
+                        onChange={(e) => {
+                          const selectedDate = e.target.value ? new Date(`${e.target.value}T00:00:00`) : undefined;
+                          field.onChange(selectedDate);
                         }}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                        className="bg-white dark:bg-gray-800 rounded-lg"
+                        className="pl-10 h-12 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-all"
                       />
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
