@@ -236,17 +236,17 @@ const CourseLearn = () => {
 
   const attachmentUrl = resolveAttachmentUrl(activeLesson?.lesson_attachment_path);
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
-      <CourseLearnHeader
-        title={course?.title || "Course"}
+    return (
+      <div className="min-h-screen bg-slate-50 text-foreground">
+        <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
+        <CourseLearnHeader
+          title={course?.title || "Course"}
         progress={data?.progress_percentage || 0}
         totalHours={Number(totalHours || 0)}
         offlineHours={totalOfflineHours}
       />
 
-      <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-8">
+        <main className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-8">
         {isLoading && <CourseLearnSkeleton />}
 
         {isError && (
@@ -270,44 +270,46 @@ const CourseLearn = () => {
 
         {!isLoading && !isError && course && (
           <>
-            {courseType !== 0 && (
-              <Card className="mb-6 border border-border/70 shadow-sm">
-                <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <CardTitle className="text-xl">Offline training</CardTitle>
-                  </div>
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Total hours</p>
-                      <p className="font-semibold">{totalOfflineHours} hrs</p>
+              {courseType !== 0 && (
+                <Card className="mb-8 rounded-2xl border-0 bg-white shadow-md shadow-blue-100/60">
+                  <CardHeader className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-2">
+                      <CardTitle className="text-2xl">Offline training</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Reserve your next in-car training session at a time that works for you.
+                      </p>
                     </div>
-                    <Separator orientation="vertical" className="hidden h-10 md:block" />
-                    <div>
-                      <p className="text-muted-foreground">Consumed</p>
-                      <p className="font-semibold">{consumedOfflineHours} hrs</p>
+                    <div className="grid w-full grid-cols-3 gap-3 sm:w-auto">
+                      <div className="rounded-xl border border-blue-50 bg-blue-50/60 px-4 py-3 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-lg font-bold text-blue-700">{totalOfflineHours} hrs</p>
+                      </div>
+                      <div className="rounded-xl border border-blue-50 bg-white px-4 py-3 text-center shadow-sm">
+                        <p className="text-xs text-muted-foreground">Consumed</p>
+                        <p className="text-lg font-bold text-blue-600">{consumedOfflineHours} hrs</p>
+                      </div>
+                      <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-center">
+                        <p className="text-xs text-muted-foreground">Remaining</p>
+                        <p className="text-lg font-bold text-green-700">{remainingOfflineHours} hrs</p>
+                      </div>
                     </div>
-                    <Separator orientation="vertical" className="hidden h-10 md:block" />
-                    <div>
-                      <p className="text-muted-foreground">Remaining</p>
-                      <p className="font-semibold">{remainingOfflineHours} hrs</p>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Choose a time that works best for your next in-car session.
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Reserve your next in-car training session at a time that works for you.
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setIsSlotPickerOpen(true);
-                      setSelectedDate(nextAvailableDate());
-                    }}
-                  >
-                    Book offline slot
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+                    <Button
+                      className="rounded-lg px-6 py-2"
+                      onClick={() => {
+                        setIsSlotPickerOpen(true);
+                        setSelectedDate(nextAvailableDate());
+                      }}
+                    >
+                      Book offline slot
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
               <div className="hidden lg:block">
