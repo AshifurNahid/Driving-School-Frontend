@@ -180,6 +180,34 @@ const limitToTwoDecimalPlaces = (value: string): string => {
   return fracPart.length > 2 ? `${intPart}.${fracPart.slice(0, 2)}` : value;
 };
 
+const blockNonNumericKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const controlKeys = [
+    "Backspace",
+    "Tab",
+    "ArrowLeft",
+    "ArrowRight",
+    "Delete",
+    "Home",
+    "End",
+  ];
+
+  if (controlKeys.includes(e.key)) return;
+
+  // Allow a single decimal point
+  if (e.key === ".") {
+    const value = (e.currentTarget.value || "");
+    if (value.includes(".")) {
+      e.preventDefault();
+    }
+    return;
+  }
+
+  // Block anything that is not a digit 0-9
+  if (!/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+  }
+};
+
 function modalToQuizFormat(modalQuiz: ModalQuizDto): Quiz {
   return {
     title: modalQuiz.title,
@@ -437,7 +465,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   const isInfoStepValid =
     course?.title.trim() &&
     course?.description.trim() &&
-    course?.category &&
+  
     course?.price > 0 &&
     course?.thumbnail_photo_path.trim() &&
     (course?.courseType === 'online' ? course?.duration > 0 : true) &&
@@ -471,7 +499,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       if (!course?.title?.trim()) missingFields.push('Course Title');
       if (!course?.description?.trim()) missingFields.push('Course Description');
       if (!course?.content?.trim()) missingFields.push('Course Content');
-      if (!course?.category) missingFields.push('Category');
       if (!course?.price || course?.price <= 0) missingFields.push('Price');
       if ((course?.courseType === 'online' || course?.courseType === 'hybrid') && (!course?.duration || course?.duration <= 0)) missingFields.push('Online Duration');
       if (!course?.level?.trim()) missingFields.push('Level');
@@ -627,8 +654,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     if (!course?.title?.trim()) requiredFields.push('Course Title');
     if (!course?.description?.trim()) requiredFields.push('Course Description');
     if (!course?.content?.trim()) requiredFields.push('Course content');
-
-    if (!course?.category?.trim()) requiredFields.push('Category');
     if (!course?.price || course?.price <= 0) requiredFields.push('Price');
     if ((course?.courseType === 'online' || course?.courseType === 'hybrid') && (!course?.duration || course?.duration <= 0)) requiredFields.push('Online Duration');
     if (!course?.level?.trim()) requiredFields.push('Level');
@@ -703,7 +728,6 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         title: course?.title,
         description: course?.description,
         content: course?.content,
-        category: course?.category,
         price: toTwoDecimals(course?.price),
         duration: course?.courseType === 'online' || course?.courseType === 'hybrid'
           ? toTwoDecimals(course?.duration)
@@ -1042,22 +1066,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         ]}
       />
     </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <Select value={course?.category} onValueChange={(value) => setCourse({ ...course, category: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="beginner-driver-ed">Beginner Driver Education</SelectItem>
-                          <SelectItem value="defensive-driving">Defensive Driving</SelectItem>
-                          <SelectItem value="test-preparation">Test Preparation</SelectItem>
-                          <SelectItem value="refresher-course">Refresher Course</SelectItem>
-                          <SelectItem value="advanced-driving">Advanced Driving Skills</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="price">Price (CAD)</Label>
                       <Input
@@ -1065,6 +1074,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                         type="number"
                           step="0.01"
                           inputMode="decimal"
+                          onKeyDown={blockNonNumericKeys}
                         value={course?.price || ''}
                         onChange={(e) => {
                           const formatted = limitToTwoDecimalPlaces(e.target.value);
@@ -1081,6 +1091,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           type="number"
                           step="0.01"
                           inputMode="decimal"
+                          onKeyDown={blockNonNumericKeys}
                           value={course?.duration || ''}
                           onChange={(e) => {
                             const formatted = limitToTwoDecimalPlaces(e.target.value);
@@ -1094,21 +1105,38 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="level">Level</Label>
-                      <Input
-                        id="level"
+                      <Select
                         value={course?.level}
-                        onChange={(e) => setCourse({ ...course, level: e.target.value })}
-                        placeholder="e.g. Beginner, Intermediate, Advanced"
-                      />
+                        onValueChange={(value) => setCourse({ ...course, level: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">Beginner</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                          <SelectItem value="all-levels">All Levels</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="language">Language</Label>
-                      <Input
-                        id="language"
+                      <Select
                         value={course?.language}
-                        onChange={(e) => setCourse({ ...course, language: e.target.value })}
-                        placeholder="e.g. English"
-                      />
+                        onValueChange={(value) => setCourse({ ...course, language: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="fr">French</SelectItem>
+                          <SelectItem value="es">Spanish</SelectItem>
+                          <SelectItem value="ar">Arabic</SelectItem>
+                          <SelectItem value="hi">Hindi</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="prerequisites">Prerequisites</Label>
@@ -1148,6 +1176,7 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                           type="number"
                           step="0.01"
                           inputMode="decimal"
+                          onKeyDown={blockNonNumericKeys}
                           value={course?.offline_training_hours?.toString() || ''}
                           onChange={(e) => {
                             const formatted = limitToTwoDecimalPlaces(e.target.value);
@@ -1549,8 +1578,10 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    {course?.category && (
-                      <Badge variant="outline">{course?.category.replace('-', ' ')}</Badge>
+                    {course?.level && (
+                      <Badge variant="outline" className="mr-2">
+                        {course.level.charAt(0).toUpperCase() + course.level.slice(1).replace('-', ' ')}
+                      </Badge>
                     )}
                     {course?.price > 0 && (
                       <span className="text-lg font-bold text-blue-600">${course?.price} CAD</span>

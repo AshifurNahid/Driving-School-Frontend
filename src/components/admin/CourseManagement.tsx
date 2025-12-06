@@ -243,13 +243,13 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
       case 1:
         return (
           <Badge variant="outline" className="text-yellow-600 border-yellow-600 text-xs px-1 py-0">
-            Hybrid
+            Offline
           </Badge>
         );
       case 2:
         return (
           <Badge variant="outline" className="text-purple-600 border-purple-600 text-xs px-1 py-0">
-            Offline
+            Hybrid
           </Badge>
         );
       default:
@@ -660,8 +660,8 @@ const CourseManagement: React.FC<CourseManagementProps> = ({ onEdit }) => {
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="0">Online</SelectItem>
-                  <SelectItem value="1">Hybrid</SelectItem>
-                  <SelectItem value="2">Offline</SelectItem>
+                  <SelectItem value="1">Offline</SelectItem>
+                  <SelectItem value="2">Hybrid</SelectItem>
                 </SelectContent>
               </Select>
 
