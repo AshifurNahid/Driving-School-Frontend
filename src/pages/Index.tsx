@@ -151,58 +151,6 @@ const CanadianDrivingSchool = () => {
       </div>
     </div>
 
-    {/* Premium search section with advanced glassmorphism */}
-    <div className="max-w-5xl mx-auto mb-16">
-      <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-500">
-        <h3 className="text-xl font-bold text-white text-center mb-6 tracking-wide">
-          Find Your Perfect Driving Course
-        </h3>
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative group">
-              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5 group-hover:text-white/80 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search courses (G1, G2, Winter Driving, etc.)"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-16 pr-6 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-red-500/50 focus:border-red-400 text-base text-white placeholder-white/60 hover:bg-white/25 transition-all duration-300"
-              />
-            </div>
-          </div>
-          
-          <div className="lg:w-80">
-            <select 
-              value={selectedCategory} 
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-5 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-red-500/50 focus:border-red-400 text-base text-white hover:bg-white/25 transition-all duration-300"
-            >
-              <option value="all" className="bg-gray-800 text-white">All Course Types</option>
-              {categories.map(category => (
-                <option key={category} value={category} className="bg-gray-800 text-white">{category}</option>
-              ))}
-            </select>
-          </div>
-          <div className="lg:w-80">
-            <select
-              value={selectedRegion}
-              onChange={e => setSelectedRegion(e.target.value)}
-              className="w-full px-6 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-400 text-base text-white hover:bg-white/25 transition-all duration-300"
-            >
-              <option value="all" className="bg-gray-800 text-white">All Regions</option>
-              {regions.map(region => (
-                <option key={region.id} value={region.id} className="bg-gray-800 text-white">{region.region_name}</option>
-              ))}
-            </select>
-          </div>
-          <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-base rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1">
-            <Search className="w-5 h-5 mr-2 inline" />
-            Search
-          </button>
-        </div>
-      </div>
-    </div>
-
     {/* Enhanced CTA section */}
     <div className="text-center">
       <p className="text-lg text-white/95 font-medium mb-6 max-w-2xl mx-auto">
@@ -284,10 +232,10 @@ const CanadianDrivingSchool = () => {
         Our Achievements
       </div>
       <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-3 leading-tight">
-        Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">Thousands</span>
+        Building Confident Drivers Across Newfoundland & Labrador
       </h2>
       <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
-        Join the ranks of successful drivers who chose excellence
+        Proudly supporting local students with proven instruction and modern training.
       </p>
     </div>
 
@@ -342,17 +290,7 @@ const CanadianDrivingSchool = () => {
     {/* Statistics grid */}
  
 
-    {/* Bottom CTA */}
-    <div className="text-center mt-10">
-      <Link to="/courses">
-        <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1 cursor-pointer">
-          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 4V6L13.5 7L15 8V10L21 9M3 9L9 10V8L10.5 7L9 6V4L3 7V9M12 7.5C12.8 7.5 13.5 8.2 13.5 9S12.8 10.5 12 10.5 10.5 9.8 10.5 9 11.2 7.5 12 7.5M12 12C14.21 12 16 13.79 16 16V20H8V16C8 13.79 9.79 12 12 12Z" />
-          </svg>
-          Join Our Success Story
-        </div>
-      </Link>
-    </div>
+    {/* Bottom CTA intentionally removed per request */}
   </div>
 </section>
 
@@ -368,9 +306,61 @@ const CanadianDrivingSchool = () => {
               Professional Driving Courses
             </h2>
             {/* <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              From beginner to advanced, our MTO-approved courses are designed to make you a safe, 
+              From beginner to advanced, our MTO-approved courses are designed to make you a safe,
               confident driver on Canadian roads.
             </p> */}
+          </div>
+
+          {/* Search and filters moved closer to course listings */}
+          <div className="max-w-5xl mx-auto mb-12">
+            <div className="bg-white dark:bg-gray-800/70 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-gray-200/70 dark:border-gray-700 hover:bg-white/70 dark:hover:bg-gray-800 transition-all duration-500">
+              <h3 className="text-xl font-bold text-center mb-6 tracking-wide text-gray-900 dark:text-white">
+                Find Your Perfect Driving Course
+              </h3>
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative group">
+                    <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-300 h-5 w-5 group-hover:text-gray-700 dark:group-hover:text-white transition-colors" />
+                    <input
+                      type="text"
+                      placeholder="Search courses (G1, G2, Winter Driving, etc.)"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-16 pr-6 py-4 bg-gray-100 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-4 focus:ring-red-500/40 focus:border-red-400 text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:bg-white dark:hover:bg-gray-900 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="lg:w-72">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-5 py-4 bg-gray-100 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-4 focus:ring-red-500/40 focus:border-red-400 text-base text-gray-900 dark:text-white hover:bg-white dark:hover:bg-gray-900 transition-all duration-300"
+                  >
+                    <option value="all" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">All Course Types</option>
+                    {categories.map(category => (
+                      <option key={category} value={category} className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">{category}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="lg:w-72">
+                  <select
+                    value={selectedRegion}
+                    onChange={e => setSelectedRegion(e.target.value)}
+                    className="w-full px-6 py-4 bg-gray-100 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-4 focus:ring-blue-500/40 focus:border-blue-400 text-base text-gray-900 dark:text-white hover:bg-white dark:hover:bg-gray-900 transition-all duration-300"
+                  >
+                    <option value="all" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">All Regions</option>
+                    {regions.map(region => (
+                      <option key={region.id} value={region.id} className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">{region.region_name}</option>
+                    ))}
+                  </select>
+                </div>
+                <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold text-base rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1">
+                  <Search className="w-5 h-5 mr-2 inline" />
+                  Search
+                </button>
+              </div>
+            </div>
           </div>
 
           {loading ? (
@@ -594,7 +584,7 @@ const CanadianDrivingSchool = () => {
                 <span className="text-2xl font-bold">NL Driver's academy</span>
               </div>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
-                Newfoundland's premier driving education provider. Building confident, safe drivers since 1999 with professional instruction and modern teaching methods.
+                Newfoundland's premier driving education provider. Building confident, safe drivers with professional instruction and modern teaching methods.
               </p>
               <div className="flex space-x-4">
                 {['facebook', 'instagram', 'youtube', 'twitter'].map((social) => (
@@ -609,9 +599,11 @@ const CanadianDrivingSchool = () => {
             <div>
               <h3 className="text-lg font-bold mb-4">Quick Links</h3>
               <ul className="space-y-2 text-gray-400">
-                {['Our Courses', 'Book Lesson', 'Instructors', 'Locations', 'About Us', 'Contact'].map((link) => (
-                  <li key={link}>
-                    <button className="hover:text-white transition-colors duration-300">{link}</button>
+                {[{ label: 'Our Courses', to: '/courses' }, { label: 'Book Lesson', to: '/appointments' }, { label: 'Locations', to: '/contact' }, { label: 'About Us', to: '/about' }, { label: 'Contact', to: '/contact' }].map((link) => (
+                  <li key={link.label}>
+                    <Link to={link.to} className="hover:text-white transition-colors duration-300">
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
