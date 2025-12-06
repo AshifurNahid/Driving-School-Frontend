@@ -6,6 +6,9 @@ import {
   ADMIN_USER_DETAILS_REQUEST,
   ADMIN_USER_DETAILS_SUCCESS,
   ADMIN_USER_DETAILS_FAIL,
+  ADMIN_USER_CREATE_REQUEST,
+  ADMIN_USER_CREATE_SUCCESS,
+  ADMIN_USER_CREATE_FAIL,
   ADMIN_USER_DELETE_REQUEST,
   ADMIN_USER_DELETE_SUCCESS,
   ADMIN_USER_DELETE_FAIL,
@@ -155,6 +158,34 @@ export const adminUserDeleteReducer = (
       };
     case ADMIN_USER_DELETE_FAIL:
       return { ...state, loading: false, success: false, error: action.payload, message: null };
+    default:
+      return state;
+  }
+};
+
+interface AdminUserCreateState {
+  loading: boolean;
+  success: boolean;
+  error: string | null;
+}
+
+const initialUserCreateState: AdminUserCreateState = {
+  loading: false,
+  success: false,
+  error: null,
+};
+
+export const adminUserCreateReducer = (
+  state = initialUserCreateState,
+  action: any
+): AdminUserCreateState => {
+  switch (action.type) {
+    case ADMIN_USER_CREATE_REQUEST:
+      return { ...state, loading: true, success: false, error: null };
+    case ADMIN_USER_CREATE_SUCCESS:
+      return { ...state, loading: false, success: true, error: null };
+    case ADMIN_USER_CREATE_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload };
     default:
       return state;
   }

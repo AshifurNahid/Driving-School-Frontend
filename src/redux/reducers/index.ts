@@ -3,6 +3,7 @@ import { authReducer } from "./authReducer";
 import {
   adminUserListReducer,
   adminUserDetailsReducer,
+  adminUserCreateReducer,
   adminUserDeleteReducer,
   adminRoleListReducer,
   adminCourseListReducer,
@@ -41,6 +42,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   adminUserList: adminUserListReducer,
   adminUserDetails: adminUserDetailsReducer,
+  adminUserCreate: adminUserCreateReducer,
   adminUserDelete: adminUserDeleteReducer,
   adminRoleList: adminRoleListReducer,
   adminCourseList:adminCourseListReducer,

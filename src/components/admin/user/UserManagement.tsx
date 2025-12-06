@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Search, 
-  Filter, 
-  Eye, 
-  Edit, 
-  Trash2, 
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
   Plus,
-  Download,
   Mail,
   Phone,
   Calendar,
@@ -24,13 +23,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDispatch, useSelector } from "react-redux";
-import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers } from "@/redux/actions/adminAction";
+import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, createAdminUser } from "@/redux/actions/adminAction";
 import { RootState, AppDispatch } from "@/redux/store";
 import { User } from '@/types/user';
 import UserDetailsModal from "@/components/admin/UserDetailsModal";
 import UserRoleEditModal from "@/components/admin/UserRoleEditModal";
 import ReactPaginate from "react-paginate";
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { getAdminRegionList } from '@/redux/actions/adminAction';
+import { Region } from '@/types/region';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -41,6 +45,16 @@ const UserManagement = () => {
   const [editUserModalOpen, setEditUserModalOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
+  const [form, setForm] = useState({
+    regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
+    address1: '', address2: '', city: '', state: '', postal: '',
+    studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
+    permitYear: '', permitMonth: '', permitDay: '',
+    hasLicenseAnotherCountry: '', drivingExperience: '',
+    password: '', confirmPassword: '', agreements: [false, false, false, false] as boolean[],
+  });
+  const [formErrors, setFormErrors] = useState<string | null>(null);
   const pageSize = 10;
 
   const dispatch = useDispatch<AppDispatch>();
@@ -58,11 +72,15 @@ const UserManagement = () => {
   const { user: userDetails, loading: userDetailsLoading } = useSelector(
     (state: RootState) => state.adminUserDetails
   );
-  
-  const { 
-    loading: deleteLoading, 
-    success: deleteSuccess, 
-    message: deleteMessage 
+
+  const { loading: createLoading, success: createSuccess, error: createError } = useSelector(
+    (state: RootState) => state.adminUserCreate
+  );
+
+  const {
+    loading: deleteLoading,
+    success: deleteSuccess,
+    message: deleteMessage
   } = useSelector((state: RootState) => state.adminUserDelete);
   
   const { roles, loading: rolesLoading } = useSelector(
@@ -74,6 +92,8 @@ const UserManagement = () => {
     user: userDetail, 
     error: roleUpdateError 
   } = useSelector((state: RootState) => state.adminUserDetails);
+
+  const { regions } = useSelector((state: RootState) => state.regionList);
 
   // Handle viewing user details
   const handleViewUser = (userId: number) => {
@@ -95,6 +115,18 @@ const UserManagement = () => {
     if (!roles || roles.length === 0) {
       dispatch(getAdminRoles());
     }
+  };
+
+  const years = Array.from({ length: new Date().getFullYear() - 1920 + 1 }, (_, i) => (new Date().getFullYear() - i).toString());
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+  const permitYears = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
+
+  const handleFieldChange = (field: string, value: string | boolean) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAgreement = (idx: number, value: boolean) => {
+    setForm((prev) => ({ ...prev, agreements: prev.agreements.map((a, i) => i === idx ? value : a) }));
   };
 
   // Save role change
@@ -126,6 +158,39 @@ const UserManagement = () => {
   useEffect(() => {
     dispatch(getAdminUsers(currentPage, pageSize));
   }, [dispatch, currentPage]);
+
+  useEffect(() => {
+    if (createUserModalOpen && (!regions || regions.length === 0)) {
+      dispatch(getAdminRegionList());
+    }
+  }, [createUserModalOpen, dispatch, regions]);
+
+  useEffect(() => {
+    if (createSuccess) {
+      toast({
+        title: "User Created",
+        description: "The user was created successfully.",
+      });
+      dispatch(getAdminUsers(currentPage, pageSize));
+      setCreateUserModalOpen(false);
+      setForm({
+        regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
+        address1: '', address2: '', city: '', state: '', postal: '',
+        studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
+        permitYear: '', permitMonth: '', permitDay: '',
+        hasLicenseAnotherCountry: '', drivingExperience: '',
+        password: '', confirmPassword: '', agreements: [false, false, false, false],
+      });
+      setFormErrors(null);
+    }
+    if (createError) {
+      toast({
+        title: "User Creation Failed",
+        description: createError,
+        variant: "destructive",
+      });
+    }
+  }, [createSuccess, createError, toast, dispatch, currentPage]);
 
   // Filter users based on search term and filters
   const filteredUsers = users?.filter((user: User) => {
@@ -167,6 +232,76 @@ const UserManagement = () => {
     return 'Admin';
   };
 
+  const handleCreateUserSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const today = new Date();
+
+    if (form.password !== form.confirmPassword) {
+      setFormErrors('Passwords do not match');
+      return;
+    }
+
+    if (form.birthYear && form.birthMonth && form.birthDay) {
+      const dob = new Date(`${form.birthYear}-${form.birthMonth.padStart(2, '0')}-${form.birthDay.padStart(2, '0')}`);
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age < 16) {
+        setFormErrors('User must be at least 16 years old.');
+        return;
+      }
+    }
+
+    if (form.permitYear && form.permitMonth && form.permitDay) {
+      const permitDate = new Date(`${form.permitYear}-${form.permitMonth.padStart(2, '0')}-${form.permitDay.padStart(2, '0')}`);
+      if (permitDate > today) {
+        setFormErrors("Learner's permit issue date cannot be in the future.");
+        return;
+      }
+    }
+
+    const payload = {
+      region_id: form.regionId,
+      first_name: form.firstName,
+      last_name: form.lastName,
+      birth_date: {
+        year: Number(form.birthYear),
+        month: Number(form.birthMonth),
+        day: Number(form.birthDay),
+      },
+      address: {
+        street_address: form.address1,
+        street_address2: form.address2,
+        city: form.city,
+        state: form.state,
+        postal: form.postal,
+      },
+      student_email: form.studentEmail,
+      parent_email: form.parentEmail,
+      student_phone: form.studentPhone,
+      parent_phone: form.parentPhone,
+      learners_permit_issue_date: {
+        year: Number(form.permitYear),
+        month: Number(form.permitMonth),
+        day: Number(form.permitDay),
+      },
+      has_license_from_another_country: form.hasLicenseAnotherCountry,
+      driving_experience: form.drivingExperience,
+      password: form.password,
+      agreements: {
+        paid_policy: form.agreements[0] === true,
+        completion_policy: form.agreements[1] === true,
+        instructor_ready_policy: form.agreements[2] === true,
+        refund_policy: form.agreements[3] === true,
+      }
+    };
+
+    setFormErrors(null);
+    dispatch(createAdminUser(payload));
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -179,16 +314,12 @@ const UserManagement = () => {
             Manage all users, roles, and permissions across your platform
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            variant="outline" 
-            className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+          <Button
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+            onClick={() => setCreateUserModalOpen(true)}
           >
-            <Download className="h-4 w-4 mr-2" />
-            Export Users
-          </Button>
-          <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200">
             <UserPlus className="h-4 w-4 mr-2" />
             Add New User
           </Button>
@@ -487,6 +618,225 @@ const UserManagement = () => {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={createUserModalOpen} onOpenChange={setCreateUserModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <p className="text-sm text-slate-500">Fill out the same details as the registration form to create a user.</p>
+          </DialogHeader>
+          <form className="space-y-6" onSubmit={handleCreateUserSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Region</Label>
+                <Select value={form.regionId} onValueChange={(val) => handleFieldChange('regionId', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions?.map((region: Region) => (
+                      <SelectItem
+                        key={region.id || region.region_name}
+                        value={(region.id ?? region.region_name ?? '').toString()}
+                      >
+                        {region.region_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>First Name</Label>
+                  <Input value={form.firstName} onChange={(e) => handleFieldChange('firstName', e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Name</Label>
+                  <Input value={form.lastName} onChange={(e) => handleFieldChange('lastName', e.target.value)} required />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Birth Year</Label>
+                <Select value={form.birthYear} onValueChange={(val) => handleFieldChange('birthYear', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Birth Month</Label>
+                <Select value={form.birthMonth} onValueChange={(val) => handleFieldChange('birthMonth', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map((month) => (
+                      <SelectItem key={month} value={month}>{month}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Birth Day</Label>
+                <Select value={form.birthDay} onValueChange={(val) => handleFieldChange('birthDay', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {days.map((day) => (
+                      <SelectItem key={day} value={day}>{day}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Street Address</Label>
+                <Input value={form.address1} onChange={(e) => handleFieldChange('address1', e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Street Address 2</Label>
+                <Input value={form.address2} onChange={(e) => handleFieldChange('address2', e.target.value)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Input value={form.city} onChange={(e) => handleFieldChange('city', e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>State</Label>
+                <Input value={form.state} onChange={(e) => handleFieldChange('state', e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Postal Code</Label>
+                <Input value={form.postal} onChange={(e) => handleFieldChange('postal', e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Student Email</Label>
+                <Input type="email" value={form.studentEmail} onChange={(e) => handleFieldChange('studentEmail', e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Parent Email</Label>
+                <Input type="email" value={form.parentEmail} onChange={(e) => handleFieldChange('parentEmail', e.target.value)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Student Phone</Label>
+                <Input value={form.studentPhone} onChange={(e) => handleFieldChange('studentPhone', e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Parent Phone</Label>
+                <Input value={form.parentPhone} onChange={(e) => handleFieldChange('parentPhone', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Permit Year</Label>
+                <Select value={form.permitYear} onValueChange={(val) => handleFieldChange('permitYear', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {permitYears.map((year) => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Permit Month</Label>
+                <Select value={form.permitMonth} onValueChange={(val) => handleFieldChange('permitMonth', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map((month) => (
+                      <SelectItem key={month} value={month}>{month}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Permit Day</Label>
+                <Select value={form.permitDay} onValueChange={(val) => handleFieldChange('permitDay', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Day" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {days.map((day) => (
+                      <SelectItem key={day} value={day}>{day}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Has License From Another Country?</Label>
+                <Select value={form.hasLicenseAnotherCountry} onValueChange={(val) => handleFieldChange('hasLicenseAnotherCountry', val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Driving Experience</Label>
+                <Input value={form.drivingExperience} onChange={(e) => handleFieldChange('drivingExperience', e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Password</Label>
+                <Input type="password" value={form.password} onChange={(e) => handleFieldChange('password', e.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Confirm Password</Label>
+                <Input type="password" value={form.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {["paid_policy", "completion_policy", "instructor_ready_policy", "refund_policy"].map((label, idx) => (
+                <label key={label} className="flex items-center space-x-2 text-sm">
+                  <Checkbox checked={form.agreements[idx]} onCheckedChange={(checked) => handleAgreement(idx, Boolean(checked))} />
+                  <span className="capitalize">{label.replace(/_/g, ' ')}</span>
+                </label>
+              ))}
+            </div>
+
+            {formErrors && <p className="text-sm text-red-500">{formErrors}</p>}
+
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setCreateUserModalOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={createLoading}>
+                {createLoading ? 'Creating...' : 'Create User'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Modals */}
       <UserDetailsModal
