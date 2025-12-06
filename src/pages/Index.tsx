@@ -57,15 +57,15 @@ const CanadianDrivingSchool = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 text-foreground transition-colors dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50 text-foreground transition-colors dark:bg-gradient-to-b dark:from-[#0b1626] dark:via-[#0d2136] dark:to-[#071120]">
       <RoleBasedNavigation />
       {/* Hero Section */}
 
       {/* Enhanced Hero Section */}
-<section className="relative overflow-hidden py-24 bg-gradient-to-b from-gray-50 via-white to-gray-50 text-slate-900 transition-colors dark:from-gray-950 dark:via-gray-950 dark:to-black dark:text-white">
+<section className="relative overflow-hidden py-24 bg-gradient-to-b from-gray-50 via-white to-gray-50 text-slate-900 transition-colors dark:from-[#0c1c2e] dark:via-[#0c2740] dark:to-[#081828] dark:text-white">
   {/* Advanced gradient overlay system */}
-  <div className="absolute inset-0 z-[1] bg-gradient-to-br from-white/80 via-white/40 to-transparent dark:from-black/60 dark:via-black/40 dark:to-transparent" />
-  <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white/70 via-transparent to-white/40 dark:from-black/80 dark:via-transparent dark:to-black/40" />
+  <div className="absolute inset-0 z-[1] bg-gradient-to-br from-white/80 via-white/40 to-transparent dark:from-[#0b1f33]/70 dark:via-[#0a2b47]/40 dark:to-transparent" />
+  <div className="absolute inset-0 z-[1] bg-gradient-to-t from-white/70 via-transparent to-white/40 dark:from-[#0a192a]/85 dark:via-transparent dark:to-[#071120]/60" />
 
   {/* Enhanced background carousel with better transitions */}
   <div className="absolute inset-0 z-0 h-full w-full overflow-hidden">
@@ -93,8 +93,8 @@ const CanadianDrivingSchool = () => {
 
   {/* Animated background elements */}
   <div className="absolute inset-0 z-[1]">
-    <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-red-400/10 blur-3xl animate-pulse dark:bg-red-500/10" />
-    <div className="absolute bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl animate-pulse delay-1000 dark:bg-blue-500/10" />
+    <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-red-400/10 blur-3xl animate-pulse dark:bg-[#1ab3b3]/15" />
+    <div className="absolute bottom-1/4 right-1/4 h-80 w-80 rounded-full bg-blue-400/10 blur-3xl animate-pulse delay-1000 dark:bg-[#0f8ed6]/15" />
   </div>
 
   {/* Main content container */}
@@ -258,12 +258,12 @@ const CanadianDrivingSchool = () => {
       </section> */}
 
       {/* Enhanced Statistics Section */}
-<section className="relative py-12 bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 overflow-hidden">
+<section className="relative py-12 bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-[#0b182a] dark:via-[#0c2340] dark:to-[#071120] overflow-hidden">
   {/* Background decoration */}
   <div className="absolute inset-0 opacity-30">
-    <div className="absolute top-10 left-10 w-72 h-72 bg-blue-200 dark:bg-blue-800 rounded-full blur-3xl opacity-20" />
-    <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-200 dark:bg-purple-800 rounded-full blur-3xl opacity-20" />
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-red-200 dark:bg-red-800 rounded-full blur-3xl opacity-15" />
+    <div className="absolute top-10 left-10 w-72 h-72 bg-blue-200 dark:bg-[#0f8ed6]/30 rounded-full blur-3xl opacity-20" />
+    <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-200 dark:bg-[#1ab3b3]/25 rounded-full blur-3xl opacity-20" />
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-red-200 dark:bg-[#133250]/35 rounded-full blur-3xl opacity-15" />
   </div>
 
   {/* Animated grid pattern */}
@@ -277,7 +277,7 @@ const CanadianDrivingSchool = () => {
   <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     {/* Section header */}
     <div className="text-center mb-10">
-      <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-semibold text-sm mb-4 backdrop-blur-sm border border-blue-200 dark:border-blue-700">
+      <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 dark:bg-[#0f2b45]/70 text-blue-600 dark:text-cyan-100 font-semibold text-sm mb-4 backdrop-blur-sm border border-blue-200 dark:border-cyan-700/60">
         <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
           <path d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L20.71 8.71L23 11V6H16Z" />
         </svg>
@@ -357,9 +357,9 @@ const CanadianDrivingSchool = () => {
 </section>
 
       {/* Featured Courses Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 py-20 px-4 sm:px-6 lg:px-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-white" id="courses">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.05),_transparent_45%)] dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),_transparent_45%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(14,165,233,0.05),_transparent_45%)] dark:bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.08),_transparent_45%)]" />
+      <section className="relative overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 py-20 px-4 sm:px-6 lg:px-8 text-slate-900 dark:from-[#0b182a] dark:via-[#0c2540] dark:to-[#081522] dark:text-white" id="courses">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.05),_transparent_45%)] dark:bg-[radial-gradient(circle_at_top,_rgba(26,179,179,0.12),_transparent_45%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(14,165,233,0.05),_transparent_45%)] dark:bg-[radial-gradient(circle_at_bottom,_rgba(15,142,214,0.12),_transparent_45%)]" />
         <div className="relative mx-auto max-w-7xl">
           <div className="mb-16 text-center">
             <div className="mb-4 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-blue-700 dark:border-cyan-500/30 dark:bg-white/5 dark:text-cyan-200">
@@ -389,7 +389,7 @@ const CanadianDrivingSchool = () => {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-gray-200 bg-white py-16 text-center text-slate-700 shadow-inner dark:border-slate-800 dark:bg-slate-900/70 dark:text-white">
+            <div className="rounded-lg border border-gray-200 bg-white py-16 text-center text-slate-700 shadow-inner dark:border-cyan-800/40 dark:bg-[#0f2b45]/70 dark:text-white">
               <h3 className="text-2xl font-semibold">No Courses Found</h3>
               <p className="mt-2 text-slate-500 dark:text-slate-300">Try adjusting your search or filters.</p>
             </div>
@@ -399,7 +399,7 @@ const CanadianDrivingSchool = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500 px-8 py-6 text-lg font-semibold text-white shadow-lg shadow-blue-200/60 hover:from-cyan-500 hover:via-blue-500 hover:to-cyan-400 dark:shadow-blue-900/40"
+                className="border-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500 px-8 py-6 text-lg font-semibold text-white shadow-lg shadow-blue-200/60 hover:from-cyan-500 hover:via-blue-500 hover:to-cyan-400 dark:from-[#19c8c0] dark:via-[#0f8ed6] dark:to-[#0b6db5] dark:shadow-[#0f8ed6]/40"
               >
                 <Car className="mr-2 inline h-5 w-5" />
                 View All Courses
@@ -411,11 +411,11 @@ const CanadianDrivingSchool = () => {
 
       
 {/* Why Choose Us Section - Mobile Optimized */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 via-gray-100 to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 relative overflow-hidden">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 via-gray-100 to-gray-50 dark:from-[#0b182a] dark:via-[#0c2540] dark:to-[#071120] relative overflow-hidden">
         {/* Background accents */}
         <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-slate-200/30 dark:bg-slate-800/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-slate-200/30 dark:bg-slate-800/20 rounded-full blur-3xl" />
+          <div className="absolute top-10 left-10 w-72 h-72 bg-slate-200/30 dark:bg-[#0f8ed6]/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-slate-200/30 dark:bg-[#1ab3b3]/18 rounded-full blur-3xl" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto">
