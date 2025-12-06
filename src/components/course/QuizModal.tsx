@@ -119,7 +119,6 @@ export function QuizModal({ open, onClose, quiz, onSave }) {
     }));
     setExpandedQuestions((prev) => [...prev, localQuiz.questions.length]);
   };
-console.log(localQuiz.max_attempts);
 
   // Update a question field
   const updateQuestion = (idx, field, value) => {

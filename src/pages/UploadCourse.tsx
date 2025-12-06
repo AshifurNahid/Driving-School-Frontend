@@ -392,8 +392,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // Temporary workaround for cached reference error
-  const loadingToastId = undefined;
 
   // Effect to handle edit mode data loading
   useEffect(() => {
@@ -715,6 +713,18 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
               }
               if (!subsection.lesson_attachment_path?.trim()) {
                 requiredFields.push(`Lesson ${lessonIndex + 1} PDF in Module ${moduleIndex + 1}`);
+              } else {
+                // Validate file type: must be pdf, doc, docx, ppt, or pptx
+                const path = subsection.lesson_attachment_path;
+                const allowedTypes = ['.pdf', '.doc', '.docx', '.ppt', '.pptx'];
+                const isBase64 = path.startsWith('data:');
+                const extension = isBase64
+                  ? path.split(':')[1].split(';')[0].replace('application/', '').replace('vnd.openxmlformats-officedocument.presentationml.presentation', 'pptx').replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx')
+                  : path.split('.').pop()?.toLowerCase();
+                const normalizedExt = isBase64 ? (extension === 'pdf' ? '.pdf' : extension === 'msword' ? '.doc' : extension === 'vnd.ms-powerpoint' ? '.ppt' : `.${extension}`) : `.${extension}`;
+                if (!allowedTypes.includes(normalizedExt)) {
+                  requiredFields.push(`Lesson ${lessonIndex + 1} file must be PDF, DOC, DOCX, PPT, or PPTX (Module ${moduleIndex + 1})`);
+                }
               }
             });
           }
