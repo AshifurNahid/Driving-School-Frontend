@@ -406,7 +406,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     }
   }, [initialCourse]);
 
-  const modules = {
+  const quillModules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike'],
@@ -414,6 +414,20 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       [{ align: [] }], // 👈 enables alignment (left, center, right, justify)
       ['link', 'image', 'clean'],
     ],
+  };
+
+  const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'link', 'image',
+  ];
+
+  const hasRichTextValue = (value?: string) => {
+    if (!value) return false;
+    const textOnly = value.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+    return textOnly.length > 0;
   };
   
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -436,7 +450,8 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   const isTypeStepValid = !!course?.courseType;
   const isInfoStepValid =
     course?.title.trim() &&
-    course?.description.trim() &&
+    hasRichTextValue(course?.description) &&
+    hasRichTextValue(course?.content) &&
     course?.category &&
     course?.price > 0 &&
     course?.thumbnail_photo_path.trim() &&
@@ -469,8 +484,8 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     } else if (stepKey === 'info') {
       const missingFields = [];
       if (!course?.title?.trim()) missingFields.push('Course Title');
-      if (!course?.description?.trim()) missingFields.push('Course Description');
-      if (!course?.content?.trim()) missingFields.push('Course Content');
+      if (!hasRichTextValue(course?.description)) missingFields.push('Course Description');
+      if (!hasRichTextValue(course?.content)) missingFields.push('Course Content');
       if (!course?.category) missingFields.push('Category');
       if (!course?.price || course?.price <= 0) missingFields.push('Price');
       if ((course?.courseType === 'online' || course?.courseType === 'hybrid') && (!course?.duration || course?.duration <= 0)) missingFields.push('Online Duration');
@@ -623,10 +638,10 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   const handleSubmit = async () => {
     // Validate required fields before submitting
     const requiredFields = [];
-    
+
     if (!course?.title?.trim()) requiredFields.push('Course Title');
-    if (!course?.description?.trim()) requiredFields.push('Course Description');
-    if (!course?.content?.trim()) requiredFields.push('Course content');
+    if (!hasRichTextValue(course?.description)) requiredFields.push('Course Description');
+    if (!hasRichTextValue(course?.content)) requiredFields.push('Course content');
 
     if (!course?.category?.trim()) requiredFields.push('Category');
     if (!course?.price || course?.price <= 0) requiredFields.push('Price');
@@ -1000,15 +1015,18 @@ thumbnail_photo_base64_code = base64.split(',')[1];
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="description">Course Description</Label>
-                    <Textarea
+                    <ReactQuill
                       id="description"
-                      value={course?.description}
-                      onChange={(e) => setCourse({ ...course, description: e.target.value })}
-                      placeholder={course?.courseType === 'physical' 
+                      theme="snow"
+                      value={course?.description || ''}
+                      onChange={(value) => setCourse({ ...course, description: value })}
+                      placeholder={course?.courseType === 'physical'
                         ? "Describe the benefits and preparation this physical course provides..."
                         : "Describe what students will learn in this online course?..."
                       }
-                      rows={4}
+                      className="rounded-lg border bg-white"
+                      modules={quillModules}
+                      formats={quillFormats}
                     />
                   </div>
                   {/* <div className="space-y-2">
@@ -1032,14 +1050,8 @@ thumbnail_photo_base64_code = base64.split(',')[1];
         onChange={(value) => setCourse({ ...course, content: value })}
         placeholder="Brief summary of the course content"
         className="rounded-lg border bg-white"
-        modules={modules}
-        formats={[
-          'header',
-          'bold', 'italic', 'underline', 'strike',
-          'list', 'bullet',
-          'align', // 👈 allow alignment
-          'link', 'image',
-        ]}
+        modules={quillModules}
+        formats={quillFormats}
       />
     </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

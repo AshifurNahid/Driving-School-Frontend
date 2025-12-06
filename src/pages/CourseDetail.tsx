@@ -167,7 +167,12 @@ const CourseDetail = () => {
                   <Badge variant="outline">{course?.level}</Badge>
                 </div>
                 <h1 className="text-3xl font-bold mb-4">{course?.title}</h1>
-                <p className="text-muted-foreground mb-6">{course?.description}</p>
+                <div className="prose max-w-none text-muted-foreground dark:prose-invert prose-sm mb-6">
+                  <div
+                    className="ql-editor"
+                    dangerouslySetInnerHTML={{ __html: course?.description || '' }}
+                  />
+                </div>
                 
                 <div className="flex items-center space-x-6 text-sm text-muted-foreground">
                   <div className="flex items-center">
