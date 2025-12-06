@@ -23,18 +23,12 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 
 const BIRTH_YEAR_FROM = 1920;
 const BIRTH_YEAR_TO = new Date().getFullYear() - 12;
 const MIN_PHONE_DIGITS = 10;
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 const steps = [
   { label: 'Location & Personal', fields: [ 'regionId', 'firstName', 'lastName', 'birthYear', 'birthMonth', 'birthDay' ] },
@@ -218,8 +212,6 @@ const Register = () => {
         ? `${form.permitYear}-${form.permitMonth.toString().padStart(2, '0')}-${form.permitDay.toString().padStart(2, '0')}`
         : '';
 
-    const birthDate = birthDateISO ? new Date(birthDateISO) : undefined;
-    const permitDate = permitDateISO ? new Date(permitDateISO) : undefined;
     const todayISO = new Date().toISOString().split('T')[0];
 
     const handleBirthDateChange = (val: string) => {
@@ -255,25 +247,14 @@ const Register = () => {
               </div>
             </div>
             <Label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
-            <div className="mt-1 border rounded-md p-2 bg-white">
-              <DayPicker
-                mode="single"
-                selected={birthDate}
-                onSelect={(date) => {
-                  if (!date) {
-                    handleBirthDateChange('');
-                    return;
-                  }
-                  const y = date.getFullYear().toString();
-                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-                  const d = date.getDate().toString().padStart(2, '0');
-                  handleBirthDateChange(`${y}-${m}-${d}`);
-                }}
-                fromYear={BIRTH_YEAR_FROM}
-                toYear={BIRTH_YEAR_TO}
-                captionLayout="dropdown"
-              />
-            </div>
+            <Input
+              type="date"
+              value={birthDateISO}
+              min={`${BIRTH_YEAR_FROM}-01-01`}
+              max={`${BIRTH_YEAR_TO}-12-31`}
+              onChange={(e) => handleBirthDateChange(e.target.value)}
+              className="bg-white"
+            />
           </div>
         );
       case 1:
@@ -346,23 +327,13 @@ const Register = () => {
         return (
           <div style={stepFadeStyle}>
             <Label className="block text-sm font-medium text-gray-700 mb-1">Learner's Permit Issue Date <span className="text-red-500">*</span></Label>
-            <div className="mt-2 border rounded-md p-2 bg-white">
-              <DayPicker
-                mode="single"
-                selected={permitDate}
-                onSelect={(date) => {
-                  if (!date) {
-                    handlePermitDateChange('');
-                    return;
-                  }
-                  const y = date.getFullYear().toString();
-                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-                  const d = date.getDate().toString().padStart(2, '0');
-                  handlePermitDateChange(`${y}-${m}-${d}`);
-                }}
-                captionLayout="dropdown"
-              />
-            </div>
+            <Input
+              type="date"
+              value={permitDateISO}
+              max={todayISO}
+              onChange={(e) => handlePermitDateChange(e.target.value)}
+              className="bg-white"
+            />
             <p className="text-xs text-gray-500 mt-1">Date cannot be in the future.</p>
             <div className="mt-5">
               <Label className="block text-sm font-medium text-gray-700 mb-1">Do you have a driver licence from another country? <span className="text-red-500">*</span></Label>

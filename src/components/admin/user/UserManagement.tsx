@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, 
-  Search, 
-  Filter, 
-  Eye, 
-  Edit, 
-  Trash2, 
+  Users,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
   Plus,
-  Download,
   Mail,
   Phone,
   Calendar,
@@ -185,15 +184,8 @@ const UserManagement = () => {
             Manage all users, roles, and permissions across your platform
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="outline"
-            className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export Users
-          </Button>
           <Button
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
             onClick={handleOpenCreateModal}
