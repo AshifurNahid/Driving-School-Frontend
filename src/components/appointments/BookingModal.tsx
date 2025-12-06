@@ -12,8 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, parse } from 'date-fns';
 import { CalendarIcon, Clock, User, MapPin, DollarSign } from 'lucide-react';
 import { AppointmentSlot } from '@/redux/reducers/appointmentReducer';
@@ -218,32 +216,20 @@ const BookingModal: React.FC<BookingModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Learner Permit Issue Date *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal bg-background ${
-                      !formData.learnerPermitIssueDate && 'text-muted-foreground'
-                    } ${errors.learnerPermitIssueDate ? 'border-destructive text-destructive' : ''}`}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.learnerPermitIssueDate ? (
-                      format(formData.learnerPermitIssueDate, 'PPP')
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-card border border-border/70" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.learnerPermitIssueDate}
-                    onSelect={(date) => setFormData({ ...formData, learnerPermitIssueDate: date })}
-                    initialFocus
-                    className="rounded-md"
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="relative">
+                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="date"
+                  value={formData.learnerPermitIssueDate ? format(formData.learnerPermitIssueDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      learnerPermitIssueDate: e.target.value ? new Date(`${e.target.value}T00:00:00`) : undefined
+                    })
+                  }
+                  className={`pl-9 bg-background ${errors.learnerPermitIssueDate ? 'border-destructive text-destructive' : ''}`}
+                />
+              </div>
               {errors.learnerPermitIssueDate && (
                 <p className="text-destructive text-sm mt-1">{errors.learnerPermitIssueDate}</p>
               )}
@@ -251,32 +237,20 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
             <div className="space-y-2">
               <Label className="text-sm font-medium">Permit Expiration Date *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal bg-background ${
-                      !formData.permitExpirationDate && 'text-muted-foreground'
-                    } ${errors.permitExpirationDate ? 'border-destructive text-destructive' : ''}`}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.permitExpirationDate ? (
-                      format(formData.permitExpirationDate, 'PPP')
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-card border border-border/70" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.permitExpirationDate}
-                    onSelect={(date) => setFormData({ ...formData, permitExpirationDate: date })}
-                    initialFocus
-                    className="rounded-md"
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="relative">
+                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="date"
+                  value={formData.permitExpirationDate ? format(formData.permitExpirationDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      permitExpirationDate: e.target.value ? new Date(`${e.target.value}T00:00:00`) : undefined
+                    })
+                  }
+                  className={`pl-9 bg-background ${errors.permitExpirationDate ? 'border-destructive text-destructive' : ''}`}
+                />
+              </div>
               {errors.permitExpirationDate && (
                 <p className="text-destructive text-sm mt-1">{errors.permitExpirationDate}</p>
               )}
