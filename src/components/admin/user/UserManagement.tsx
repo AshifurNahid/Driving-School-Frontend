@@ -32,9 +32,10 @@ import ReactPaginate from "react-paginate";
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { getAdminRegionList } from '@/redux/actions/adminAction';
 import { Region } from '@/types/region';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -52,7 +53,7 @@ const UserManagement = () => {
     studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
     permitYear: '', permitMonth: '', permitDay: '',
     hasLicenseAnotherCountry: '', drivingExperience: '',
-    password: '', confirmPassword: '', agreements: [false, false, false, false] as boolean[],
+    password: '', confirmPassword: '', agreements: [null, null, null, null] as (boolean | null)[],
   });
   const [formErrors, setFormErrors] = useState<string | null>(null);
   const pageSize = 10;
@@ -120,13 +121,19 @@ const UserManagement = () => {
   const years = Array.from({ length: new Date().getFullYear() - 1920 + 1 }, (_, i) => (new Date().getFullYear() - i).toString());
   const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
   const permitYears = Array.from({ length: 40 }, (_, i) => (new Date().getFullYear() - i).toString());
+  const AGREE_TEXTS = [
+    'I agree that 50% of the Certificate Programs needs to be paid before Online portion begins and the remaining 50% before 1st IN CAR lesson.',
+    'Online learning is to be completed within 90 days from payment. If an extension is needed, student is required to let instructor know.',
+    'Student must be ready to the satisfaction of the Instructor before road test is booked.',
+    'Refund Policy - If Online training has started but not completed, no refund will be given. Once IN-CAR Training has begun the refund will be based on number of sessions completed, for that portion of payment.',
+  ];
 
   const handleFieldChange = (field: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAgreement = (idx: number, value: boolean) => {
-    setForm((prev) => ({ ...prev, agreements: prev.agreements.map((a, i) => i === idx ? value : a) }));
+  const handleAgreement = (idx: number, value: string) => {
+    setForm((prev) => ({ ...prev, agreements: prev.agreements.map((a, i) => i === idx ? value === 'agree' : a) }));
   };
 
   // Save role change
@@ -179,7 +186,7 @@ const UserManagement = () => {
         studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
         permitYear: '', permitMonth: '', permitDay: '',
         hasLicenseAnotherCountry: '', drivingExperience: '',
-        password: '', confirmPassword: '', agreements: [false, false, false, false],
+        password: '', confirmPassword: '', agreements: [null, null, null, null],
       });
       setFormErrors(null);
     }
@@ -238,6 +245,11 @@ const UserManagement = () => {
 
     if (form.password !== form.confirmPassword) {
       setFormErrors('Passwords do not match');
+      return;
+    }
+
+    if (!form.agreements.every((a) => a === true)) {
+      setFormErrors('All agreements must be accepted.');
       return;
     }
 
@@ -620,13 +632,14 @@ const UserManagement = () => {
       )}
 
       <Dialog open={createUserModalOpen} onOpenChange={setCreateUserModalOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
             <p className="text-sm text-slate-500">Fill out the same details as the registration form to create a user.</p>
           </DialogHeader>
-          <form className="space-y-6" onSubmit={handleCreateUserSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ScrollArea className="max-h-[70vh] pr-2">
+            <form className="space-y-6" onSubmit={handleCreateUserSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Region</Label>
                 <Select value={form.regionId} onValueChange={(val) => handleFieldChange('regionId', val)}>
@@ -655,9 +668,9 @@ const UserManagement = () => {
                   <Input value={form.lastName} onChange={(e) => handleFieldChange('lastName', e.target.value)} required />
                 </div>
               </div>
-            </div>
+              </div>
 
-            <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Birth Year</Label>
                 <Select value={form.birthYear} onValueChange={(val) => handleFieldChange('birthYear', val)}>
@@ -699,142 +712,163 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Street Address</Label>
-                <Input value={form.address1} onChange={(e) => handleFieldChange('address1', e.target.value)} required />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Street Address</Label>
+                  <Input value={form.address1} onChange={(e) => handleFieldChange('address1', e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Street Address 2</Label>
+                  <Input value={form.address2} onChange={(e) => handleFieldChange('address2', e.target.value)} />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Street Address 2</Label>
-                <Input value={form.address2} onChange={(e) => handleFieldChange('address2', e.target.value)} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <Input value={form.city} onChange={(e) => handleFieldChange('city', e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>State</Label>
+                  <Input value={form.state} onChange={(e) => handleFieldChange('state', e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Postal Code</Label>
+                  <Input value={form.postal} onChange={(e) => handleFieldChange('postal', e.target.value)} required />
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>City</Label>
-                <Input value={form.city} onChange={(e) => handleFieldChange('city', e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>State</Label>
-                <Input value={form.state} onChange={(e) => handleFieldChange('state', e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>Postal Code</Label>
-                <Input value={form.postal} onChange={(e) => handleFieldChange('postal', e.target.value)} required />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Student Email</Label>
-                <Input type="email" value={form.studentEmail} onChange={(e) => handleFieldChange('studentEmail', e.target.value)} required />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Student Email</Label>
+                  <Input type="email" value={form.studentEmail} onChange={(e) => handleFieldChange('studentEmail', e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Parent Email</Label>
+                  <Input type="email" value={form.parentEmail} onChange={(e) => handleFieldChange('parentEmail', e.target.value)} />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Parent Email</Label>
-                <Input type="email" value={form.parentEmail} onChange={(e) => handleFieldChange('parentEmail', e.target.value)} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Student Phone</Label>
+                  <Input value={form.studentPhone} onChange={(e) => handleFieldChange('studentPhone', e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Parent Phone</Label>
+                  <Input value={form.parentPhone} onChange={(e) => handleFieldChange('parentPhone', e.target.value)} />
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Student Phone</Label>
-                <Input value={form.studentPhone} onChange={(e) => handleFieldChange('studentPhone', e.target.value)} required />
-              </div>
-              <div className="space-y-2">
-                <Label>Parent Phone</Label>
-                <Input value={form.parentPhone} onChange={(e) => handleFieldChange('parentPhone', e.target.value)} />
-              </div>
-            </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>Permit Year</Label>
-                <Select value={form.permitYear} onValueChange={(val) => handleFieldChange('permitYear', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {permitYears.map((year) => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Permit Year</Label>
+                  <Select value={form.permitYear} onValueChange={(val) => handleFieldChange('permitYear', val)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {permitYears.map((year) => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Permit Month</Label>
+                  <Select value={form.permitMonth} onValueChange={(val) => handleFieldChange('permitMonth', val)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map((month) => (
+                        <SelectItem key={month} value={month}>{month}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Permit Day</Label>
+                  <Select value={form.permitDay} onValueChange={(val) => handleFieldChange('permitDay', val)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {days.map((day) => (
+                        <SelectItem key={day} value={day}>{day}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Permit Month</Label>
-                <Select value={form.permitMonth} onValueChange={(val) => handleFieldChange('permitMonth', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map((month) => (
-                      <SelectItem key={month} value={month}>{month}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Permit Day</Label>
-                <Select value={form.permitDay} onValueChange={(val) => handleFieldChange('permitDay', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Day" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {days.map((day) => (
-                      <SelectItem key={day} value={day}>{day}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Has License From Another Country?</Label>
-                <Select value={form.hasLicenseAnotherCountry} onValueChange={(val) => handleFieldChange('hasLicenseAnotherCountry', val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Has License From Another Country?</Label>
+                  <Select value={form.hasLicenseAnotherCountry} onValueChange={(val) => handleFieldChange('hasLicenseAnotherCountry', val)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Driving Experience</Label>
+                  <Input value={form.drivingExperience} onChange={(e) => handleFieldChange('drivingExperience', e.target.value)} required />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Driving Experience</Label>
-                <Input value={form.drivingExperience} onChange={(e) => handleFieldChange('drivingExperience', e.target.value)} required />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Password</Label>
+                  <Input type="password" value={form.password} onChange={(e) => handleFieldChange('password', e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Confirm Password</Label>
+                  <Input type="password" value={form.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} required />
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Password</Label>
-                <Input type="password" value={form.password} onChange={(e) => handleFieldChange('password', e.target.value)} required />
+              <div className="space-y-3">
+                <Label>Agreements</Label>
+                {AGREE_TEXTS.map((text, idx) => (
+                  <div key={idx} className="rounded-md border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-slate-50/60 dark:bg-slate-800/40">
+                    <p className="text-xs leading-relaxed text-slate-700 dark:text-slate-300">{idx + 1}. {text}</p>
+                    <RadioGroup
+                      className="flex flex-wrap gap-6"
+                      value={
+                        form.agreements[idx] === null
+                          ? ''
+                          : form.agreements[idx]
+                          ? 'agree'
+                          : 'disagree'
+                      }
+                      onValueChange={(val) => handleAgreement(idx, val)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem id={`agree-${idx}`} value="agree" />
+                        <Label htmlFor={`agree-${idx}`} className="text-sm">I AGREE</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem id={`disagree-${idx}`} value="disagree" />
+                        <Label htmlFor={`disagree-${idx}`} className="text-sm">I DO NOT AGREE</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                ))}
               </div>
-              <div className="space-y-2">
-                <Label>Confirm Password</Label>
-                <Input type="password" value={form.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} required />
+
+              {formErrors && <p className="text-sm text-red-500">{formErrors}</p>}
+
+              <div className="flex justify-end gap-3 pb-2">
+                <Button type="button" variant="outline" onClick={() => setCreateUserModalOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={createLoading}>
+                  {createLoading ? 'Creating...' : 'Create User'}
+                </Button>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {["paid_policy", "completion_policy", "instructor_ready_policy", "refund_policy"].map((label, idx) => (
-                <label key={label} className="flex items-center space-x-2 text-sm">
-                  <Checkbox checked={form.agreements[idx]} onCheckedChange={(checked) => handleAgreement(idx, Boolean(checked))} />
-                  <span className="capitalize">{label.replace(/_/g, ' ')}</span>
-                </label>
-              ))}
-            </div>
-
-            {formErrors && <p className="text-sm text-red-500">{formErrors}</p>}
-
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setCreateUserModalOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={createLoading}>
-                {createLoading ? 'Creating...' : 'Create User'}
-              </Button>
-            </div>
-          </form>
+            </form>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 

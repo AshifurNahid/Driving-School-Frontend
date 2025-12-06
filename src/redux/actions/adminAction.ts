@@ -79,7 +79,7 @@ export const deleteAdminUser = (userId: number | string) => async (dispatch: any
 export const createAdminUser = (payload: any) => async (dispatch: any) => {
   try {
     dispatch({ type: ADMIN_USER_CREATE_REQUEST });
-    const { data } = await api.post("/users", payload);
+    const { data } = await api.post("/register", payload);
     dispatch({ type: ADMIN_USER_CREATE_SUCCESS, payload: data.data || data });
   } catch (error: any) {
     dispatch({
