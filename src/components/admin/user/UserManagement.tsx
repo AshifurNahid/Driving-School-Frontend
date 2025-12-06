@@ -24,15 +24,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDispatch, useSelector } from "react-redux";
-import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers, createAdminUser } from "@/redux/actions/adminAction";
+import { useNavigate } from "react-router-dom";
+import { getAdminUserDetails, deleteAdminUser, getAdminRoles, updateAdminRole, getAdminUsers } from "@/redux/actions/adminAction";
 import { RootState, AppDispatch } from "@/redux/store";
 import { User } from '@/types/user';
 import UserDetailsModal from "@/components/admin/UserDetailsModal";
 import UserRoleEditModal from "@/components/admin/UserRoleEditModal";
 import ReactPaginate from "react-paginate";
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -41,18 +40,9 @@ const UserManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false);
   const [editUserModalOpen, setEditUserModalOpen] = useState(false);
-  const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [newUserData, setNewUserData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirm_password: '',
-    role_id: ''
-  });
+  const navigate = useNavigate();
   const pageSize = 10;
 
   const dispatch = useDispatch<AppDispatch>();
@@ -77,12 +67,6 @@ const UserManagement = () => {
     message: deleteMessage
   } = useSelector((state: RootState) => state.adminUserDelete);
 
-  const {
-    loading: createLoading,
-    success: createSuccess,
-    error: createError
-  } = useSelector((state: RootState) => state.adminUserCreate);
-  
   const { roles, loading: rolesLoading } = useSelector(
     (state: RootState) => state.adminRoleList
   );
@@ -140,18 +124,6 @@ const UserManagement = () => {
     }
   }, [deleteSuccess, deleteMessage, dispatch, toast]);
 
-  useEffect(() => {
-    if (createSuccess) {
-      toast({
-        title: "User Created",
-        description: "New user has been created successfully.",
-      });
-      setCreateUserModalOpen(false);
-      setNewUserData({ first_name: '', last_name: '', email: '', phone: '', password: '', confirm_password: '', role_id: '' });
-      dispatch(getAdminUsers(currentPage, pageSize));
-    }
-  }, [createSuccess, dispatch, toast, currentPage, pageSize]);
-
   // Fetch users on mount and when page changes
   useEffect(() => {
     dispatch(getAdminUsers(currentPage, pageSize));
@@ -197,28 +169,8 @@ const UserManagement = () => {
     return 'Admin';
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newUserData.password !== newUserData.confirm_password) {
-      toast({
-        title: "Passwords do not match",
-        description: "Please ensure the password and confirmation match before creating the user.",
-        variant: "destructive",
-      });
-      return;
-    }
-    const payload = {
-      ...newUserData,
-      role_id: newUserData.role_id ? Number(newUserData.role_id) : undefined,
-    };
-    dispatch(createAdminUser(payload));
-  };
-
   const handleOpenCreateModal = () => {
-    if (!roles || roles.length === 0) {
-      dispatch(getAdminRoles());
-    }
-    setCreateUserModalOpen(true);
+    navigate('/register');
   };
 
   return (
@@ -561,113 +513,6 @@ const UserManagement = () => {
         loading={roleUpdateLoading}
       />
 
-      <Dialog open={createUserModalOpen} onOpenChange={setCreateUserModalOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={handleCreateUser}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name">First Name</Label>
-                <Input
-                  id="first_name"
-                  value={newUserData.first_name}
-                  onChange={(e) => setNewUserData({ ...newUserData, first_name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input
-                  id="last_name"
-                  value={newUserData.last_name}
-                  onChange={(e) => setNewUserData({ ...newUserData, last_name: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={newUserData.email}
-                onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={newUserData.phone}
-                onChange={(e) => setNewUserData({ ...newUserData, phone: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={newUserData.password}
-                onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirm_password">Confirm Password</Label>
-              <Input
-                id="confirm_password"
-                type="password"
-                value={newUserData.confirm_password}
-                onChange={(e) => setNewUserData({ ...newUserData, confirm_password: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Role</Label>
-              <Select
-                value={newUserData.role_id}
-                onValueChange={(value) => setNewUserData({ ...newUserData, role_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles?.map((role) => (
-                    <SelectItem key={role.id} value={role.id.toString()}>
-                      {role.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {createError && (
-              <p className="text-sm text-red-600 dark:text-red-400">{createError}</p>
-            )}
-
-            <DialogFooter className="gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setCreateUserModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createLoading}>
-                {createLoading ? 'Creating...' : 'Create User'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
