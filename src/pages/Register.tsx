@@ -57,6 +57,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
+  const [submitted, setSubmitted] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -64,6 +65,21 @@ const Register = () => {
   // Redux selectors
   const { regions } = useSelector((state: RootState) => state.regionList);
   const { loading, error } = useAuth();
+
+  // Show toasts based on Redux state changes
+  useEffect(() => {
+    if (!loading && error) {
+      toast({ title: 'Registration Failed', description: error, variant: 'destructive' });
+      setSubmitted(false);
+    }
+    if (!loading && submitted && !error) {
+      toast({ title: 'Registration Successful', description: 'You can now sign in with your credentials.' });
+      navigate('/login');
+    }
+  }, [loading, error, toast, submitted, navigate]);
+
+  // Optional: handle success message if you store it in Redux; otherwise, you can rely on the action to dispatch a success message
+  // For now, we assume success is handled by redirecting or by a global listener
 
   useEffect(() => {
     if (!regions || regions.length === 0) { dispatch(getAdminRegionList() as any); }
@@ -176,7 +192,11 @@ const Register = () => {
       region_id: form.regionId,
       first_name: form.firstName,
       last_name: form.lastName,
-      birth_date: { year: form.birthYear, month: form.birthMonth, day: form.birthDay },
+      birth_date: {
+        year: Number(form.birthYear),
+        month: Number(form.birthMonth),
+        day: Number(form.birthDay),
+      },
       address: {
         street_address: form.address1,
         street_address2: form.address2,
@@ -188,11 +208,14 @@ const Register = () => {
       parent_email: form.parentEmail,
       student_phone: form.studentPhone,
       parent_phone: form.parentPhone,
-      learners_permit_issue_date: { year: form.permitYear, month: form.permitMonth, day: form.permitDay },
+      learners_permit_issue_date: {
+        year: Number(form.permitYear),
+        month: Number(form.permitMonth),
+        day: Number(form.permitDay),
+      },
       has_license_from_another_country: form.hasLicenseAnotherCountry,
       driving_experience: form.drivingExperience,
       password: form.password,
-      confirm_password: form.confirmPassword,
       agreements: {
         paid_policy: form.agreements[0] === true,
         completion_policy: form.agreements[1] === true,
@@ -201,10 +224,7 @@ const Register = () => {
       }
     };
     dispatch(register(payload) as any);
-    if (!loading && error == null) {
-      toast({ title: 'Registration Successful', description: 'You can now sign in with your credentials.' });
-      navigate('/login');
-    }
+    setSubmitted(true);
   }
 
   // --- Step Contents Rendered ---

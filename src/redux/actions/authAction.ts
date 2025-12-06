@@ -21,6 +21,7 @@ export const login = (email: string, password: string) => async (dispatch: any) 
     localStorage.setItem("refresh_token", data.data.refresh_token);
     // Save user info
     const user = data.data.user as User;
+    // Dispatch user payload as before; also include success message if you want to store it
     dispatch({ type: USER_LOGIN_SUCCESS, payload: user });
     localStorage.setItem("userInfo", JSON.stringify(user));
     
@@ -31,7 +32,7 @@ export const login = (email: string, password: string) => async (dispatch: any) 
   } catch (error: any) {
     dispatch({
       type: USER_LOGIN_FAIL,
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
     });
   }
 };
@@ -42,7 +43,7 @@ export interface RegistrationPayload {
   region_id: string | number;
   first_name: string;
   last_name: string;
-  birth_date: { year: string; month: string; day: string };
+  birth_date: { year: number; month: number; day: number };
   address: {
     street_address: string;
     street_address2?: string;
@@ -54,12 +55,11 @@ export interface RegistrationPayload {
   parent_email?: string;
   student_phone: string;
   parent_phone?: string;
-  learners_permit_issue_date: { year: string; month: string; day: string };
+  learners_permit_issue_date: { year: number; month: number; day: number };
   has_license_from_another_country: string;
   driving_experience: string;
   course_id?: string | number;
   password: string;
-  confirm_password: string;
   agreements: {
     paid_policy: boolean;
     completion_policy: boolean;
@@ -72,11 +72,12 @@ export const register = (payload: RegistrationPayload) => async (dispatch: any) 
   try {
     dispatch({ type: USER_REGISTER_REQUEST });
     const { data } = await api.post("/register", payload);
-    dispatch({ type: USER_REGISTER_SUCCESS, payload: data.data });
+    // Success: use status.message from response
+    dispatch({ type: USER_REGISTER_SUCCESS, payload: data.status?.message || 'Registration successful' });
   } catch (error: any) {
     dispatch({
       type: USER_REGISTER_FAIL,
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
     });
   }
 };

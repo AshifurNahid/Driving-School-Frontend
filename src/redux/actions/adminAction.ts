@@ -110,7 +110,7 @@ export const createAdminCourse = (courseData: any) => async (dispatch: any)=> {
   } catch (error: any) {
     dispatch({
       type: "ADMIN_COURSE_CREATE_FAIL",
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
     });
   }
 }
@@ -160,7 +160,7 @@ export const updateAdminCourse = (courseId: number | string, courseData: any)=> 
   } catch (error: any) {
     dispatch({
       type: "ADMIN_COURSE_UPDATE_FAIL",
-      payload: error.response?.data?.message || error.message,
+      payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
     });
   }
 }

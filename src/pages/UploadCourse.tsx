@@ -390,7 +390,10 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   const { regions } = useSelector((state: RootState) => state.regionList);
 
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
+  const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // Temporary workaround for cached reference error
+  const loadingToastId = undefined;
 
   // Effect to handle edit mode data loading
   useEffect(() => {
@@ -399,6 +402,28 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       dispatch(getAdminCourseDetails(id));
     }
   }, [mode, id, initialCourse, dispatch]);
+
+  // Show toasts based on Redux state changes for course creation/update
+  useEffect(() => {
+    if (!loading && submitted) {
+      if (courseListError) {
+        toast({
+          title: mode === 'edit' ? 'Course Update Failed' : 'Course Creation Failed',
+          description: courseListError,
+          variant: 'destructive',
+        });
+        setSubmitted(false);
+      } else {
+        // Success: no error and loading is false
+        toast({
+          title: mode === 'edit' ? 'Course Updated' : 'Course Created',
+          description: mode === 'edit' ? 'Your course has been successfully updated.' : 'Your course has been successfully created.',
+        });
+        navigate("/admin", { state: { activeTab: "course-list" } });
+        setSubmitted(false);
+      }
+    }
+  }, [loading, courseListError, submitted, mode, navigate, toast]);
 
   // Effect to fetch regions once if not present in store
   useEffect(() => {
@@ -646,8 +671,13 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     setCourse({ ...course, modules: newModules });
   };
 
-  // --- Submit Handler with dispatch ---
   const handleSubmit = async () => {
+    // Show loading toast immediately
+    toast({
+      title: mode === 'edit' ? 'Updating Course...' : 'Creating Course...',
+      description: 'Please wait while we process your request.',
+    });
+
     // Validate required fields before submitting
     const requiredFields = [];
     
@@ -699,8 +729,15 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       return;
     }
 
+    // Show loading toast immediately
+    toast({
+      title: mode === 'edit' ? 'Updating Course...' : 'Creating Course...',
+      description: 'Please wait while we process your request.',
+    });
+
     try {
       setIsLoading(true);
+      setSubmitted(true);
       
       const base64 = course?.thumbnail_photo_path;
       let thumbnail_photo_base64_code = undefined;
@@ -709,10 +746,8 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       if (base64 && base64.startsWith('data:image')) {
         // New image selected, send the complete data URL as base64
         // Backend will handle splitting and extracting the base64 part
-thumbnail_photo_base64_code = base64.split(',')[1]; 
-
-
-} else if (base64 && base64.trim() !== '') {
+        thumbnail_photo_base64_code = base64.split(',')[1]; 
+      } else if (base64 && base64.trim() !== '') {
         // Existing image path, send only as path
         thumbnail_photo_path = base64;
       }
@@ -851,23 +886,11 @@ thumbnail_photo_base64_code = base64.split(',')[1];
       };
 
       if (mode === 'edit' && course?.id) {
-        // console.log(payload);
-      await dispatch(updateAdminCourse(course?.id, payload));
-        toast({
-          title: "Course updated!",
-          description: "Your course has been successfully updated.",
-        });
+        await dispatch(updateAdminCourse(course.id, payload));
       } else {
-                console.log("Newwww",payload);
-
-      await dispatch(createAdminCourse(payload));
-        toast({
-          title: "Course published!",
-          description: "Your course has been successfully uploaded.",
-        });
+        await dispatch(createAdminCourse(payload));
       }
-
-      navigate("/admin", { state: { activeTab: "course-list" } });
+      setSubmitted(true);
     } catch (err) {
       console.error('Error submitting course:', err);
       toast({
@@ -880,18 +903,6 @@ thumbnail_photo_base64_code = base64.split(',')[1];
     }
   };
     
-  // Show loading state
-  if (isLoading || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading course details...</p>
-        </div>
-      </div>
-    );
-  }
-
   // --- Stepper UI ---
   return (
     <div className="min-h-screen bg-background">
