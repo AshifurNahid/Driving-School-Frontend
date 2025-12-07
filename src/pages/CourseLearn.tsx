@@ -294,10 +294,10 @@ const CourseLearn = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
 
-      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-20">
+      <main className="mt-20 pb-10 px-4 sm:px-6 lg:px-8 xl:px-12">
         {isLoading && <CourseLearnSkeleton />}
 
         {isError && (
@@ -368,8 +368,8 @@ const CourseLearn = () => {
               </Card>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
-              <div className="hidden lg:block">
+            <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-6 lg:gap-8">
+              <div className="hidden lg:block lg:-ml-8 xl:-ml-12">
                 <ModuleSidebar
                   courseTitle={course.title}
                   progressPercentage={data?.progress_percentage}
@@ -385,10 +385,10 @@ const CourseLearn = () => {
                 />
               </div>
 
-              <section className="space-y-6">
+              <section className="space-y-6 px-4 sm:px-6 lg:px-10">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <h1 className="text-xs uppercase tracking-wider text-slate-500">
+                    <h1 className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       {course.category.toUpperCase() || "CSS STYLING"}
                     </h1>
                   </div>
@@ -397,7 +397,7 @@ const CourseLearn = () => {
                       <Upload className="h-4 w-4" />
                       <span className="hidden sm:inline">Upload PDF</span>
                     </Button>
-                    <span className="flex items-center gap-2 text-sm text-slate-500">
+                    <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
