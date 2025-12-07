@@ -294,7 +294,10 @@ const CourseLearn = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] dark:bg-slate-950">
+    <div
+      className="min-h-screen bg-[#f8f9fa] dark:bg-slate-950"
+      style={{ fontFamily: "'SF Pro Text', 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, -apple-system, sans-serif" }}
+    >
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
 
       <main className="flex mt-16">

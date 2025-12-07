@@ -27,18 +27,18 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <p className="text-lg font-semibold text-foreground leading-tight">
+          <p className="text-lg font-semibold text-foreground leading-tight dark:text-white">
             {title || "PDF Attachment"}
           </p>
         </div>
         <div className="flex gap-2">
-      
+
         </div>
       </div>
 
       <Separator />
 
-      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden dark:border-slate-800 dark:bg-slate-900">
         {loadError ? (
           <Alert variant="destructive" className="m-4">
             <AlertTitle>Unable to load PDF</AlertTitle>
@@ -51,7 +51,7 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
           <iframe
             title={title || "PDF Viewer"}
             src={`${encodedSrc}#toolbar=1&navpanes=0`}
-            className="h-[75vh] w-full bg-muted"
+            className="h-[75vh] w-full bg-muted dark:bg-slate-950"
             onError={() => setLoadError(true)}
           />
         )}
