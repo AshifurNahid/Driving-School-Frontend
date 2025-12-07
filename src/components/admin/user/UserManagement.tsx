@@ -38,6 +38,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -60,6 +61,7 @@ const UserManagement = () => {
     password: '', confirmPassword: '', agreements: [null, null, null, null] as (boolean | null)[],
   });
   const [formErrors, setFormErrors] = useState<string | null>(null);
+  const [validationDialogOpen, setValidationDialogOpen] = useState(false);
   const pageSize = 10;
 
   const birthDateValue =
@@ -280,18 +282,46 @@ const UserManagement = () => {
     e.preventDefault();
     const today = new Date();
 
+    const requiredFields = [
+      { value: form.regionId, label: 'Region' },
+      { value: form.firstName, label: 'First Name' },
+      { value: form.lastName, label: 'Last Name' },
+      { value: form.address1, label: 'Street Address' },
+      { value: form.city, label: 'City' },
+      { value: form.state, label: 'State' },
+      { value: form.postal, label: 'Postal Code' },
+      { value: form.studentEmail, label: 'Student Email' },
+      { value: form.studentPhone, label: 'Student Phone' },
+      { value: form.drivingExperience, label: 'Driving Experience' },
+      { value: form.password, label: 'Password' },
+      { value: form.confirmPassword, label: 'Confirm Password' },
+    ];
+
+    const missingFields = requiredFields
+      .filter((field) => !field.value || (typeof field.value === 'string' && field.value.trim() === ''))
+      .map((field) => field.label);
+
+    if (missingFields.length > 0) {
+      setFormErrors(`Please fill the following fields: ${missingFields.join(', ')}.`);
+      setValidationDialogOpen(true);
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       setFormErrors('Passwords do not match');
+      setValidationDialogOpen(true);
       return;
     }
 
     if (!form.agreements.every((a) => a === true)) {
       setFormErrors('All agreements must be accepted.');
+      setValidationDialogOpen(true);
       return;
     }
 
     if (!birthDateValue || isNaN(birthDateValue.getTime())) {
       setFormErrors('Birth date is required.');
+      setValidationDialogOpen(true);
       return;
     }
 
@@ -308,11 +338,13 @@ const UserManagement = () => {
     }
     if (age < 16) {
       setFormErrors('User must be at least 16 years old.');
+      setValidationDialogOpen(true);
       return;
     }
 
     if (!permitDateValue || isNaN(permitDateValue.getTime())) {
       setFormErrors("Learner's permit issue date is required.");
+      setValidationDialogOpen(true);
       return;
     }
 
@@ -324,6 +356,7 @@ const UserManagement = () => {
     );
     if (permitDate > today) {
       setFormErrors("Learner's permit issue date cannot be in the future.");
+      setValidationDialogOpen(true);
       return;
     }
 
@@ -364,6 +397,7 @@ const UserManagement = () => {
     };
 
     setFormErrors(null);
+    setValidationDialogOpen(false);
     dispatch(createAdminUser(payload));
   };
 
@@ -696,7 +730,7 @@ const UserManagement = () => {
               <div className="space-y-2">
                 <Label>Region</Label>
                 <Select value={form.regionId} onValueChange={(val) => handleFieldChange('regionId', val)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
@@ -829,7 +863,7 @@ const UserManagement = () => {
                 <div className="space-y-2">
                   <Label>Has License From Another Country?</Label>
                   <Select value={form.hasLicenseAnotherCountry} onValueChange={(val) => handleFieldChange('hasLicenseAnotherCountry', val)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
@@ -884,8 +918,6 @@ const UserManagement = () => {
                 ))}
               </div>
 
-              {formErrors && <p className="text-sm text-red-500">{formErrors}</p>}
-
               <div className="flex justify-end gap-3 pb-2">
                 <Button type="button" variant="outline" onClick={() => setCreateUserModalOpen(false)}>Cancel</Button>
                 <Button type="submit" disabled={createLoading}>
@@ -896,6 +928,30 @@ const UserManagement = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={validationDialogOpen && !!formErrors}
+        onOpenChange={(open) => {
+          setValidationDialogOpen(open);
+          if (!open) {
+            setFormErrors(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="max-w-md bg-white/95 backdrop-blur dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-700 shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">Action Needed</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-slate-600 dark:text-slate-300">
+              {formErrors}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md" onClick={() => setValidationDialogOpen(false)}>
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modals */}
       <UserDetailsModal
