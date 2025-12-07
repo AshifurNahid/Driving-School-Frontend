@@ -1,26 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { addDays, format, parse } from "date-fns";
 import RoleBasedNavigation from "@/components/navigation/RoleBasedNavigation";
-import { CourseLearnHeader } from "@/components/course-learn/CourseLearnHeader";
 import { ModuleSidebar } from "@/components/course-learn/ModuleSidebar";
 import { LessonViewer } from "@/components/course-learn/LessonViewer";
 import { QuizViewer } from "@/components/course-learn/QuizViewer";
 import { CourseLearnSkeleton } from "@/components/course-learn/CourseLearnSkeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import CourseSlotBookingModal from "@/components/course-learn/CourseSlotBookingModal";
 import BookingStatusModal from "@/components/appointments/BookingStatusModal";
 import { useToast } from "@/hooks/use-toast";
 import { useUserCourse } from "@/hooks/useUserCourse";
+import { Calendar } from "@/components/ui/calendar";
+import { ChevronLeft, ChevronRight, Check, Menu, Upload, Calendar as CalendarIcon } from "lucide-react";
 import {
   LearningSelection,
   findInitialSelection,
@@ -39,9 +35,33 @@ import { RootState } from "@/redux/reducers";
 import { AppointmentSlot } from "@/redux/reducers/appointmentReducer";
 
 const formatTimeRange = (start: string, end: string) => {
-  const startDate = parse(start, "HH:mm:ss", new Date());
-  const endDate = parse(end, "HH:mm:ss", new Date());
-  return `${format(startDate, "h:mm a")} – ${format(endDate, "h:mm a")}`;
+  const parseTime = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+
+  const formatTime = (date: Date) => {
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    const minutesStr = minutes < 10 ? `0${minutes}` : minutes;
+    return `${hours}:${minutesStr} ${ampm}`;
+  };
+
+  return `${formatTime(parseTime(start))} – ${formatTime(parseTime(end))}`;
+};
+
+const formatDate = (date: Date) => {
+  const options: Intl.DateTimeFormatOptions = { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  return date.toLocaleDateString('en-US', options);
 };
 
 const SlotCard = ({
@@ -55,18 +75,18 @@ const SlotCard = ({
 }) => (
   <button
     onClick={() => onSelect(slot)}
-    className={`w-full text-left rounded-xl border p-4 transition hover:border-primary hover:shadow ${
-      selected ? "border-primary ring-2 ring-primary/30" : "border-border/70"
+    className={`w-full text-left rounded-xl border-2 p-4 transition hover:border-orange-500 hover:shadow ${
+      selected ? "border-orange-500 ring-2 ring-orange-500/30 bg-orange-50" : "border-slate-200"
     }`}
   >
     <div className="flex items-center justify-between gap-3">
       <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">Time</p>
-        <p className="font-semibold">{formatTimeRange(slot.startTime, slot.endTime)}</p>
+        <p className="text-xs text-slate-500">Time</p>
+        <p className="font-semibold text-slate-900">{formatTimeRange(slot.startTime, slot.endTime)}</p>
       </div>
-      <div className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">Available</div>
+      <div className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">Available</div>
     </div>
-    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-muted-foreground">
+    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600">
       <span className="flex items-center gap-2">Instructor: {slot.instructorName || `Instructor ${slot.instructorId}`}</span>
       <span className="flex items-center gap-2">Location: {slot.location || "TBD"}</span>
     </div>
@@ -103,9 +123,24 @@ const CourseLearn = () => {
     [modules]
   );
 
+  const nextAvailableDate = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  };
+
+  const formatDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     if (selectedDate) {
-      const dateString = format(selectedDate, "yyyy-MM-dd");
+      const dateString = formatDateString(selectedDate);
       dispatch<any>(getAppointmentSlotsByDate(dateString));
     }
   }, [selectedDate, dispatch]);
@@ -153,6 +188,13 @@ const CourseLearn = () => {
     return Math.round(diffInHours * 100) / 100;
   };
 
+  const courseType = course?.course_type ?? 0;
+  const totalOfflineHours = Number(data?.totalOfflineHours ?? course?.offline_training_hours ?? 0);
+  const consumedOfflineHours = Number(data?.consumedOfflineHours ?? 0);
+  const remainingOfflineHours = Number(
+    data?.remainingOfflineHours ?? Math.max(totalOfflineHours - consumedOfflineHours, 0)
+  );
+
   const handleSlotSelect = (slot: AppointmentSlot) => {
     const slotHours = calculateHoursToConsume(slot.startTime, slot.endTime);
     if (remainingOfflineHours < slotHours) {
@@ -186,12 +228,6 @@ const CourseLearn = () => {
     }
   };
 
-  const nextAvailableDate = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return addDays(today, 1);
-  };
-
   const activeLesson = useMemo(
     () => findLessonById(modules, selection?.moduleId, selection?.lessonId),
     [modules, selection]
@@ -200,30 +236,6 @@ const CourseLearn = () => {
   const activeQuiz = useMemo(
     () => findQuizById(modules, selection?.moduleId, selection?.quizId),
     [modules, selection]
-  );
-
-  const activeModule = useMemo(
-    () => modules.find((mod) => mod.id === selection?.moduleId),
-    [modules, selection?.moduleId]
-  );
-
-  const totalHours = useMemo(() => {
-    if (course?.total_duration_hours) return course.total_duration_hours;
-    if (course?.duration) return course.duration;
-    if (modules?.length) {
-      return modules.reduce(
-        (sum: number, mod: ExtendedCourseModule) => sum + Number(mod.duration || 0),
-        0
-      );
-    }
-    return 0;
-  }, [course, modules]);
-
-  const courseType = course?.course_type ?? 0;
-  const totalOfflineHours = Number(data?.totalOfflineHours ?? course?.offline_training_hours ?? 0);
-  const consumedOfflineHours = Number(data?.consumedOfflineHours ?? 0);
-  const remainingOfflineHours = Number(
-    data?.remainingOfflineHours ?? Math.max(totalOfflineHours - consumedOfflineHours, 0)
   );
 
   const availableSlots = useMemo(
@@ -236,12 +248,56 @@ const CourseLearn = () => {
 
   const attachmentUrl = resolveAttachmentUrl(activeLesson?.lesson_attachment_path);
 
+  // Navigation functions
+  const allItems = useMemo(() => {
+    const items: Array<{ type: 'lesson' | 'quiz', moduleId: number, itemId: number }> = [];
+    modules.forEach(mod => {
+      if (mod.id) {
+        mod.course_module_lessons?.forEach(lesson => {
+          if (lesson.id) items.push({ type: 'lesson', moduleId: mod.id!, itemId: lesson.id });
+        });
+        mod.quizzes?.forEach(quiz => {
+          if (quiz.id) items.push({ type: 'quiz', moduleId: mod.id!, itemId: quiz.id });
+        });
+      }
+    });
+    return items;
+  }, [modules]);
+
+  const currentIndex = useMemo(() => {
+    return allItems.findIndex(item => 
+      (item.type === 'lesson' && item.itemId === selection?.lessonId) ||
+      (item.type === 'quiz' && item.itemId === selection?.quizId)
+    );
+  }, [allItems, selection]);
+
+  const goToPrevious = () => {
+    if (currentIndex > 0) {
+      const prev = allItems[currentIndex - 1];
+      if (prev.type === 'lesson') {
+        selectLesson(prev.moduleId, prev.itemId);
+      } else {
+        selectQuiz(prev.moduleId, prev.itemId);
+      }
+    }
+  };
+
+  const goToNext = () => {
+    if (currentIndex < allItems.length - 1) {
+      const next = allItems[currentIndex + 1];
+      if (next.type === 'lesson') {
+        selectLesson(next.moduleId, next.itemId);
+      } else {
+        selectQuiz(next.moduleId, next.itemId);
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-foreground">
+    <div className="min-h-screen bg-[#f8f9fa]">
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
 
-
-      <main className="mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-20">
         {isLoading && <CourseLearnSkeleton />}
 
         {isError && (
@@ -265,59 +321,54 @@ const CourseLearn = () => {
 
         {!isLoading && !isError && course && (
           <>
-            <CourseLearnHeader
-              title={course.title}
-              progress={data?.progress_percentage || 0}
-              totalHours={totalHours}
-              offlineHours={totalOfflineHours}
-              modulesCount={modules.length}
-              lessonsCount={totalLessons}
-              quizzesCount={totalQuizzes}
-            />
             {courseType !== 0 && (
-              <Card className="mb-6 border-0 bg-gradient-to-r from-[#111726] via-[#0d1220] to-[#0b101b] shadow-lg shadow-black/20">
-                <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between text-slate-50">
-                  <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-300">Offline training</p>
-                    <CardTitle className="text-2xl font-semibold">Schedule your practical hours</CardTitle>
-                    <p className="text-sm text-slate-300">
-                      Reserve your next in-car session when it fits your calendar.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <div className="rounded-xl bg-white/5 px-4 py-3 shadow-inner shadow-black/10">
-                      <p className="text-xs text-slate-300">Total hours</p>
-                      <p className="text-lg font-semibold">{totalOfflineHours} hrs</p>
+              <Card className="mb-6 border-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg rounded-xl">
+                <CardHeader className="pb-4">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="space-y-2">
+                      <p className="text-xs uppercase tracking-wider text-slate-400">Offline Training</p>
+                      <CardTitle className="text-xl lg:text-2xl font-semibold text-white">
+                        Schedule Your Practical Hours
+                      </CardTitle>
                     </div>
-                    <div className="rounded-xl bg-white/5 px-4 py-3 shadow-inner shadow-black/10">
-                      <p className="text-xs text-slate-300">Consumed</p>
-                      <p className="text-lg font-semibold">{consumedOfflineHours} hrs</p>
-                    </div>
-                    <div className="rounded-xl bg-primary/10 px-4 py-3 text-primary-foreground">
-                      <p className="text-xs text-slate-200">Remaining</p>
-                      <p className="text-lg font-semibold text-amber-400">{remainingOfflineHours} hrs</p>
+                    <div className="flex flex-wrap gap-3">
+                      <div className="rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm">
+                        <p className="text-xs text-slate-400">Total</p>
+                        <p className="text-lg font-semibold text-white">{totalOfflineHours} hrs</p>
+                      </div>
+                      <div className="rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm">
+                        <p className="text-xs text-slate-400">Used</p>
+                        <p className="text-lg font-semibold text-white">{consumedOfflineHours} hrs</p>
+                      </div>
+                      <div className="rounded-lg bg-orange-500/20 px-4 py-2 backdrop-blur-sm">
+                        <p className="text-xs text-orange-200">Remaining</p>
+                        <p className="text-lg font-semibold text-orange-400">{remainingOfflineHours} hrs</p>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-3 border-t border-white/5 sm:flex-row sm:items-center sm:justify-between text-slate-100">
-                  <p className="text-sm text-slate-300 max-w-2xl">
-                    Book your slot to keep momentum—choose a date to see open times.
-                  </p>
-                  <Button
-                    size="lg"
-                    className="bg-amber-400 text-slate-900 hover:bg-amber-300"
-                    onClick={() => {
-                      setIsSlotPickerOpen(true);
-                      setSelectedDate(nextAvailableDate());
-                    }}
-                  >
-                    Book offline slot
-                  </Button>
+                <CardContent className="border-t border-white/10 pt-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <p className="text-sm text-slate-300 max-w-2xl">
+                      Book your next in-car training session at a time that works for you.
+                    </p>
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto bg-orange-500 text-white hover:bg-orange-600 gap-2"
+                      onClick={() => {
+                        setIsSlotPickerOpen(true);
+                        setSelectedDate(nextAvailableDate());
+                      }}
+                    >
+                      <CalendarIcon className="h-4 w-4" />
+                      Book Offline Slot
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
+            <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
               <div className="hidden lg:block">
                 <ModuleSidebar
                   courseTitle={course.title}
@@ -335,40 +386,31 @@ const CourseLearn = () => {
               </div>
 
               <section className="space-y-6">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex flex-col gap-2">
-                    <Breadcrumb>
-                      <BreadcrumbList>
-                        <BreadcrumbItem className="text-muted-foreground">Course</BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem className="text-muted-foreground">
-                          {activeModule?.module_title || "Section"}
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem className="font-semibold text-foreground">
-                          {activeLesson?.lesson_title || activeQuiz?.title || "Choose content"}
-                        </BreadcrumbItem>
-                      </BreadcrumbList>
-                    </Breadcrumb>
-
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-xs uppercase tracking-wider text-slate-500">
+                      {course.category.toUpperCase() || "CSS STYLING"}
+                    </h1>
                   </div>
-
-                  <div className="flex flex-col items-end gap-2 text-right text-sm text-muted-foreground">
-                    <div className="flex items-center gap-3">
-                      <span>{modules.length} sections</span>
-                      <Separator orientation="vertical" className="h-6" />
-                      <span>{totalLessons} lessons</span>
-                      <Separator orientation="vertical" className="h-6" />
-                      <span>{totalQuizzes} quizzes</span>
-                    </div>
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none">
+                      <Upload className="h-4 w-4" />
+                      <span className="hidden sm:inline">Upload PDF</span>
+                    </Button>
+                    <span className="flex items-center gap-2 text-sm text-slate-500">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {activeLesson?.duration || 28} min
+                    </span>
                     <Sheet open={isContentOpen} onOpenChange={setIsContentOpen}>
                       <SheetTrigger asChild>
                         <Button variant="outline" size="sm" className="lg:hidden">
-                          Course content
+                          <Menu className="h-4 w-4" />
                         </Button>
                       </SheetTrigger>
                       <SheetContent side="left" className="w-full max-w-md p-0">
-                        <div className="h-full overflow-y-auto bg-muted/50 p-4">
+                        <div className="h-full overflow-y-auto bg-slate-900 p-4">
                           <ModuleSidebar
                             courseTitle={course.title}
                             progressPercentage={data?.progress_percentage}
@@ -408,23 +450,54 @@ const CourseLearn = () => {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={goToPrevious}
+                    disabled={currentIndex <= 0}
+                    className="gap-2 w-full sm:w-auto"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+
+                  <Button
+                    size="lg"
+                    className="gap-2 bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto order-first sm:order-none"
+                  >
+                    <Check className="h-4 w-4" />
+                    Mark as Complete
+                  </Button>
+
+                  <Button
+                    size="lg"
+                    onClick={goToNext}
+                    disabled={currentIndex >= allItems.length - 1}
+                    className="gap-2 bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </section>
             </div>
           </>
         )}
 
         <Dialog open={isSlotPickerOpen} onOpenChange={handleSlotPickerChange}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Select an offline slot</DialogTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-slate-500">
                 Choose a date after today to see the available in-car training times.
               </p>
             </DialogHeader>
 
-            <div className="grid gap-6 md:grid-cols-[320px_1fr]">
+            <div className="grid gap-6 md:grid-cols-[300px_1fr]">
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">Choose a date</p>
+                <p className="text-sm text-slate-600 font-medium">Choose a date</p>
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -436,13 +509,13 @@ const CourseLearn = () => {
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Available slots</p>
-                  <p className="text-sm font-medium">
-                    {selectedDate ? format(selectedDate, "PPP") : "Select a date to view slots"}
+                  <p className="text-sm text-slate-500">Available slots</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {selectedDate ? formatDate(selectedDate) : "Select a date to view slots"}
                   </p>
                 </div>
 
-                {slotLoading && <p className="text-sm text-muted-foreground">Loading slots...</p>}
+                {slotLoading && <p className="text-sm text-slate-500">Loading slots...</p>}
 
                 {!slotLoading && selectedDate && availableSlots.length === 0 && (
                   <Alert>
@@ -454,7 +527,7 @@ const CourseLearn = () => {
                 )}
 
                 {!slotLoading && selectedDate && availableSlots.length > 0 && (
-                  <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
                     {availableSlots.map((slot) => (
                       <SlotCard
                         key={slot.id}
@@ -468,8 +541,12 @@ const CourseLearn = () => {
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => handleSlotPickerChange(false)}>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => handleSlotPickerChange(false)}
+                className="w-full sm:w-auto"
+              >
                 Close
               </Button>
               <Button
@@ -478,6 +555,7 @@ const CourseLearn = () => {
                   setIsBookingModalOpen(true);
                   setIsSlotPickerOpen(false);
                 }}
+                className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
               >
                 Continue
               </Button>

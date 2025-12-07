@@ -1,12 +1,5 @@
 import { useMemo } from "react";
-import {
-  BadgeCheck,
-  BookOpenCheck,
-  ChevronDown,
-  ChevronRight,
-  FileQuestion,
-  FileText,
-} from "lucide-react";
+import { BadgeCheck, BookOpenCheck, ChevronDown, ChevronRight, FileQuestion, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExtendedCourseModule, ExtendedLesson, ExtendedQuiz } from "@/types/userCourse";
 import { Progress } from "../ui/progress";
@@ -50,95 +43,102 @@ const ModuleSidebarItem = ({
   const quizCount = quizzes.length;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-800/60 bg-gradient-to-br from-[#0d1220] to-[#0b101b] text-slate-50 shadow-[0_20px_50px_-40px_rgba(0,0,0,0.8)]">
+    <div className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm">
       <button
-        className="flex w-full items-center justify-between border-l-4 border-transparent px-4 py-3 text-left transition hover:border-amber-400 hover:bg-white/5"
+        className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-slate-700/50"
         onClick={onToggle}
       >
-        <div className="flex flex-col gap-1">
-          <span className="text-[13px] font-semibold text-slate-50">
-            Section {moduleIndex + 1}: {module.module_title || "Module"}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-semibold text-slate-100">
+            {moduleIndex + 1}. {module.module_title || "Module"}
           </span>
-          <div className="flex flex-wrap items-center gap-2 text-[12px] text-slate-300">
-            <span>{lectureCount} lecture{lectureCount !== 1 ? "s" : ""}</span>
-            {quizCount ? <span>• {quizCount} quiz{quizCount !== 1 ? "zes" : ""}</span> : null}
-            {module.module_description ? (
-              <span className="line-clamp-1 text-xs text-slate-400">
-                {module.module_description}
-              </span>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <span>{lectureCount} lesson{lectureCount !== 1 ? "s" : ""}</span>
+            {quizCount > 0 && <span>• {quizCount} quiz{quizCount !== 1 ? "zes" : ""}</span>}
           </div>
         </div>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-amber-400" /> : <ChevronRight className="h-4 w-4 text-slate-300" />}
+        {isOpen ? (
+          <ChevronDown className="h-4 w-4 text-slate-400" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-slate-400" />
+        )}
       </button>
       {isOpen && (
-        <div className="divide-y divide-slate-800/70">
+        <div className="border-t border-slate-700/50">
           {lessons.map((lesson: ExtendedLesson, lessonIndex) => {
-            const lessonNumber = `${moduleIndex + 1}.${lessonIndex + 1}`;
+            const isActive = activeLessonId === lesson.id;
             return (
               <button
                 key={lesson.id}
                 className={cn(
-                  "flex w-full items-start gap-3 px-4 py-3 text-left transition",
-                  "hover:bg-white/5",
-                  activeLessonId === lesson.id && "border-l-4 border-amber-400 bg-white/5"
+                  "flex w-full items-center gap-3 px-4 py-3 text-left transition",
+                  "hover:bg-slate-700/50",
+                  isActive && "bg-orange-500/10 border-l-3 border-l-orange-500"
                 )}
                 onClick={() => lesson.id && onSelectLesson(lesson.id)}
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-300">
-                  <FileText className="h-4 w-4" />
+                <div className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full",
+                  isActive ? "bg-orange-500 text-white" : "bg-slate-700 text-slate-300"
+                )}>
+                  {isActive ? (
+                    <BadgeCheck className="h-4 w-4" />
+                  ) : (
+                    <span className="text-xs font-medium">{moduleIndex + 1}.{lessonIndex + 1}</span>
+                  )}
                 </div>
-                <div className="flex flex-1 flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-slate-400">{lessonNumber}</span>
-                    <span className="text-[13px] font-medium text-slate-50">
-                      {lesson.lesson_title || "Lesson"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-300">
-                    <span>PDF resource</span>
-                    {lesson.duration ? (
-                      <span className="rounded-full bg-white/5 px-2 py-0.5 text-[11px] font-medium text-slate-100">
-                        {lesson.duration} mins
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <span className={cn(
+                    "text-sm font-medium",
+                    isActive ? "text-orange-500" : "text-slate-200"
+                  )}>
+                    {lesson.lesson_title || "Lesson"}
+                  </span>
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    {lesson.duration && (
+                      <span className="flex items-center gap-1">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {lesson.duration} min
                       </span>
-                    ) : null}
+                    )}
                   </div>
                 </div>
-                {activeLessonId === lesson.id ? (
-                  <BadgeCheck className="ml-auto h-4 w-4 text-amber-400" />
-                ) : null}
               </button>
             );
           })}
           {quizzes.map((quiz: ExtendedQuiz, quizIndex) => {
-            const quizNumber = `${moduleIndex + 1}.Q${quizIndex + 1}`;
+            const isActive = activeQuizId === quiz.id;
             return (
               <button
                 key={quiz.id}
                 className={cn(
-                  "flex w-full items-start gap-3 px-4 py-3 text-left transition",
-                  "hover:bg-white/5",
-                  activeQuizId === quiz.id && "border-l-4 border-amber-400 bg-white/5"
+                  "flex w-full items-center gap-3 px-4 py-3 text-left transition",
+                  "hover:bg-slate-700/50",
+                  isActive && "bg-orange-500/10 border-l-3 border-l-orange-500"
                 )}
                 onClick={() => quiz.id && onSelectQuiz(quiz.id)}
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
-                  <FileQuestion className="h-4 w-4" />
+                <div className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded-full",
+                  isActive ? "bg-orange-500 text-white" : "bg-slate-700 text-slate-300"
+                )}>
+                  <FileQuestion className="h-3.5 w-3.5" />
                 </div>
-                <div className="flex flex-1 flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-slate-400">{quizNumber}</span>
-                    <span className="text-sm font-semibold text-slate-50">{quiz.title || "Quiz"}</span>
-                  </div>
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <span className={cn(
+                    "text-sm font-medium",
+                    isActive ? "text-orange-500" : "text-slate-200"
+                  )}>
+                    {quiz.title || "Quiz"}
+                  </span>
                   {quiz.questions?.length ? (
-                    <span className="text-xs text-slate-300">
+                    <span className="text-xs text-slate-400">
                       {quiz.questions.length} question{quiz.questions.length > 1 ? "s" : ""}
                     </span>
                   ) : null}
                 </div>
-                {activeQuizId === quiz.id ? (
-                  <BadgeCheck className="ml-auto h-4 w-4 text-amber-400" />
-                ) : null}
               </button>
             );
           })}
@@ -166,40 +166,36 @@ export const ModuleSidebar = ({
     [modules]
   );
 
-  const totalItems = (totalLessons || 0) + (totalQuizzes || 0);
   const progress = Math.round(progressPercentage || 0);
 
   return (
-    <aside className="sticky top-24 h-[calc(100vh-6rem)] w-full max-w-sm sm:max-w-md lg:max-w-[420px] space-y-4 overflow-y-auto pb-10 pr-2 text-slate-50">
-      <div className="space-y-3 rounded-2xl border border-slate-800/60 bg-gradient-to-br from-[#0d1220] via-[#0f1424] to-[#0b101b] p-4 shadow-[0_22px_60px_-45px_rgba(0,0,0,0.85)]">
+    <aside className="sticky top-24 h-[calc(100vh-7rem)] w-full space-y-4 overflow-y-auto pb-10 bg-slate-900 rounded-lg p-4">
+      <div className="space-y-3 rounded-lg border border-slate-700/50 bg-slate-800/80 p-4 backdrop-blur-sm">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
-            <BookOpenCheck className="h-5 w-5" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Course progress</p>
-            <h3 className="text-base font-semibold leading-tight text-slate-50 line-clamp-2">
+          <BookOpenCheck className="mt-0.5 h-5 w-5 text-orange-500" />
+          <div className="flex-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Course Progress</p>
+            <h3 className="mt-1 text-base font-semibold leading-tight text-slate-100 line-clamp-2">
               {courseTitle || "Course"}
             </h3>
           </div>
         </div>
-        <div className="space-y-3 rounded-xl bg-white/5 p-3">
-          <div className="flex items-center justify-between text-xs text-slate-200">
-            <span>{progress}% complete</span>
-            <span className="text-slate-300">
-              {totalLessons || 0} lessons • {totalQuizzes || 0} quizzes
-            </span>
+        <div className="space-y-2 rounded-lg bg-slate-900/50 p-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-orange-500">{progress}%</span>
+            <span className="text-slate-400">{progress}% complete</span>
           </div>
-          <Progress
-            value={progress}
-            className="h-2 bg-slate-800"
-            indicatorClassName="bg-gradient-to-r from-emerald-400 via-amber-300 to-orange-400"
-          />
-          {totalItems ? (
-            <p className="text-xs text-slate-300">
-              {totalItems} learning items to explore
-            </p>
-          ) : null}
+          <div className="h-2 overflow-hidden rounded-full bg-slate-700">
+            <div 
+              className="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-600 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>{totalLessons || 0} lessons</span>
+            <span>•</span>
+            <span>{totalQuizzes || 0} quizzes</span>
+          </div>
         </div>
       </div>
 
