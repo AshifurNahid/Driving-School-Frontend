@@ -138,12 +138,7 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
             </Badge>
           )}
         </div>
-        <CardTitle className="text-3xl font-bold leading-tight text-slate-900">
-          {quiz.title || "Quiz"}
-        </CardTitle>
-        {quiz.description && (
-          <p className="text-base text-slate-600">{quiz.description}</p>
-        )}
+    
       </CardHeader>
       
       <CardContent className="space-y-6 p-6">

@@ -27,24 +27,12 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Course Material</p>
           <p className="text-lg font-semibold text-foreground leading-tight">
             {title || "PDF Attachment"}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" asChild>
-            <a href={encodedSrc} target="_blank" rel="noreferrer">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Open in new tab
-            </a>
-          </Button>
-          <Button variant="default" size="sm" asChild>
-            <a href={encodedSrc} download>
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </a>
-          </Button>
+      
         </div>
       </div>
 
