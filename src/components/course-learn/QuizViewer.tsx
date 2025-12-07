@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import api from "@/utils/axios";
 import { useToast } from "@/hooks/use-toast";
 import { ExtendedQuiz } from "@/types/userCourse";
 import { QuizQuestion } from "@/types/courses";
-import { CheckCircle2, XCircle, FileQuestion } from "lucide-react";
+import { CheckCircle2, XCircle, FileQuestion, AlertCircle } from "lucide-react";
 
 interface QuizViewerProps {
   quiz?: ExtendedQuiz;
@@ -106,6 +107,7 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [startedAt, setStartedAt] = useState<Date>(() => new Date());
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: "" });
 
   const questions = useMemo(() => quiz?.questions || [], [quiz]);
 
@@ -181,11 +183,19 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
       });
     } catch (error) {
       console.error("Failed to submit quiz attempt", error);
-      toast({
-        title: "Submission failed",
-        description: "We couldn't submit your quiz. Please try again.",
-        variant: "destructive",
-      });
+      const backendMessage =
+        (error as any)?.response?.data?.status?.message ||
+        (error as any)?.response?.data?.message;
+
+      if (backendMessage) {
+        setErrorDialog({ open: true, message: backendMessage });
+      } else {
+        toast({
+          title: "Submission failed",
+          description: "We couldn't submit your quiz. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -194,28 +204,29 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
   if (!quiz) return null;
 
   return (
-    <Card className="border-0 bg-white shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:shadow-lg/10">
-      <CardHeader className="space-y-4 border-b bg-gradient-to-br from-orange-50 to-white pb-6 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:border-slate-800">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 px-3 py-1 dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-200">
-            <FileQuestion className="mr-1.5 h-3.5 w-3.5" />
-            Quiz
-          </Badge>
-          {quiz.passing_score && (
-            <Badge variant="secondary" className="bg-green-100 text-green-700 px-3 py-1 dark:bg-green-900/40 dark:text-green-200">
-              Pass: {quiz.passing_score}%
+    <>
+      <Card className="border-0 bg-white shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:shadow-lg/10">
+        <CardHeader className="space-y-4 border-b bg-gradient-to-br from-orange-50 to-white pb-6 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 px-3 py-1 dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-200">
+              <FileQuestion className="mr-1.5 h-3.5 w-3.5" />
+              Quiz
             </Badge>
-          )}
-          {quiz.max_attempts && (
-            <Badge variant="secondary" className="bg-slate-100 text-slate-700 px-3 py-1 dark:bg-slate-800 dark:text-slate-200">
-              {quiz.max_attempts} Attempts
-            </Badge>
-          )}
-        </div>
-    
-      </CardHeader>
-      
-      <CardContent className="space-y-6 p-6 dark:bg-slate-900">
+            {quiz.passing_score && (
+              <Badge variant="secondary" className="bg-green-100 text-green-700 px-3 py-1 dark:bg-green-900/40 dark:text-green-200">
+                Pass: {quiz.passing_score}%
+              </Badge>
+            )}
+            {quiz.max_attempts && (
+              <Badge variant="secondary" className="bg-slate-100 text-slate-700 px-3 py-1 dark:bg-slate-800 dark:text-slate-200">
+                {quiz.max_attempts} Attempts
+              </Badge>
+            )}
+          </div>
+
+        </CardHeader>
+
+        <CardContent className="space-y-6 p-6 dark:bg-slate-900">
         {questions.map((question, idx) => {
           const questionType = question.type ?? 0;
           const parsedOptions = parseOptions(question);
@@ -352,5 +363,32 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
         </div>
       </CardContent>
     </Card>
+
+      <Dialog
+        open={errorDialog.open}
+        onOpenChange={(open) => setErrorDialog((prev) => ({ ...prev, open }))}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-100 text-red-600 shadow-inner dark:bg-red-900/30 dark:text-red-200">
+                <AlertCircle className="h-6 w-6" />
+              </span>
+              <div>
+                <DialogTitle className="text-lg font-semibold">Submission blocked</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  {errorDialog.message || "We couldn't submit your quiz right now."}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setErrorDialog({ open: false, message: "" })} className="w-full sm:w-auto">
+              Okay, got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
