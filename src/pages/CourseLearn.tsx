@@ -294,115 +294,110 @@ const CourseLearn = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-slate-950">
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
 
-      <main className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-20">
-        {isLoading && <CourseLearnSkeleton />}
+      <main className="flex mt-16">
+        {isLoading && (
+          <div className="flex-1 p-6">
+            <CourseLearnSkeleton />
+          </div>
+        )}
 
         {isError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTitle>Unable to load course</AlertTitle>
-            <AlertDescription>{error?.message || "Please try again later."}</AlertDescription>
-            <div className="mt-4">
-              <Button onClick={() => refetch()}>Retry</Button>
-            </div>
-          </Alert>
+          <div className="flex-1 p-6">
+            <Alert variant="destructive" className="mb-6">
+              <AlertTitle>Unable to load course</AlertTitle>
+              <AlertDescription>{error?.message || "Please try again later."}</AlertDescription>
+              <div className="mt-4">
+                <Button onClick={() => refetch()}>Retry</Button>
+              </div>
+            </Alert>
+          </div>
         )}
 
         {!isLoading && !isError && !course && (
-          <Alert>
-            <AlertTitle>No course found</AlertTitle>
-            <AlertDescription>
-              We couldn't locate this enrollment. Please return to your dashboard and try again.
-            </AlertDescription>
-          </Alert>
+          <div className="flex-1 p-6">
+            <Alert>
+              <AlertTitle>No course found</AlertTitle>
+              <AlertDescription>
+                We couldn't locate this enrollment. Please return to your dashboard and try again.
+              </AlertDescription>
+            </Alert>
+          </div>
         )}
 
         {!isLoading && !isError && course && (
           <>
-            {courseType !== 0 && (
-              <Card className="mb-6 border-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg rounded-xl">
-                <CardHeader className="pb-4">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="space-y-2">
-                      <p className="text-xs uppercase tracking-wider text-slate-400">Offline Training</p>
-                      <CardTitle className="text-xl lg:text-2xl font-semibold text-white">
-                        Schedule Your Practical Hours
-                      </CardTitle>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      <div className="rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm">
-                        <p className="text-xs text-slate-400">Total</p>
-                        <p className="text-lg font-semibold text-white">{totalOfflineHours} hrs</p>
-                      </div>
-                      <div className="rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm">
-                        <p className="text-xs text-slate-400">Used</p>
-                        <p className="text-lg font-semibold text-white">{consumedOfflineHours} hrs</p>
-                      </div>
-                      <div className="rounded-lg bg-orange-500/20 px-4 py-2 backdrop-blur-sm">
-                        <p className="text-xs text-orange-200">Remaining</p>
-                        <p className="text-lg font-semibold text-orange-400">{remainingOfflineHours} hrs</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="border-t border-white/10 pt-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <p className="text-sm text-slate-300 max-w-2xl">
-                      Book your next in-car training session at a time that works for you.
-                    </p>
-                    <Button
-                      size="lg"
-                      className="w-full sm:w-auto bg-orange-500 text-white hover:bg-orange-600 gap-2"
-                      onClick={() => {
-                        setIsSlotPickerOpen(true);
-                        setSelectedDate(nextAvailableDate());
-                      }}
-                    >
-                      <CalendarIcon className="h-4 w-4" />
-                      Book Offline Slot
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Fixed Sidebar - Desktop Only */}
+            <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-80 bg-slate-900 overflow-y-auto border-r border-slate-700/50">
+              <ModuleSidebar
+                courseTitle={course.title}
+                progressPercentage={data?.progress_percentage}
+                totalLessons={totalLessons}
+                totalQuizzes={totalQuizzes}
+                modules={modules}
+                expanded={expanded}
+                onToggle={toggleModule}
+                onSelectLesson={selectLesson}
+                onSelectQuiz={selectQuiz}
+                activeLessonId={selection?.lessonId}
+                activeQuizId={selection?.quizId}
+              />
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
-              <div className="hidden lg:block">
-                <ModuleSidebar
-                  courseTitle={course.title}
-                  progressPercentage={data?.progress_percentage}
-                  totalLessons={totalLessons}
-                  totalQuizzes={totalQuizzes}
-                  modules={modules}
-                  expanded={expanded}
-                  onToggle={toggleModule}
-                  onSelectLesson={selectLesson}
-                  onSelectQuiz={selectQuiz}
-                  activeLessonId={selection?.lessonId}
-                  activeQuizId={selection?.quizId}
-                />
-              </div>
+            {/* Main Content Area */}
+            <div className="flex-1 lg:ml-80 min-h-screen">
+              {/* Offline Training Appointment Card */}
+              {courseType !== 0 && (
+                <Card className="m-6 border-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg rounded-xl">
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="space-y-2">
+                        <CardTitle className="text-xl lg:text-2xl font-semibold text-white">
+                          Schedule Your Offline Training
+                        </CardTitle>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        <div className="rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm">
+                          <p className="text-xs text-slate-400">Total</p>
+                          <p className="text-lg font-semibold text-white">{totalOfflineHours} hrs</p>
+                        </div>
+                        <div className="rounded-lg bg-white/5 px-4 py-2 backdrop-blur-sm">
+                          <p className="text-xs text-slate-400">Used</p>
+                          <p className="text-lg font-semibold text-white">{consumedOfflineHours} hrs</p>
+                        </div>
+                        <div className="rounded-lg bg-orange-500/20 px-4 py-2 backdrop-blur-sm">
+                          <p className="text-xs text-orange-200">Remaining</p>
+                          <p className="text-lg font-semibold text-orange-400">{remainingOfflineHours} hrs</p>
+                        </div>
 
-              <section className="space-y-6">
+                        <Button
+                        size="lg"
+                        className="w-full sm:w-auto bg-orange-500 text-white hover:bg-orange-600 gap-5"
+                        onClick={() => {
+                          setIsSlotPickerOpen(true);
+                          setSelectedDate(nextAvailableDate());
+                        }}
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                        Book Offline Slot
+                      </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                 
+                </Card>
+              )}
+
+              {/* Lesson Content Section */}
+              <section className="space-y-2 px-2 pb-5">
+                {/* Header with Category and Actions */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xs uppercase tracking-wider text-slate-500">
-                      {course.category.toUpperCase() || "CSS STYLING"}
-                    </h1>
-                  </div>
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-none">
-                      <Upload className="h-4 w-4" />
-                      <span className="hidden sm:inline">Upload PDF</span>
-                    </Button>
-                    <span className="flex items-center gap-2 text-sm text-slate-500">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {activeLesson?.duration || 28} min
-                    </span>
+                 
+                  <div className="flex items-center gap-1 w-full sm:w-auto">
+                
+                    {/* Mobile Menu Button */}
                     <Sheet open={isContentOpen} onOpenChange={setIsContentOpen}>
                       <SheetTrigger asChild>
                         <Button variant="outline" size="sm" className="lg:hidden">
@@ -436,12 +431,15 @@ const CourseLearn = () => {
                   </div>
                 </div>
 
+                {/* Active Lesson Content */}
                 {activeLesson && (
                   <LessonViewer lesson={activeLesson} attachmentUrl={attachmentUrl} />
                 )}
 
+                {/* Active Quiz Content */}
                 {activeQuiz && <QuizViewer quiz={activeQuiz} />}
 
+                {/* Empty State */}
                 {!activeLesson && !activeQuiz && (
                   <Alert>
                     <AlertTitle>Select a lesson or quiz</AlertTitle>
@@ -451,6 +449,7 @@ const CourseLearn = () => {
                   </Alert>
                 )}
 
+                {/* Navigation Buttons */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t">
                   <Button
                     variant="outline"
@@ -486,6 +485,7 @@ const CourseLearn = () => {
           </>
         )}
 
+        {/* Slot Picker Dialog */}
         <Dialog open={isSlotPickerOpen} onOpenChange={handleSlotPickerChange}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -563,6 +563,7 @@ const CourseLearn = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Booking Modals */}
         <CourseSlotBookingModal
           isOpen={isBookingModalOpen}
           onClose={() => setIsBookingModalOpen(false)}

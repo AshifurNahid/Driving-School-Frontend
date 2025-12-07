@@ -28,14 +28,9 @@ export const LessonViewer = ({ lesson, attachmentUrl }: LessonViewerProps) => {
               </Badge>
             )}
           </div>
-          <CardTitle className="text-2xl sm:text-3xl font-bold leading-tight text-slate-900">
+          <CardTitle className="text-1xl sm:text-1xl font-bold leading-tight text-slate-900">
             {lesson.lesson_title}
           </CardTitle>
-          {lesson.lesson_description && (
-            <p className="text-sm sm:text-base leading-relaxed text-slate-600 whitespace-pre-line">
-              {lesson.lesson_description}
-            </p>
-          )}
         </CardHeader>
         
         {attachmentUrl && (
@@ -49,21 +44,7 @@ export const LessonViewer = ({ lesson, attachmentUrl }: LessonViewerProps) => {
         )}
       </Card>
 
-      <div className="rounded-lg border border-orange-100 bg-orange-50/50 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 flex-shrink-0">
-            <svg className="h-4 w-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold text-orange-900">Pro Tip</h4>
-            <p className="mt-1 text-sm text-orange-700">
-              Take notes while learning and try to implement what you learn in your own projects!
-            </p>
-          </div>
-        </div>
-      </div>
+     
     </div>
   );
 };

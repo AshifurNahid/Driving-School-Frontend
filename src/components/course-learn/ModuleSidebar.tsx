@@ -1,8 +1,7 @@
 import { useMemo } from "react";
-import { BadgeCheck, BookOpenCheck, ChevronDown, ChevronRight, FileQuestion, FileText } from "lucide-react";
+import { BadgeCheck, BookOpenCheck, ChevronDown, ChevronRight, FileQuestion } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExtendedCourseModule, ExtendedLesson, ExtendedQuiz } from "@/types/userCourse";
-import { Progress } from "../ui/progress";
 
 interface ModuleSidebarProps {
   courseTitle?: string;
@@ -78,7 +77,7 @@ const ModuleSidebarItem = ({
                 onClick={() => lesson.id && onSelectLesson(lesson.id)}
               >
                 <div className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full",
+                  "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0",
                   isActive ? "bg-orange-500 text-white" : "bg-slate-700 text-slate-300"
                 )}>
                   {isActive ? (
@@ -87,9 +86,9 @@ const ModuleSidebarItem = ({
                     <span className="text-xs font-medium">{moduleIndex + 1}.{lessonIndex + 1}</span>
                   )}
                 </div>
-                <div className="flex flex-1 flex-col gap-0.5">
+                <div className="flex flex-1 flex-col gap-0.5 min-w-0">
                   <span className={cn(
-                    "text-sm font-medium",
+                    "text-sm font-medium truncate",
                     isActive ? "text-orange-500" : "text-slate-200"
                   )}>
                     {lesson.lesson_title || "Lesson"}
@@ -108,7 +107,7 @@ const ModuleSidebarItem = ({
               </button>
             );
           })}
-          {quizzes.map((quiz: ExtendedQuiz, quizIndex) => {
+          {quizzes.map((quiz: ExtendedQuiz) => {
             const isActive = activeQuizId === quiz.id;
             return (
               <button
@@ -121,14 +120,14 @@ const ModuleSidebarItem = ({
                 onClick={() => quiz.id && onSelectQuiz(quiz.id)}
               >
                 <div className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full",
+                  "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0",
                   isActive ? "bg-orange-500 text-white" : "bg-slate-700 text-slate-300"
                 )}>
                   <FileQuestion className="h-3.5 w-3.5" />
                 </div>
-                <div className="flex flex-1 flex-col gap-0.5">
+                <div className="flex flex-1 flex-col gap-0.5 min-w-0">
                   <span className={cn(
-                    "text-sm font-medium",
+                    "text-sm font-medium truncate",
                     isActive ? "text-orange-500" : "text-slate-200"
                   )}>
                     {quiz.title || "Quiz"}
@@ -169,11 +168,12 @@ export const ModuleSidebar = ({
   const progress = Math.round(progressPercentage || 0);
 
   return (
-    <aside className="sticky top-24 h-[calc(100vh-7rem)] w-full space-y-4 overflow-y-auto pb-10 bg-slate-900 rounded-lg p-4">
+    <aside className="h-full w-full space-y-4 overflow-y-auto pb-10 p-4">
+      {/* Course Progress Card */}
       <div className="space-y-3 rounded-lg border border-slate-700/50 bg-slate-800/80 p-4 backdrop-blur-sm">
         <div className="flex items-start gap-3">
-          <BookOpenCheck className="mt-0.5 h-5 w-5 text-orange-500" />
-          <div className="flex-1">
+          <BookOpenCheck className="mt-0.5 h-5 w-5 text-orange-500 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Course Progress</p>
             <h3 className="mt-1 text-base font-semibold leading-tight text-slate-100 line-clamp-2">
               {courseTitle || "Course"}
@@ -199,6 +199,7 @@ export const ModuleSidebar = ({
         </div>
       </div>
 
+      {/* Module Items */}
       {sortedModules.map((module, moduleIndex) => (
         <ModuleSidebarItem
           key={module.id}
