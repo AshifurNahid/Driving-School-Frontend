@@ -3,12 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import api from "@/utils/axios";
+import { useToast } from "@/hooks/use-toast";
 import { ExtendedQuiz } from "@/types/userCourse";
 import { QuizQuestion } from "@/types/courses";
 import { CheckCircle2, XCircle, FileQuestion } from "lucide-react";
 
 interface QuizViewerProps {
   quiz?: ExtendedQuiz;
+  courseId?: number;
 }
 
 type QuizAnswers = Record<number, string>;
@@ -97,11 +100,24 @@ const FALLBACK_TRUE_FALSE: ParsedOption[] = [
   { key: "false", label: "False" },
 ];
 
-export const QuizViewer = ({ quiz }: QuizViewerProps) => {
+export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
+  const { toast } = useToast();
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const questions = useMemo(() => quiz?.questions || [], [quiz]);
+
+  const buildGivenAnswers = () =>
+    questions
+      .filter((question): question is QuizQuestion & { id: number } => Boolean(question?.id))
+      .map((question, idx) => {
+        const selectionKey = question.id ?? idx;
+        return {
+          queston_id: question.id,
+          given_answer: answers[selectionKey] ?? "",
+        };
+      });
 
   const handleSelect = (questionId?: number, option?: string) => {
     if (!questionId || !option) return;
@@ -113,8 +129,58 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value ?? "" }));
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    if (submitted) {
+      setSubmitted(false);
+      setAnswers({});
+      return;
+    }
+
+    if (!courseId || !quiz?.id) {
+      toast({
+        title: "Missing information",
+        description: "Course or quiz details are not available for submission.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const given_answers = buildGivenAnswers();
+
+    if (!given_answers.length) {
+      toast({
+        title: "No questions to submit",
+        description: "There are no valid quiz questions available to submit.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const payload = {
+      course_id: courseId,
+      quiz_id: quiz.id,
+      given_answers,
+    };
+
+    try {
+      setIsSubmitting(true);
+      await api.post("/submit-quiz-attempt", payload);
+      setSubmitted(true);
+      toast({
+        title: "Quiz submitted",
+        description: "Your answers have been submitted successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Failed to submit quiz attempt", error);
+      toast({
+        title: "Submission failed",
+        description: "We couldn't submit your quiz. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!quiz) return null;
@@ -267,12 +333,13 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
           <p className="text-sm text-slate-600 dark:text-slate-200">
             {submitted ? "Quiz submitted! Review your answers above." : "Select your answers and click submit when ready."}
           </p>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             size="lg"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6"
+            disabled={isSubmitting}
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 disabled:opacity-70"
           >
-            {submitted ? "Retake Quiz" : "Submit Quiz"}
+            {submitted ? "Retake Quiz" : isSubmitting ? "Submitting..." : "Submit Quiz"}
           </Button>
         </div>
       </CardContent>

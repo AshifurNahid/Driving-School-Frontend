@@ -440,7 +440,7 @@ const CourseLearn = () => {
                 )}
 
                 {/* Active Quiz Content */}
-                {activeQuiz && <QuizViewer quiz={activeQuiz} />}
+                {activeQuiz && <QuizViewer quiz={activeQuiz} courseId={course?.id} />}
 
                 {/* Empty State */}
                 {!activeLesson && !activeQuiz && (
