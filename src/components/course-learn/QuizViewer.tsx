@@ -120,20 +120,20 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
   if (!quiz) return null;
 
   return (
-    <Card className="border-0 bg-white shadow-sm">
-      <CardHeader className="space-y-4 border-b bg-gradient-to-br from-orange-50 to-white pb-6">
+    <Card className="border-0 bg-white shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:shadow-lg/10">
+      <CardHeader className="space-y-4 border-b bg-gradient-to-br from-orange-50 to-white pb-6 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 dark:border-slate-800">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 px-3 py-1">
+          <Badge variant="outline" className="border-orange-200 bg-orange-50 text-orange-700 px-3 py-1 dark:border-orange-500/40 dark:bg-orange-500/10 dark:text-orange-200">
             <FileQuestion className="mr-1.5 h-3.5 w-3.5" />
             Quiz
           </Badge>
           {quiz.passing_score && (
-            <Badge variant="secondary" className="bg-green-100 text-green-700 px-3 py-1">
+            <Badge variant="secondary" className="bg-green-100 text-green-700 px-3 py-1 dark:bg-green-900/40 dark:text-green-200">
               Pass: {quiz.passing_score}%
             </Badge>
           )}
           {quiz.max_attempts && (
-            <Badge variant="secondary" className="bg-slate-100 text-slate-700 px-3 py-1">
+            <Badge variant="secondary" className="bg-slate-100 text-slate-700 px-3 py-1 dark:bg-slate-800 dark:text-slate-200">
               {quiz.max_attempts} Attempts
             </Badge>
           )}
@@ -141,7 +141,7 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
     
       </CardHeader>
       
-      <CardContent className="space-y-6 p-6">
+      <CardContent className="space-y-6 p-6 dark:bg-slate-900">
         {questions.map((question, idx) => {
           const questionType = question.type ?? 0;
           const parsedOptions = parseOptions(question);
@@ -156,25 +156,28 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
           const isIncorrect = submitted && normalizedSelected && hasCorrectAnswers && !correctAnswers.includes(normalizedSelected);
 
           return (
-            <div key={question.id ?? idx} className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <div
+              key={question.id ?? idx}
+              className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-start gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-100">
                       {idx + 1}
                     </span>
                     <div className="flex-1">
-                      <p className="text-base font-medium text-slate-900">
+                      <p className="text-base font-medium text-slate-900 dark:text-slate-100">
                         {question.question}
                       </p>
                       {question.points && (
-                        <p className="mt-1 text-xs text-slate-500">{question.points} points</p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{question.points} points</p>
                       )}
                     </div>
                   </div>
                 </div>
                 {submitted && (
-                  <Badge 
+                  <Badge
                     variant={isCorrect ? "default" : isIncorrect ? "destructive" : "secondary"}
                     className={isCorrect ? "bg-green-500" : ""}
                   >
@@ -194,28 +197,28 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
                   </Badge>
                 )}
               </div>
-              
+
               {questionType === 2 ? (
                 <Input
                   placeholder="Type your answer"
                   value={selected ?? ""}
                   onChange={(event) => handleInputChange(selectionKey, event.target.value)}
-                  className="bg-white"
+                  className="bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 />
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {options.length === 0 ? (
-                    <p className="text-sm text-slate-500">No options provided for this question.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">No options provided for this question.</p>
                   ) : (
                     options.map((option) => {
                       const isThisCorrect = submitted && hasCorrectAnswers && correctAnswers.includes(normalizeSelection(option.key));
                       const isSelected = selected === option.key;
-                      
+
                       return (
                         <button
                           key={option.key}
                           onClick={() => handleSelect(selectionKey, option.key)}
-                          className={`rounded-lg border-2 bg-white px-4 py-3 text-left transition-all ${
+                          className={`rounded-lg border-2 bg-white px-4 py-3 text-left transition-all dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 ${
                             isSelected && !submitted
                               ? "border-orange-500 bg-orange-50"
                               : isSelected && isCorrect
@@ -224,25 +227,27 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
                               ? "border-red-500 bg-red-50"
                               : isThisCorrect
                               ? "border-green-500 bg-green-50"
-                              : "border-slate-200 hover:border-orange-300 hover:bg-orange-50/50"
+                              : "border-slate-200 hover:border-orange-300 hover:bg-orange-50/50 dark:border-slate-700 dark:hover:border-orange-400 dark:hover:bg-orange-500/10"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
-                                isSelected && !submitted
-                                  ? "border-orange-500 bg-orange-500"
-                                  : isSelected && isCorrect
-                                  ? "border-green-500 bg-green-500"
-                                  : isSelected && isIncorrect
-                                  ? "border-red-500 bg-red-500"
-                                  : "border-slate-300"
-                              }`}>
+                              <div
+                                className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                                  isSelected && !submitted
+                                    ? "border-orange-500 bg-orange-500"
+                                    : isSelected && isCorrect
+                                    ? "border-green-500 bg-green-500"
+                                    : isSelected && isIncorrect
+                                    ? "border-red-500 bg-red-500"
+                                    : "border-slate-300 dark:border-slate-600"
+                                }`}
+                              >
                                 {isSelected && (
                                   <div className="h-2 w-2 rounded-full bg-white"></div>
                                 )}
                               </div>
-                              <span className="text-sm font-medium text-slate-800">{option.label}</span>
+                              <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{option.label}</span>
                             </div>
                             {isThisCorrect && (
                               <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -258,8 +263,8 @@ export const QuizViewer = ({ quiz }: QuizViewerProps) => {
           );
         })}
 
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-orange-100 bg-orange-50/50 p-4">
-          <p className="text-sm text-slate-600">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-orange-100 bg-orange-50/50 p-4 dark:border-orange-900/50 dark:bg-orange-500/10">
+          <p className="text-sm text-slate-600 dark:text-slate-200">
             {submitted ? "Quiz submitted! Review your answers above." : "Select your answers and click submit when ready."}
           </p>
           <Button 
