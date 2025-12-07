@@ -280,6 +280,30 @@ const UserManagement = () => {
     e.preventDefault();
     const today = new Date();
 
+    const requiredFields = [
+      { value: form.regionId, label: 'Region' },
+      { value: form.firstName, label: 'First Name' },
+      { value: form.lastName, label: 'Last Name' },
+      { value: form.address1, label: 'Street Address' },
+      { value: form.city, label: 'City' },
+      { value: form.state, label: 'State' },
+      { value: form.postal, label: 'Postal Code' },
+      { value: form.studentEmail, label: 'Student Email' },
+      { value: form.studentPhone, label: 'Student Phone' },
+      { value: form.drivingExperience, label: 'Driving Experience' },
+      { value: form.password, label: 'Password' },
+      { value: form.confirmPassword, label: 'Confirm Password' },
+    ];
+
+    const missingFields = requiredFields
+      .filter((field) => !field.value || (typeof field.value === 'string' && field.value.trim() === ''))
+      .map((field) => field.label);
+
+    if (missingFields.length > 0) {
+      setFormErrors(`Please fill the following fields: ${missingFields.join(', ')}.`);
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       setFormErrors('Passwords do not match');
       return;
@@ -696,7 +720,7 @@ const UserManagement = () => {
               <div className="space-y-2">
                 <Label>Region</Label>
                 <Select value={form.regionId} onValueChange={(val) => handleFieldChange('regionId', val)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
@@ -829,7 +853,7 @@ const UserManagement = () => {
                 <div className="space-y-2">
                   <Label>Has License From Another Country?</Label>
                   <Select value={form.hasLicenseAnotherCountry} onValueChange={(val) => handleFieldChange('hasLicenseAnotherCountry', val)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
