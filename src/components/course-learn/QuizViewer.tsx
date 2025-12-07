@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,8 +105,13 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
   const [answers, setAnswers] = useState<QuizAnswers>({});
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [startedAt, setStartedAt] = useState<Date>(() => new Date());
 
   const questions = useMemo(() => quiz?.questions || [], [quiz]);
+
+  useEffect(() => {
+    setStartedAt(new Date());
+  }, [quiz?.id]);
 
   const buildGivenAnswers = () =>
     questions
@@ -133,6 +138,7 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
     if (submitted) {
       setSubmitted(false);
       setAnswers({});
+      setStartedAt(new Date());
       return;
     }
 
@@ -159,6 +165,8 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
     const payload = {
       course_id: courseId,
       quiz_id: quiz.id,
+      started_at: startedAt.toISOString(),
+      completed_at: new Date().toISOString(),
       given_answers,
     };
 
