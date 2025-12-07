@@ -239,12 +239,7 @@ const CourseLearn = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
-      <CourseLearnHeader
-        title={course?.title || "Course"}
-        progress={data?.progress_percentage || 0}
-        totalHours={Number(totalHours || 0)}
-        offlineHours={totalOfflineHours}
-      />
+    
 
       <main className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-8">
         {isLoading && <CourseLearnSkeleton />}
