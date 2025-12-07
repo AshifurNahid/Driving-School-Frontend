@@ -10,6 +10,8 @@ interface CalendarProps {
   modifiersStyles?: Record<string, React.CSSProperties>;
   disabled?: (date: Date) => boolean;
   initialFocus?: boolean;
+  fromYear?: number;
+  toYear?: number;
 }
 
 const Calendar: React.FC<CalendarProps> = ({
@@ -20,6 +22,8 @@ const Calendar: React.FC<CalendarProps> = ({
   modifiers = {},
   modifiersStyles = {},
   disabled,
+  fromYear = 1900,
+  toYear = 2100,
 }) => {
   const [currentMonth, setCurrentMonth] = React.useState(() => {
     if (selected instanceof Date) {
@@ -67,7 +71,7 @@ const Calendar: React.FC<CalendarProps> = ({
     }
 
     // Next month days to fill the grid
-    const remainingDays = 42 - days.length; // 6 rows × 7 days
+    const remainingDays = 42 - days.length;
     for (let day = 1; day <= remainingDays; day++) {
       days.push({
         date: new Date(year, month + 1, day),
@@ -137,28 +141,65 @@ const Calendar: React.FC<CalendarProps> = ({
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMonth = parseInt(e.target.value);
+    setCurrentMonth(new Date(currentMonth.getFullYear(), newMonth, 1));
+  };
+
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newYear = parseInt(e.target.value);
+    setCurrentMonth(new Date(newYear, currentMonth.getMonth(), 1));
+  };
+
+  const years = Array.from(
+    { length: toYear - fromYear + 1 },
+    (_, i) => fromYear + i
+  );
+
   const calendarDays = generateCalendarDays();
 
   return (
     <div className={`p-3 ${className}`}>
       <div className="space-y-4">
-        {/* Header */}
-        <div className="flex justify-center pt-1 relative items-center">
+        {/* Header with dropdowns */}
+        <div className="flex justify-center items-center gap-2 pt-1">
           <button
             onClick={handlePrevMonth}
-            className="absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
+            className="h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
             type="button"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           
-          <div className="text-sm font-medium">
-            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+          <div className="flex items-center gap-2">
+            <select
+              value={currentMonth.getMonth()}
+              onChange={handleMonthChange}
+              className="text-sm font-medium px-2 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+              {monthNames.map((month, index) => (
+                <option key={month} value={index}>
+                  {month}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={currentMonth.getFullYear()}
+              onChange={handleYearChange}
+              className="text-sm font-medium px-2 py-1 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
           </div>
           
           <button
             onClick={handleNextMonth}
-            className="absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
+            className="h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
             type="button"
           >
             <ChevronRight className="h-4 w-4" />
