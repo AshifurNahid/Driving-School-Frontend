@@ -15,6 +15,9 @@ import {
   RESET_PASSWORD_REQUEST,
   RESET_PASSWORD_SUCCESS,
   RESET_PASSWORD_FAIL,
+  OTP_TIMER_START,
+  OTP_TIMER_TICK,
+  OTP_TIMER_EXPIRE,
 } from "../constants/authConstants";
 import { User } from "@/types/user";
 
@@ -23,6 +26,8 @@ interface AuthState {
   userInfo: User | null;
   error?: string | null;
   successMessage?: string | null;
+  otpTimer?: number; // Remaining time in seconds
+  otpTimerActive?: boolean;
 }
 
 const userInfoFromStorage = localStorage.getItem("userInfo")
@@ -34,6 +39,8 @@ const initialState: AuthState = {
   userInfo: userInfoFromStorage,
   error: null,
   successMessage: null,
+  otpTimer: 0,
+  otpTimerActive: false,
 };
 
 export const authReducer = (state = initialState, action: any): AuthState => {
@@ -58,7 +65,13 @@ export const authReducer = (state = initialState, action: any): AuthState => {
     case RESET_PASSWORD_FAIL:
       return { ...state, loading: false, error: action.payload, successMessage: null };
     case USER_LOGOUT:
-      return { ...state, userInfo: null, error: null ,loading:false};
+      return { ...state, userInfo: null, error: null ,loading:false, otpTimer: 0, otpTimerActive: false};
+    case OTP_TIMER_START:
+      return { ...state, otpTimer: action.payload, otpTimerActive: true };
+    case OTP_TIMER_TICK:
+      return { ...state, otpTimer: action.payload };
+    case OTP_TIMER_EXPIRE:
+      return { ...state, otpTimer: 0, otpTimerActive: false };
     default:
       return state;
   }

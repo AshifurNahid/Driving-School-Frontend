@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { verifyOTP } from '@/redux/actions/authAction';
+import { verifyOTP, forgotPassword, tickOTPTimer } from '@/redux/actions/authAction';
 import { Shield, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,12 @@ const ForgotPasswordOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [submitted, setSubmitted] = useState(false);
   const [email, setEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { loading, error, successMessage } = useSelector((state: RootState) => state.auth);
+  const { loading, error, successMessage, otpTimer, otpTimerActive } = useSelector((state: RootState) => state.auth);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Retrieve email from sessionStorage
@@ -35,6 +37,33 @@ const ForgotPasswordOTP = () => {
     }
     setEmail(storedEmail);
   }, [navigate, toast]);
+
+  // Timer effect
+  useEffect(() => {
+    if (otpTimerActive && otpTimer > 0) {
+      intervalRef.current = setInterval(() => {
+        dispatch(tickOTPTimer() as any);
+      }, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [otpTimerActive, otpTimer, dispatch]);
+
+  // Format time helper function
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     if (successMessage && submitted) {
@@ -123,10 +152,34 @@ const ForgotPasswordOTP = () => {
     setSubmitted(true);
   };
 
-  const handleResendCode = () => {
-    // Navigate back to email page to resend
-    sessionStorage.removeItem('forgotPasswordOTP');
-    navigate('/forgot-password');
+  const handleResendCode = async () => {
+    if (otpTimerActive && otpTimer > 0) {
+      toast({
+        title: 'Please Wait',
+        description: `Please wait ${formatTime(otpTimer)} before requesting a new code`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setResendLoading(true);
+    try {
+      await dispatch(forgotPassword(email) as any);
+      toast({
+        title: 'Code Resent',
+        description: 'A new verification code has been sent to your email',
+      });
+      // Clear OTP inputs
+      setOtp(['', '', '', '', '', '']);
+    } catch (error: any) {
+      toast({
+        title: 'Resend Failed',
+        description: error.response?.data?.status?.message || error.response?.data?.message || error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   return (
@@ -151,6 +204,13 @@ const ForgotPasswordOTP = () => {
             <CardDescription className="text-center text-gray-600 dark:text-gray-400 font-medium">
               We've sent a 6-digit code to {email}
             </CardDescription>
+            {otpTimerActive && otpTimer > 0 && (
+              <div className="text-center mt-2">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Code expires in <span className="font-semibold text-blue-600 dark:text-blue-400">{formatTime(otpTimer)}</span>
+                </span>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -183,10 +243,11 @@ const ForgotPasswordOTP = () => {
                 type="button"
                 variant="link"
                 onClick={handleResendCode}
-                className="text-blue-600 dark:text-blue-400 hover:underline font-medium inline-flex items-center"
+                disabled={resendLoading || (otpTimerActive && otpTimer > 0)}
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Resend Code
+                <RefreshCw className={`h-4 w-4 mr-2 ${resendLoading ? 'animate-spin' : ''}`} />
+                {resendLoading ? 'Sending...' : otpTimerActive && otpTimer > 0 ? `Resend in ${formatTime(otpTimer)}` : 'Resend Code'}
               </Button>
             </div>
 
