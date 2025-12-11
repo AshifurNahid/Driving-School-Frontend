@@ -16,6 +16,9 @@ import {
   RESET_PASSWORD_REQUEST,
   RESET_PASSWORD_SUCCESS,
   RESET_PASSWORD_FAIL,
+  OTP_TIMER_START,
+  OTP_TIMER_TICK,
+  OTP_TIMER_EXPIRE,
 } from "../constants/authConstants";
 import { User } from "@/types/user";
 import { getUserCourses } from "./userCourseAction";
@@ -107,6 +110,8 @@ export const forgotPassword = (email: string) => async (dispatch: any) => {
       type: FORGOT_PASSWORD_SUCCESS, 
       payload: data.status?.message || 'Password reset code sent to your email' 
     });
+    // Start OTP timer (2 minutes = 120 seconds)
+    dispatch({ type: OTP_TIMER_START, payload: 120 });
     return data;
   } catch (error: any) {
     dispatch({
@@ -115,6 +120,24 @@ export const forgotPassword = (email: string) => async (dispatch: any) => {
     });
     throw error;
   }
+};
+
+// Timer Actions
+export const startOTPTimer = (seconds: number) => (dispatch: any) => {
+  dispatch({ type: OTP_TIMER_START, payload: seconds });
+};
+
+export const tickOTPTimer = () => (dispatch: any, getState: any) => {
+  const { otpTimer } = getState().auth;
+  if (otpTimer > 0) {
+    dispatch({ type: OTP_TIMER_TICK, payload: otpTimer - 1 });
+  } else {
+    dispatch({ type: OTP_TIMER_EXPIRE });
+  }
+};
+
+export const expireOTPTimer = () => (dispatch: any) => {
+  dispatch({ type: OTP_TIMER_EXPIRE });
 };
 
 // Verify OTP Action
@@ -140,7 +163,7 @@ export const verifyOTP = (email: string, otp: string) => async (dispatch: any) =
 export const resetPassword = (email: string, otp: string, newPassword: string) => async (dispatch: any) => {
   try {
     dispatch({ type: RESET_PASSWORD_REQUEST });
-    const { data } = await api.post("/reset-password", { email, otp, new_password: newPassword });
+    const { data } = await api.put("/reset-password", { email, otp, new_password: newPassword });
     dispatch({ 
       type: RESET_PASSWORD_SUCCESS, 
       payload: data.status?.message || 'Password reset successfully' 
