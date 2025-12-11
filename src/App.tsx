@@ -12,6 +12,9 @@ import AboutPage from "./pages/About";
 import ContactPage from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPasswordEmail from "./pages/ForgotPasswordEmail";
+import ForgotPasswordOTP from "./pages/ForgotPasswordOTP";
+import ForgotPasswordReset from "./pages/ForgotPasswordReset";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import UploadCourse from "./pages/UploadCourse";
@@ -44,6 +47,9 @@ const App = () => (
                 <Route path="/courses" element={<CoursesPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPasswordEmail />} />
+                <Route path="/forgot-password/verify" element={<ForgotPasswordOTP />} />
+                <Route path="/forgot-password/reset" element={<ForgotPasswordReset />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/instructors" element={<AdminInstructors/>} />
