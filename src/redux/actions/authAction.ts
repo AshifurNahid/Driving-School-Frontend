@@ -7,6 +7,15 @@ import {
   USER_REGISTER_REQUEST,
   USER_REGISTER_SUCCESS,
   USER_REGISTER_FAIL,
+  FORGOT_PASSWORD_REQUEST,
+  FORGOT_PASSWORD_SUCCESS,
+  FORGOT_PASSWORD_FAIL,
+  VERIFY_OTP_REQUEST,
+  VERIFY_OTP_SUCCESS,
+  VERIFY_OTP_FAIL,
+  RESET_PASSWORD_REQUEST,
+  RESET_PASSWORD_SUCCESS,
+  RESET_PASSWORD_FAIL,
 } from "../constants/authConstants";
 import { User } from "@/types/user";
 import { getUserCourses } from "./userCourseAction";
@@ -87,6 +96,63 @@ export const logout = () => (dispatch: any) => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
   dispatch({ type: USER_LOGOUT });
+};
+
+// Forgot Password Action
+export const forgotPassword = (email: string) => async (dispatch: any) => {
+  try {
+    dispatch({ type: FORGOT_PASSWORD_REQUEST });
+    const { data } = await api.put("/forget-password", { email });
+    dispatch({ 
+      type: FORGOT_PASSWORD_SUCCESS, 
+      payload: data.status?.message || 'Password reset code sent to your email' 
+    });
+    return data;
+  } catch (error: any) {
+    dispatch({
+      type: FORGOT_PASSWORD_FAIL,
+      payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
+    });
+    throw error;
+  }
+};
+
+// Verify OTP Action
+export const verifyOTP = (email: string, otp: string) => async (dispatch: any) => {
+  try {
+    dispatch({ type: VERIFY_OTP_REQUEST });
+    const { data } = await api.post("/verify-otp", { email, otp });
+    dispatch({ 
+      type: VERIFY_OTP_SUCCESS, 
+      payload: data.status?.message || 'OTP verified successfully' 
+    });
+    return data;
+  } catch (error: any) {
+    dispatch({
+      type: VERIFY_OTP_FAIL,
+      payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
+    });
+    throw error;
+  }
+};
+
+// Reset Password Action
+export const resetPassword = (email: string, otp: string, newPassword: string) => async (dispatch: any) => {
+  try {
+    dispatch({ type: RESET_PASSWORD_REQUEST });
+    const { data } = await api.post("/reset-password", { email, otp, new_password: newPassword });
+    dispatch({ 
+      type: RESET_PASSWORD_SUCCESS, 
+      payload: data.status?.message || 'Password reset successfully' 
+    });
+    return data;
+  } catch (error: any) {
+    dispatch({
+      type: RESET_PASSWORD_FAIL,
+      payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
+    });
+    throw error;
+  }
 };
 
 
