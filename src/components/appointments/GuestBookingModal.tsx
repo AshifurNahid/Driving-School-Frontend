@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import { AppointmentSlot } from '@/redux/reducers/appointmentReducer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
+import { Badge } from '@/components/ui/badge';
 
 interface GuestBookingModalProps {
   isOpen: boolean;
@@ -60,6 +61,7 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
   const auth = useSelector((state: RootState) => state.auth);
   const isAuthenticated = !!auth.userInfo;
   const user = auth.userInfo;
+  const userDetails = user?.user_detail;
   
   // Initial empty form state
   const initialFormState = {
@@ -81,6 +83,12 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string>(isAuthenticated ? 'appointment' : 'register');
+
+  const parseDate = useMemo(() => (value?: string | null) => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }, []);
   
   // Reset form when the modal opens or closes
   React.useEffect(() => {
@@ -94,14 +102,20 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
     if (isAuthenticated && user) {
       setFormData(prev => ({
         ...prev,
-        full_name: user.first_name+user.last_name || '',
-        email: user.email || ''
+        full_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+        email: user.email || '',
+        phone: user.phone || '',
+        learnerPermitIssueDate:
+          prev.learnerPermitIssueDate || parseDate(userDetails?.learners_permit_issue_date),
+        drivingExperience: prev.drivingExperience || userDetails?.driving_experience || '',
+        isLicenceFromAnotherCountry:
+          userDetails?.has_foreign_driving_license ?? prev.isLicenceFromAnotherCountry
       }));
       setActiveTab('appointment');
     } else {
       setActiveTab('register');
     }
-  }, [isOpen, isAuthenticated, user]);
+  }, [isOpen, isAuthenticated, user, userDetails, parseDate]);
 
   // Calculate hours to consume based on start and end time
   const calculateHoursToConsume = (startTime: string, endTime: string): number => {
@@ -216,63 +230,82 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
 
   const hoursToConsume = calculateHoursToConsume(slot.startTime, slot.endTime);
   const displayPrice = slot.pricePerSlot || 25;
+  const sessionDate = format(new Date(`2000-01-01T${slot.startTime}`), 'EEE, MMM dd');
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-white to-blue-50 dark:from-gray-900 dark:to-gray-800 shadow-2xl border-t-4 border-blue-500">
-        <DialogHeader className="space-y-2 pb-4 border-b border-gray-200 dark:border-gray-700">
-          <DialogTitle className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-            Book Your Driving Lesson
-          </DialogTitle>
-          <DialogDescription className="text-base opacity-90">
-            Complete the form below to secure your appointment with our professional instructor.
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* Slot Summary */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl mb-6 shadow-sm border border-blue-100 dark:border-gray-600">
-          <h3 className="font-semibold text-lg text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 mb-4">Appointment Summary</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 dark:bg-blue-900/50 p-2.5 rounded-full">
-                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Time Slot</p>
-                <p className="font-semibold">{slot.startTime} - {slot.endTime}</p>
-              </div>
+      <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto bg-background text-foreground border border-border/80 shadow-2xl">
+        <DialogHeader className="space-y-3 pb-4 border-b border-border/60">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div className="space-y-1">
+              <DialogTitle className="text-2xl font-semibold">Book Your Driving Lesson</DialogTitle>
+              <DialogDescription className="text-base opacity-90">
+                Review your slot details and provide permit information to confirm.
+              </DialogDescription>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2.5 rounded-full">
-                <User className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Instructor</p>
-                <p className="font-semibold">{slot.instructorName || `Instructor ${slot.instructorId}`}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 dark:bg-blue-900/50 p-2.5 rounded-full">
-                <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Location</p>
-                <p className="font-semibold">{slot.location || 'Location TBD'}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2.5 rounded-full">
-                <DollarSign className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Price ({hoursToConsume}h)</p>
-                <p className="font-semibold">${displayPrice}</p>
-              </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                {sessionDate}
+              </Badge>
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                {hoursToConsume}h session
+              </Badge>
+              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                ${displayPrice}
+              </Badge>
             </div>
           </div>
-        </div>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-4">
+          <div className="lg:col-span-1 space-y-4">
+            {/* Slot Summary */}
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <p className="text-xs text-muted-foreground">Time slot</p>
+                </div>
+                <Badge variant="secondary">{slot.startTime} - {slot.endTime}</Badge>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2.5 rounded-full">
+                  <User className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Instructor</p>
+                  <p className="font-semibold">{slot.instructorName || `Instructor ${slot.instructorId}`}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-100 dark:bg-blue-900/50 p-2.5 rounded-full">
+                  <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Location</p>
+                  <p className="font-semibold">{slot.location || 'Location TBD'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2.5 rounded-full">
+                  <DollarSign className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Price ({hoursToConsume}h)</p>
+                  <p className="font-semibold">${displayPrice}</p>
+                </div>
+              </div>
+            </div>
+            {isAuthenticated && (
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 shadow-sm space-y-2">
+                <p className="text-sm font-semibold text-primary">Signed in</p>
+                <p className="text-xs text-muted-foreground">We pre-filled your contact and permit info. Adjust anything before submitting.</p>
+              </div>
+            )}
+          </div>
+          <div className="lg:col-span-2 space-y-5">
+
+            <form onSubmit={handleSubmit} className="space-y-4">
           <Tabs 
             value={activeTab} 
             onValueChange={setActiveTab}
@@ -807,7 +840,9 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
               </DialogFooter>
             </div>
           )}
-        </form>
+            </form>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

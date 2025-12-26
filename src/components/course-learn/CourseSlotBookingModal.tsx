@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,9 @@ import { CalendarIcon, Clock, User, MapPin } from "lucide-react";
 import { AppointmentSlot } from "@/redux/reducers/appointmentReducer";
 import { BookCourseAppointmentPayload } from "@/redux/actions/appointmentAction";
 import { format, parse } from "date-fns";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { Badge } from "@/components/ui/badge";
 
 interface CourseSlotBookingModalProps {
   isOpen: boolean;
@@ -36,6 +39,9 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
   userCourseId,
   loading,
 }) => {
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+  const userDetails = userInfo?.user_detail;
+
   const initialFormState = {
     note: "",
     learnerPermitIssueDate: undefined as Date | undefined,
@@ -48,12 +54,30 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const parseDate = useMemo(() => (value?: string | null) => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }, []);
+
   useEffect(() => {
     if (!isOpen) {
       setFormData(initialFormState);
       setErrors({});
+      return;
     }
-  }, [isOpen]);
+
+    if (userDetails) {
+      setFormData((prev) => ({
+        ...prev,
+        learnerPermitIssueDate:
+          prev.learnerPermitIssueDate || parseDate(userDetails.learners_permit_issue_date),
+        drivingExperience: prev.drivingExperience || userDetails.driving_experience || "",
+        isLicenceFromAnotherCountry:
+          userDetails.has_foreign_driving_license ?? prev.isLicenceFromAnotherCountry,
+      }));
+    }
+  }, [isOpen, userDetails, parseDate]);
 
   if (!slot || !userCourseId) return null;
 
@@ -133,180 +157,201 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card text-foreground border border-border/70 shadow-xl">
-        <DialogHeader className="space-y-2 pb-2 border-b border-border/70">
-          <DialogTitle className="text-xl font-semibold">Confirm offline booking</DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
-            Review your session details and share the required permit information to finalize the booking.
-          </DialogDescription>
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto bg-background text-foreground border border-border/80 shadow-2xl">
+        <DialogHeader className="space-y-3 pb-4 border-b border-border/60">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="space-y-1">
+              <DialogTitle className="text-xl font-semibold">Confirm offline booking</DialogTitle>
+              <DialogDescription className="text-muted-foreground text-sm">
+                Review your session details and share the required permit information to finalize the booking.
+              </DialogDescription>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                {formatTimeRange(slot.startTime, slot.endTime)}
+              </Badge>
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                {hoursToConsume}h session
+              </Badge>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="bg-muted/50 p-4 rounded-lg mb-5 border border-border/60">
-          <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-primary" />
-            Appointment summary
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-primary/10 text-primary">
-                <Clock className="h-4 w-4" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-4">
+          <div className="space-y-4">
+            <div className="bg-muted/40 p-4 rounded-xl border border-border/60 shadow-sm space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-primary/10 text-primary">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Time slot</p>
+                  <p className="font-semibold leading-tight">{formatTimeRange(slot.startTime, slot.endTime)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Time slot</p>
-                <p className="font-semibold leading-tight">{formatTimeRange(slot.startTime, slot.endTime)}</p>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-muted text-foreground/80">
+                  <User className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Instructor</p>
+                  <p className="font-semibold leading-tight">{slot.instructorName || `Instructor ${slot.instructorId}`}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-muted text-foreground/80">
-                <User className="h-4 w-4" />
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-muted text-foreground/80">
+                  <MapPin className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Location</p>
+                  <p className="font-semibold leading-tight">{slot.location || "Location TBD"}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Instructor</p>
-                <p className="font-semibold leading-tight">{slot.instructorName || `Instructor ${slot.instructorId}`}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-muted text-foreground/80">
-                <MapPin className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Location</p>
-                <p className="font-semibold leading-tight">{slot.location || "Location TBD"}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-primary/10 text-primary">
-                <Clock className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Session duration</p>
-                <p className="font-semibold leading-tight">{hoursToConsume} hours</p>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-primary/10 text-primary">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Session duration</p>
+                  <p className="font-semibold leading-tight">{hoursToConsume} hours</p>
+                </div>
               </div>
             </div>
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 shadow-sm space-y-1">
+              <p className="text-sm font-semibold text-primary">Course booking</p>
+              <p className="text-xs text-muted-foreground">Your course enrollment details will be linked automatically.</p>
+            </div>
+          </div>
+
+          <div className="lg:col-span-2 space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="note" className="text-sm font-medium">Notes for instructor (optional)</Label>
+                <Textarea
+                  id="note"
+                  placeholder="Share any guidance for your instructor or accessibility needs."
+                  value={formData.note}
+                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                  rows={3}
+                  className="bg-background"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="permitNumber" className="text-sm font-medium">Permit Number</Label>
+                  <Input
+                    id="permitNumber"
+                    placeholder="Enter your permit number"
+                    value={formData.permitNumber}
+                    onChange={(e) => setFormData({ ...formData, permitNumber: e.target.value })}
+                    className={errors.permitNumber ? "border-destructive" : ""}
+                  />
+                  {errors.permitNumber && (
+                    <p className="text-xs text-destructive">{errors.permitNumber}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="drivingExperience" className="text-sm font-medium">Driving Experience</Label>
+                  <Input
+                    id="drivingExperience"
+                    placeholder="e.g., 6 months behind the wheel"
+                    value={formData.drivingExperience}
+                    onChange={(e) => setFormData({ ...formData, drivingExperience: e.target.value })}
+                    className={errors.drivingExperience ? "border-destructive" : ""}
+                  />
+                  {errors.drivingExperience && (
+                    <p className="text-xs text-destructive">{errors.drivingExperience}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Permit Issue Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-start text-left font-normal ${errors.learnerPermitIssueDate ? "border-destructive" : ""}`}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.learnerPermitIssueDate
+                          ? format(formData.learnerPermitIssueDate, "PPP")
+                          : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.learnerPermitIssueDate}
+                        onSelect={(date) => setFormData({ ...formData, learnerPermitIssueDate: date })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.learnerPermitIssueDate && (
+                    <p className="text-xs text-destructive">{errors.learnerPermitIssueDate}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Permit Expiration Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-start text-left font-normal ${errors.permitExpirationDate ? "border-destructive" : ""}`}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.permitExpirationDate
+                          ? format(formData.permitExpirationDate, "PPP")
+                          : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.permitExpirationDate}
+                        onSelect={(date) => setFormData({ ...formData, permitExpirationDate: date })}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.permitExpirationDate && (
+                    <p className="text-xs text-destructive">{errors.permitExpirationDate}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-border/60 px-4 py-3 bg-muted/30">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isLicenceFromAnotherCountry"
+                    checked={formData.isLicenceFromAnotherCountry}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, isLicenceFromAnotherCountry: Boolean(checked) })
+                    }
+                  />
+                  <Label htmlFor="isLicenceFromAnotherCountry" className="text-sm">
+                    I have a licence from another country
+                  </Label>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  Verification may be required
+                </Badge>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={handleClose} type="button">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Booking..." : "Confirm Booking"}
+                </Button>
+              </DialogFooter>
+            </form>
           </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="note" className="text-sm font-medium">Notes for instructor (optional)</Label>
-            <Textarea
-              id="note"
-              placeholder="Share any guidance for your instructor or accessibility needs."
-              value={formData.note}
-              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-              rows={3}
-              className="bg-background"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="permitNumber" className="text-sm font-medium">Permit Number</Label>
-              <Input
-                id="permitNumber"
-                placeholder="Enter your permit number"
-                value={formData.permitNumber}
-                onChange={(e) => setFormData({ ...formData, permitNumber: e.target.value })}
-                className={errors.permitNumber ? "border-destructive" : ""}
-              />
-              {errors.permitNumber && (
-                <p className="text-xs text-destructive">{errors.permitNumber}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="drivingExperience" className="text-sm font-medium">Driving Experience</Label>
-              <Input
-                id="drivingExperience"
-                placeholder="e.g., 6 months behind the wheel"
-                value={formData.drivingExperience}
-                onChange={(e) => setFormData({ ...formData, drivingExperience: e.target.value })}
-                className={errors.drivingExperience ? "border-destructive" : ""}
-              />
-              {errors.drivingExperience && (
-                <p className="text-xs text-destructive">{errors.drivingExperience}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Permit Issue Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal ${errors.learnerPermitIssueDate ? "border-destructive" : ""}`}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.learnerPermitIssueDate
-                      ? format(formData.learnerPermitIssueDate, "PPP")
-                      : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.learnerPermitIssueDate}
-                    onSelect={(date) => setFormData({ ...formData, learnerPermitIssueDate: date })}
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.learnerPermitIssueDate && (
-                <p className="text-xs text-destructive">{errors.learnerPermitIssueDate}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Permit Expiration Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal ${errors.permitExpirationDate ? "border-destructive" : ""}`}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.permitExpirationDate
-                      ? format(formData.permitExpirationDate, "PPP")
-                      : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.permitExpirationDate}
-                    onSelect={(date) => setFormData({ ...formData, permitExpirationDate: date })}
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.permitExpirationDate && (
-                <p className="text-xs text-destructive">{errors.permitExpirationDate}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="isLicenceFromAnotherCountry"
-              checked={formData.isLicenceFromAnotherCountry}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, isLicenceFromAnotherCountry: Boolean(checked) })
-              }
-            />
-            <Label htmlFor="isLicenceFromAnotherCountry" className="text-sm">
-              I have a licence from another country
-            </Label>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={handleClose} type="button">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Booking..." : "Confirm Booking"}
-            </Button>
-          </DialogFooter>
-        </form>
       </DialogContent>
     </Dialog>
   );
