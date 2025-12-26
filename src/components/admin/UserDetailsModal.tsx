@@ -44,11 +44,12 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ open, onClose, user
           <div><strong>Status:</strong> {user.status === 1 ? "Active" : "Inactive"}</div>
           <div><strong>Email Verified:</strong> {user.is_email_verified ? "Yes" : "No"}</div>
           <div><strong>Phone Verified:</strong> {user.is_phone_verified ? "Yes" : "No"}</div>
-          <div><strong>Address:</strong> {user.user_detail?.address_line_one || "N/A"}</div>
+          <div><strong>Address:</strong> {user.user_detail?.street_address || user.user_detail?.address_line_one || "N/A"}</div>
           <div><strong>City:</strong> {user.user_detail?.city || "N/A"}</div>
           <div><strong>State:</strong> {user.user_detail?.state || "N/A"}</div>
           <div><strong>Postal Code:</strong> {user.user_detail?.postal_code || "N/A"}</div>
-          <div><strong>Nationality:</strong> {user.user_detail?.nationality || "N/A"}</div>
+          <div><strong>Parent Email:</strong> {user.user_detail?.parent_email || "N/A"}</div>
+          <div><strong>Parent Phone:</strong> {user.user_detail?.parent_phone_number || "N/A"}</div>
         </div>
         <DialogClose asChild>
           <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded">Close</button>
