@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,8 @@ import { format, parse } from 'date-fns';
 import { CalendarIcon, Clock, User, MapPin, DollarSign } from 'lucide-react';
 import { AppointmentSlot } from '@/redux/reducers/appointmentReducer';
 import { BookDirectAppointmentPayload } from '@/redux/actions/appointmentAction';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/redux/store';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -34,6 +36,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
   slot,
   loading
 }) => {
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+  const userDetails = userInfo?.user_detail;
+
   // Initial empty form state
   const initialFormState = {
     note: '',
@@ -47,14 +52,31 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
+  const parseDate = useMemo(() => (value?: string | null) => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }, []);
+
   // Reset form when the modal opens or closes
   React.useEffect(() => {
     if (!isOpen) {
-      // Reset form when modal closes
       setFormData(initialFormState);
       setErrors({});
+      return;
     }
-  }, [isOpen]);
+
+    if (userDetails) {
+      setFormData((prev) => ({
+        ...prev,
+        learnerPermitIssueDate:
+          prev.learnerPermitIssueDate || parseDate(userDetails.learners_permit_issue_date),
+        drivingExperience: prev.drivingExperience || userDetails.driving_experience || '',
+        isLicenceFromAnotherCountry:
+          userDetails.has_foreign_driving_license ?? prev.isLicenceFromAnotherCountry,
+      }));
+    }
+  }, [isOpen, userDetails, parseDate]);
 
   const calculateHoursToConsume = (startTime: string, endTime: string): number => {
     const start = new Date(`2000-01-01 ${startTime}`);

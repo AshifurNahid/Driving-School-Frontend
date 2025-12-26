@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -60,6 +60,7 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
   const auth = useSelector((state: RootState) => state.auth);
   const isAuthenticated = !!auth.userInfo;
   const user = auth.userInfo;
+  const userDetails = user?.user_detail;
   
   // Initial empty form state
   const initialFormState = {
@@ -81,6 +82,12 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string>(isAuthenticated ? 'appointment' : 'register');
+
+  const parseDate = useMemo(() => (value?: string | null) => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }, []);
   
   // Reset form when the modal opens or closes
   React.useEffect(() => {
@@ -94,14 +101,20 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
     if (isAuthenticated && user) {
       setFormData(prev => ({
         ...prev,
-        full_name: user.first_name+user.last_name || '',
-        email: user.email || ''
+        full_name: user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+        email: user.email || '',
+        phone: user.phone || '',
+        learnerPermitIssueDate:
+          prev.learnerPermitIssueDate || parseDate(userDetails?.learners_permit_issue_date),
+        drivingExperience: prev.drivingExperience || userDetails?.driving_experience || '',
+        isLicenceFromAnotherCountry:
+          userDetails?.has_foreign_driving_license ?? prev.isLicenceFromAnotherCountry
       }));
       setActiveTab('appointment');
     } else {
       setActiveTab('register');
     }
-  }, [isOpen, isAuthenticated, user]);
+  }, [isOpen, isAuthenticated, user, userDetails, parseDate]);
 
   // Calculate hours to consume based on start and end time
   const calculateHoursToConsume = (startTime: string, endTime: string): number => {
