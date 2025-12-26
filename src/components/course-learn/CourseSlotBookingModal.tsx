@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,8 @@ import { CalendarIcon, Clock, User, MapPin } from "lucide-react";
 import { AppointmentSlot } from "@/redux/reducers/appointmentReducer";
 import { BookCourseAppointmentPayload } from "@/redux/actions/appointmentAction";
 import { format, parse } from "date-fns";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface CourseSlotBookingModalProps {
   isOpen: boolean;
@@ -36,6 +38,9 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
   userCourseId,
   loading,
 }) => {
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+  const userDetails = userInfo?.user_detail;
+
   const initialFormState = {
     note: "",
     learnerPermitIssueDate: undefined as Date | undefined,
@@ -48,12 +53,30 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const parseDate = useMemo(() => (value?: string | null) => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }, []);
+
   useEffect(() => {
     if (!isOpen) {
       setFormData(initialFormState);
       setErrors({});
+      return;
     }
-  }, [isOpen]);
+
+    if (userDetails) {
+      setFormData((prev) => ({
+        ...prev,
+        learnerPermitIssueDate:
+          prev.learnerPermitIssueDate || parseDate(userDetails.learners_permit_issue_date),
+        drivingExperience: prev.drivingExperience || userDetails.driving_experience || "",
+        isLicenceFromAnotherCountry:
+          userDetails.has_foreign_driving_license ?? prev.isLicenceFromAnotherCountry,
+      }));
+    }
+  }, [isOpen, userDetails, parseDate]);
 
   if (!slot || !userCourseId) return null;
 

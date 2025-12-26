@@ -7,16 +7,25 @@ export interface UserDetail {
   id: number;
   user_id: number;
   image_path: string | null;
-  address_line_one: string | null;
-  address_line_two: string | null;
-  city: string | null;
-  state: string | null;
-  postal_code: string | null;
-  emergency_contact_email: string | null;
-  emergency_contact_phone: string | null;
-  emergency_contact_person: string | null;
-  nationality: string | null;
+  date_of_birth?: string | null;
+  street_address?: string | null;
+  street_address_two?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
+  parent_email?: string | null;
+  parent_phone_number?: string | null;
+  learners_permit_issue_date?: string | null;
+  has_foreign_driving_license?: boolean;
+  driving_experience?: string | null;
   status: number;
+  // Legacy fields kept for backwards compatibility with older payloads
+  address_line_one?: string | null;
+  address_line_two?: string | null;
+  emergency_contact_email?: string | null;
+  emergency_contact_phone?: string | null;
+  emergency_contact_person?: string | null;
+  nationality?: string | null;
 }
 
 export interface User {
