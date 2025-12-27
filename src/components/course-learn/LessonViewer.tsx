@@ -40,7 +40,7 @@ export const LessonViewer = ({ lesson, attachmentUrl }: LessonViewerProps) => {
           <CardContent className="p-3 sm:p-4 md:p-6 bg-white dark:bg-[#0F1419]">
             <div className="w-full max-w-4xl mx-auto">
               <div className="aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] w-full bg-white dark:bg-[#1E2329] rounded-lg overflow-hidden border border-slate-200 dark:border-[#222832]">
-                <PdfCarouselViewer src={attachmentUrl} title={lesson.lesson_title} />
+                <PdfCarouselViewer src={attachmentUrl} title=""/>
               </div>
             </div>
           </CardContent>
