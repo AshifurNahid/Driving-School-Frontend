@@ -324,8 +324,6 @@ const CheckoutContent = () => {
       const { data } = await api.post("/payment-transactions", {
         transaction_type: "Course",
         transaction_reference_id: course.id,
-        amount: paymentAmount,
-        currency: "CAD",
         payment_type: paymentType,
       });
 
@@ -397,7 +395,7 @@ const CheckoutContent = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="space-y-6">
-          <div className="grid lg:grid-cols-[1.05fr,1.25fr] xl:grid-cols-[1.1fr,1.35fr] gap-6 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="grid lg:grid-cols-[1.05fr,1.35fr] xl:grid-cols-[1.1fr,1.5fr] gap-6 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-br from-sky-50 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-8 flex flex-col gap-8">
               <div className="space-y-5">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -448,30 +446,40 @@ const CheckoutContent = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Payment option</p>
-                    <span className="text-xs text-gray-500 dark:text-slate-400">Next charge: ${formattedNextPayment} CAD</span>
+                    <span className="text-xs rounded-full bg-white/80 px-3 py-1 text-gray-600 border border-indigo-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700">
+                      Next payment: ${formattedNextPayment} CAD
+                    </span>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <Button
                       type="button"
-                      variant={paymentType === "FullPayment" ? "default" : "outline"}
-                      className="justify-start h-auto py-3 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                      variant="outline"
+                      className={`justify-start h-auto py-3 border transition-all ${
+                        paymentType === "FullPayment"
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-md"
+                          : "bg-white text-indigo-700 border-indigo-100 hover:border-indigo-300"
+                      } ${isInstallmentOnly ? "cursor-not-allowed opacity-60" : ""}`}
                       onClick={() => setPaymentType("FullPayment")}
                       disabled={isInstallmentOnly}
                     >
                       <div className="text-left">
                         <p className="font-semibold">Full payment</p>
-                        <p className="text-xs text-indigo-100 dark:text-indigo-50/80">Pay ${coursePriceLabel} CAD now</p>
+                        <p className="text-xs opacity-90">Pay ${coursePriceLabel} CAD now</p>
                       </div>
                     </Button>
                     <Button
                       type="button"
-                      variant={paymentType === "PayByInstallment" ? "default" : "outline"}
-                      className="justify-start h-auto py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-slate-800 dark:text-indigo-200"
+                      variant="outline"
+                      className={`justify-start h-auto py-3 border transition-all ${
+                        paymentType === "PayByInstallment"
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                          : "bg-white text-indigo-700 border-indigo-100 hover:border-indigo-300"
+                      }`}
                       onClick={() => setPaymentType("PayByInstallment")}
                     >
                       <div className="text-left">
                         <p className="font-semibold">Pay by installment</p>
-                        <p className="text-xs text-indigo-600 dark:text-indigo-200">
+                        <p className={`text-xs ${paymentType === "PayByInstallment" ? "opacity-95 text-white" : "text-indigo-600"}`}>
                           Initial ${initialInstallmentAmount.toFixed(2)} CAD • Final ${finalInstallmentAmount.toFixed(2)} CAD
                         </p>
                       </div>
@@ -485,26 +493,28 @@ const CheckoutContent = () => {
                 </div>
 
                 {paymentType === "PayByInstallment" && (
-                  <div className="rounded-2xl border border-white/80 bg-white/60 p-5 shadow-md space-y-3 dark:border-slate-800 dark:bg-slate-900/70">
+                  <div className="rounded-2xl border border-white/80 bg-white/70 p-5 shadow-md space-y-4 dark:border-slate-800 dark:bg-slate-900/70">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-gray-900 dark:text-slate-100">Installment breakdown</p>
                       <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">
                         Pay as you go
                       </Badge>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="rounded-xl bg-white/70 border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
+                    <div className="grid sm:grid-cols-3 gap-4">
+                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
                         <p className="text-xs text-gray-600 dark:text-slate-300">Initial installment</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-slate-50">${initialInstallmentAmount.toFixed(2)} CAD</p>
                       </div>
-                      <div className="rounded-xl bg-white/70 border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
+                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
                         <p className="text-xs text-gray-600 dark:text-slate-300">Final installment</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-slate-50">${finalInstallmentAmount.toFixed(2)} CAD</p>
                       </div>
+                      <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-4 shadow-sm dark:bg-slate-800 dark:border-slate-700">
+                        <p className="text-xs text-indigo-700 dark:text-indigo-200">Next payment</p>
+                        <p className="text-lg font-semibold text-indigo-700 dark:text-indigo-200">${formattedNextPayment} CAD</p>
+                        <p className="text-[11px] text-indigo-600 dark:text-indigo-300 mt-1">Remaining {remainingBalance.toFixed(2)} CAD</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-slate-400">
-                      We will update your payment status after each transaction: Unpaid → PartiallyPaid → Paid.
-                    </p>
                   </div>
                 )}
 
@@ -565,15 +575,6 @@ const CheckoutContent = () => {
                     `Start checkout • ${formattedNextPayment} CAD`
                   )}
                 </Button>
-                <p className="text-xs text-gray-600 text-center dark:text-slate-400">
-                  Click to initialize your payment session. No charge will be made until you confirm on the next step.
-                </p>
-                {transaction && (
-                  <div className="flex items-center gap-2 text-sm text-emerald-600 bg-white/60 border border-white/70 rounded-xl px-4 py-3 shadow-sm dark:bg-slate-900/60 dark:border-slate-800 dark:text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Transaction ready. Enter your payment details to finish.
-                  </div>
-                )}
               </div>
             </div>
 
