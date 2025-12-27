@@ -1,10 +1,10 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Play, Clock, Users, Star, DollarSign, BookOpen, Award, CheckCircle, Edit, Trash2, ChevronDown, ChevronRight, Video, Brain } from 'lucide-react';
+import { Play, Clock, Users, Star, BookOpen, ChevronDown, ChevronRight, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,16 +13,15 @@ import { RootState } from '@/redux/store';
 import { createCourseReview, deleteCourseReview, updateCourseReview } from '@/redux/actions/reviewAction';
 import { getUserCourses } from '@/redux/actions/userCourseAction';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
 import { fetchEnrollmentStatusByCourseId } from '@/services/userCourses';
 import { EnrollmentStatusPayload } from '@/types/payment';
 import "react-quill/dist/quill.snow.css";
+
 const CourseDetail = () => {
   const { userInfo } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isEnrolled, setIsEnrolled] = useState(false);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [editing, setEditing] = useState(false);
@@ -30,15 +29,15 @@ const CourseDetail = () => {
   const [openModules, setOpenModules] = useState<number[]>([]);
   const [enrollmentStatus, setEnrollmentStatus] = useState<EnrollmentStatusPayload | null>(null);
   const [enrollmentLoading, setEnrollmentLoading] = useState(false);
-  const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
-  if (!id) {
-    return <div>Loading...</div>; // or navigate away, etc.
-  }
-  const dispatch = useDispatch();
-  const { course, loading, error } = useCourseDetails(Number(id));
-  const {courses:userCourseList, loading: userCoursesLoading} = useSelector((state: RootState) => state.userCourseList);
 
-  // Fetch user courses when component mounts and user is logged in
+  if (!id) {
+    return <div>Loading...</div>;
+  }
+
+  const dispatch = useDispatch();
+  const { course, loading } = useCourseDetails(Number(id));
+  const { courses: userCourseList, loading: userCoursesLoading } = useSelector((state: RootState) => state.userCourseList);
+
   useEffect(() => {
     if (userInfo?.id && (!userCourseList || userCourseList.length === 0)) {
       dispatch(getUserCourses(userInfo.id) as any);
@@ -47,68 +46,36 @@ const CourseDetail = () => {
 
   useEffect(() => {
     if (!id || !userInfo?.id) return;
-
     const loadEnrollmentStatus = async () => {
       setEnrollmentLoading(true);
-      setEnrollmentError(null);
       try {
         const data = await fetchEnrollmentStatusByCourseId(id);
         setEnrollmentStatus(data);
       } catch (error) {
-        setEnrollmentError("Unable to load enrollment status");
+        console.error(error);
       } finally {
         setEnrollmentLoading(false);
       }
     };
-
     loadEnrollmentStatus();
   }, [id, userInfo?.id]);
 
-  // Find the enrolled course for this course ID
   const enrolledCourse = userCourseList.find((uc: any) => uc?.course_id === Number(id));
-
   const paymentStatus = enrollmentStatus?.payment_status;
   const isPaid = paymentStatus === "Paid" || !!enrolledCourse;
   const isPartiallyPaid = paymentStatus === "PartiallyPaid";
 
-  // Check if user is enrolled in this course
-  useEffect(() => {
-    if (enrolledCourse) {
-      setIsEnrolled(true);
-    } else {
-      setIsEnrolled(false);
-    }
-  }, [enrolledCourse, userCourseList]);
-
-  
-
-  // Find if user already posted a review
-  // const userReview = course?.course_reviews?.find((r: any) => r.review_from_id === userInfo?.id);
-
-
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const requestBody={
-        course_id: course?.id,
-        rating,
-        review,
-        is_verified_purchase: true,
-
-    }
-
-    const updatedBody={
-      course_id: course?.id,
-      rating,
-      review,
-      isVerifiedPurchase:true}
-
+    const requestBody = { course_id: course?.id, rating, review, is_verified_purchase: true };
+    const updatedBody = { course_id: course?.id, rating, review, isVerifiedPurchase: true };
+    
     if (editing && editId) {
- dispatch(updateCourseReview(updatedBody,editId) as any);
+      dispatch(updateCourseReview(updatedBody, editId) as any);
     } else {
       dispatch(createCourseReview(requestBody) as any);
     }
-
+    
     setRating(0);
     setReview("");
     setEditing(false);
@@ -116,14 +83,12 @@ const CourseDetail = () => {
   };
 
   const handleDelete = () => {
-    
     if (editId) {
-  dispatch(deleteCourseReview(editId) as any);
-
-    setRating(0);
-    setReview("");
-    setEditing(false);
-    setEditId(null);
+      dispatch(deleteCourseReview(editId) as any);
+      setRating(0);
+      setReview("");
+      setEditing(false);
+      setEditId(null);
     }
   };
 
@@ -143,204 +108,138 @@ const CourseDetail = () => {
 
   const handleEnroll = () => {
     if (!id) return;
-
     if (!userInfo) {
       navigate('/login');
       return;
     }
-
     navigate(`/course/${id}/checkout`);
   };
 
+  const totalLectures = course?.course_modules?.reduce((acc, m) => acc + m.course_module_lessons.length, 0) || 0;
+
   return (
-   
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white dark:bg-[#0f1419]">
       {/* Header */}
-      <header className="bg-card shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0f1419]">
+        <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center h-16">
-           
-              <RoleBasedNavigation/>
-              {/* <Link to="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Courses
-              </Link> */}
-            
+            <RoleBasedNavigation />
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-[1400px] mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Course Hero */}
-            <Card className="overflow-hidden">
-              <div className="relative">
-                <img
-                  src={import.meta.env.VITE_API_BASE_URL + "/" +course?.thumbnail_photo_path}
-                  alt={course?.title}
-                  className="w-full h-64 object-cover"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <Button size="lg" className="bg-white text-black hover:bg-gray-100">
-                    <Play className="h-6 w-6 mr-2" />
-                    Preview Course
-                  </Button>
-                </div>
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Badge>{course?.category}</Badge>
-                  <Badge variant="outline">{course?.level}</Badge>
-                </div>
-                <h1 className="text-3xl font-bold mb-4">{course?.title}</h1>
-                <p className="text-muted-foreground mb-6">{course?.description}</p>
+          <div className="lg:col-span-2 space-y-6">
+            {/* Course Header */}
+            <div className="space-y-3">
+              <Badge className="bg-orange-500/10 text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 border-0">
+                {course?.category}
+              </Badge>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{course?.title}</h1>
+              <p className="text-base text-gray-600 dark:text-gray-400">{course?.description}</p>
+              
+              <div className="flex items-center gap-6 text-sm">
                 
-                <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                    <span className="font-medium">{course?.rating}</span>
-                    <span className="ml-1">({course?.total_reviews} reviews)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 mr-1" />
-                    {/* <span>{course?.students.toLocaleString()} students</span> */}
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    <span>{course?.duration}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              
+              </div>
+            </div>
 
-            {/* Course Content Tabs */}
-            <Tabs defaultValue="overview" className="bg-card rounded-lg shadow-sm">
-              <TabsList className="w-full">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-                {/* <TabsTrigger value="instructor">Instructor</TabsTrigger> */}
-                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            {/* Course Tabs */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 h-12 bg-gray-100 dark:bg-gray-800/50">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1f2e] data-[state=active]:text-teal-500 dark:data-[state=active]:text-teal-400">Overview</TabsTrigger>
+                <TabsTrigger value="curriculum" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1f2e] data-[state=active]:text-teal-500 dark:data-[state=active]:text-teal-400">Curriculum</TabsTrigger>
+                <TabsTrigger value="reviews" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#1a1f2e] data-[state=active]:text-teal-500 dark:data-[state=active]:text-teal-400">Reviews</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="p-6">
-                <div className="space-y-6">
-                  <div>
-          <div>
-  <h3 className="text-xl font-semibold mb-4">About This Course</h3>
-  <div
-  className="ql-editor  leading-relaxed [&>ol]:list-decimal [&>ol]:pl-5 [&>ul]:list-disc [&>ul]:pl-5 space-y-2"
-  dangerouslySetInnerHTML={{ __html: course?.content }}
-/>
-
-</div>
-      </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4">Prerequisites</h3>
-                    <p className="text-muted-foreground leading-relaxed">{course?.prerequisites}</p>
+              <TabsContent value="overview" className="mt-6 space-y-6">
+                {/* About This Course */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-teal-500" />
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">About This Course</h2>
                   </div>
-
-                  {/* <div>
-                    <h3 className="text-xl font-semibold mb-4">What You'll Learn</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {[
-                        "Build responsive websites with HTML, CSS, and JavaScript",
-                        "Create dynamic web applications with React",
-                        "Develop backend APIs with Node.js and Express",
-                        "Work with databases using MongoDB",
-                        "Deploy applications to production",
-                        "Best practices for web development"
-                      ].map((item, index) => (
-                        <div key={index} className="flex items-start">
-                          <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                          <span className="text-foreground">{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div> */}
-
-                  {/* <div>
-                    <h3 className="text-xl font-semibold mb-4">Course Features</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {course?.features.map((feature, index) => (
-                        <div key={index} className="flex items-center">
-                          <CheckCircle className="h-4 w-4 text-blue-500 mr-2" />
-                          <span className="text-foreground">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div> */}
+                  <div
+                    className="ql-editor text-gray-600 dark:text-gray-300 leading-relaxed [&>ol]:list-decimal [&>ol]:pl-5 [&>ul]:list-disc [&>ul]:pl-5 space-y-2"
+                    dangerouslySetInnerHTML={{ __html: course?.content }}
+                  />
                 </div>
+
+
+                {/* Requirements */}
+                {course?.prerequisites && (
+                  <div className="space-y-3">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Requirements</h2>
+                    <p className="text-gray-600 dark:text-gray-400">{course?.prerequisites}</p>
+                  </div>
+                )}
               </TabsContent>
 
-              <TabsContent value="curriculum" className="p-6">
+              <TabsContent value="curriculum" className="mt-6 space-y-4">
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Course Curriculum</h3>
-                  <div className="flex items-center gap-6 text-muted-foreground text-sm">
-    <span className="flex items-center gap-1">
-      <BookOpen className="h-4 w-4 mr-1" />
-      {course?.course_modules.length} Modules
-    </span>
-    <span className="flex items-center gap-1">
-      <Video className="h-4 w-4 mr-1" />
-      {course?.course_modules.reduce((acc, m) => acc + m.course_module_lessons.length, 0)} Lectures
-    </span>
-    <span className="flex items-center gap-1">
-      <Clock className="h-4 w-4 mr-1" />
-      {course?.duration} hrs
-    </span>
-    <span className="flex items-center gap-1">
-      <Brain className="h-4 w-4 mr-1" />
-      {course?.total_no_of_quizzes} Quizzes
-    </span>
-  </div>
-                  
-                  <div className="space-y-4">
-                    {course?.course_modules.map((section, index) => {
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Course Content</h2>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span>{course?.course_modules?.length || 0} sections</span>
+                    <span>•</span>
+                    <span>{totalLectures} lectures</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {course?.duration} hours
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {course?.course_modules?.map((section, index) => {
                       const isOpen = openModules.includes(index);
                       return (
-                        <Card key={index}>
-                          <CardHeader className="pb-3 cursor-pointer select-none" onClick={() => {
-                            setOpenModules((prev) =>
-                              prev.includes(index)
-                                ? prev.filter((i) => i !== index)
-                                : [...prev, index]
-                            );
-                          }}>
+                        <Card key={index} className="overflow-hidden bg-white dark:bg-[#1a1f2e] border-gray-200 dark:border-gray-800">
+                          <CardHeader 
+                            className="py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                            onClick={() => {
+                              setOpenModules((prev) =>
+                                prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+                              );
+                            }}
+                          >
                             <div className="flex justify-between items-center">
-                              <div className="flex items-center">
+                              <div className="flex items-center gap-2">
                                 {isOpen ? (
-                                  <ChevronDown className="h-5 w-5 mr-2 transition-transform" />
+                                  <ChevronDown className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                                 ) : (
-                                  <ChevronRight className="h-5 w-5 mr-2 transition-transform" />
+                                  <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                                 )}
-                                <CardTitle className="text-lg">{section?.module_title}</CardTitle>
+                                <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+                                  {index + 1}. {section?.module_title}
+                                </CardTitle>
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {section?.course_module_lessons.length} lessons • {section?.duration}
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {section?.course_module_lessons?.length} lectures • {section?.duration}
                               </div>
                             </div>
                           </CardHeader>
                           {isOpen && (
-                            <CardContent>
-                              <div className="space-y-2">
-                                {section?.course_module_lessons.map((item, itemIndex) => {
-                                  const lessonNumber = `${index + 1}.${itemIndex + 1}`;
-                                  return (
-                                    <div
-                                      key={itemIndex}
-                                      className="flex justify-between items-center py-2 border-b border-border last:border-b-0"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <span className="text-xs font-medium text-muted-foreground">{lessonNumber}</span>
-                                        <Play className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-foreground">{item?.lesson_title}</span>
-                                      </div>
-                                      <span className="text-sm text-muted-foreground">{item?.duration}</span>
+                            <CardContent className="pt-0 pb-3 px-4">
+                              <div className="space-y-0">
+                                {section?.course_module_lessons?.map((item, itemIndex) => (
+                                  <div
+                                    key={itemIndex}
+                                    className="flex justify-between items-center py-2 px-2 hover:bg-gray-50 dark:hover:bg-gray-800/30 rounded transition-colors"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <Play className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                      <span className="text-sm text-gray-700 dark:text-gray-300">{item?.lesson_title}</span>
+                                      {itemIndex < 2 && (
+                                        <Badge variant="outline" className="text-xs text-teal-600 dark:text-teal-400 border-teal-600 dark:border-teal-400">
+                                          Preview
+                                        </Badge>
+                                      )}
                                     </div>
-                                  );
-                                })}
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">{item?.duration}</span>
+                                  </div>
+                                ))}
                               </div>
                             </CardContent>
                           )}
@@ -351,275 +250,315 @@ const CourseDetail = () => {
                 </div>
               </TabsContent>
 
-              {/* <TabsContent value="instructor" className="p-6">
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src={course?.instructor.avatar} alt={course?.instructor.name} />
-                      <AvatarFallback>{course?.instructor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="text-2xl font-semibold">{course?.instructor.name}</h3>
-                      <p className="text-muted-foreground mb-4">{course?.instructor.bio}</p>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div>
-                          <div className="text-2xl font-bold">{course?.instructor.rating}</div>
-                          <div className="text-sm text-muted-foreground">Instructor Rating</div>
+              <TabsContent value="reviews" className="mt-6 space-y-6">
+                {/* Rating Overview */}
+                <div className="space-y-4">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Student Reviews</h2>
+                  <div className="bg-gray-100 dark:bg-[#1a1f2e] rounded-lg p-8">
+                    <div className="flex items-center gap-12">
+                      {/* Left Side - Overall Rating */}
+                      <div className="flex flex-col items-center justify-center min-w-[180px]">
+                        <div className="text-6xl font-bold text-gray-900 dark:text-white mb-3">{course?.rating}</div>
+                        <div className="flex items-center gap-1 mb-2">
+                          {[...Array(5)].map((_, i) => {
+                            const rating = course?.rating || 0;
+                            const isFullStar = i < Math.floor(rating);
+                            const isHalfStar = i === Math.floor(rating) && rating % 1 >= 0.5;
+                            
+                            return (
+                              <Star 
+                                key={i} 
+                                className={`h-6 w-6 ${
+                                  isFullStar 
+                                    ? "text-yellow-500 fill-yellow-500" 
+                                    : isHalfStar 
+                                    ? "text-yellow-500 fill-yellow-500" 
+                                    : "text-gray-400 dark:text-gray-600"
+                                }`}
+                              />
+                            );
+                          })}
                         </div>
-                        <div>
-                          <div className="text-2xl font-bold">{course?.instructor.students.toLocaleString()}</div>
-                          <div className="text-sm text-muted-foreground">Students</div>
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold">{course?.instructor.courses}</div>
-                          <div className="text-sm text-muted-foreground">Courses</div>
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold">8+</div>
-                          <div className="text-sm text-muted-foreground">Years Experience</div>
-                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{course?.total_reviews?.toLocaleString()} reviews</div>
+                      </div>
+
+                      {/* Right Side - Rating Breakdown */}
+                      <div className="flex-1 space-y-3">
+                        {[5, 4, 3, 2, 1].map((star) => {
+                          const percentage = star === 5 ? 78 : star === 4 ? 15 : star === 3 ? 5 : 1;
+                          return (
+                            <div key={star} className="flex items-center gap-4">
+                              <div className="flex items-center gap-1 w-10">
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{star}</span>
+                                <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
+                              </div>
+                              <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700/50 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-yellow-500 rounded-full transition-all duration-1000 ease-out"
+                                  style={{ 
+                                    width: `${percentage}%`,
+                                    animation: 'expandWidth 1s ease-out'
+                                  }}
+                                />
+                              </div>
+                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400 w-12 text-right">{percentage}%</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
                 </div>
-              </TabsContent> */}
 
-              <TabsContent value="reviews" className="p-6">
-                <div className="space-y-6">
-                  {/* Reviews Header */}
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <div className="text-4xl font-bold">{course?.rating}</div>
-                      <div className="flex items-center justify-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                        ))}
-                      </div>
-                      <div className="text-sm text-muted-foreground">{course?.total_reviews} reviews</div>
+                <style>{`
+                  @keyframes expandWidth {
+                    from {
+                      width: 0%;
+                    }
+                  }
+                `}</style>
+
+                <Separator className="dark:bg-gray-800" />
+
+                {/* Review Form */}
+                {userInfo ? (
+                  <Card className="bg-gray-50 dark:bg-[#1a1f2e] border-gray-200 dark:border-gray-800">
+                    <CardContent className="p-4">
+                      <h3 className="text-base font-semibold mb-3 text-gray-900 dark:text-white">
+                        {editing ? "Update Your Review" : "Write a Review"}
+                      </h3>
+                      <form onSubmit={handleSubmit} className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Rating:</span>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              type="button"
+                              key={star}
+                              onClick={() => setRating(star)}
+                              className="transition-colors"
+                            >
+                              <Star 
+                                className={`h-5 w-5 ${star <= rating ? "text-yellow-500 fill-yellow-500" : "text-gray-400 dark:text-gray-600"}`}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                        <textarea
+                          className="w-full border border-gray-300 dark:border-gray-700 rounded-lg p-3 min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white dark:bg-[#0f1419] text-gray-900 dark:text-white"
+                          value={review}
+                          onChange={(e) => setReview(e.target.value)}
+                          placeholder="Share your experience with this course..."
+                          required
+                        />
+                        <div className="flex gap-2">
+                          <Button type="submit" disabled={loading || rating === 0} className="bg-orange-500 hover:bg-orange-600 text-white">
+                            {editing ? "Update Review" : "Post Review"}
+                          </Button>
+                          {editing && (
+                            <>
+                              <Button type="button" variant="outline" onClick={handleCancelEdit} className="dark:border-gray-700 dark:text-gray-300">
+                                Cancel
+                              </Button>
+                              <Button type="button" variant="destructive" onClick={handleDelete}>
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="bg-gray-50 dark:bg-[#1a1f2e] border-gray-200 dark:border-gray-800">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-gray-600 dark:text-gray-400 mb-3">Want to share your experience?</p>
+                      <Button variant="outline" asChild className="dark:border-gray-700 dark:text-gray-300">
+                        <Link to="/login">Log in to post a review</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Reviews List */}
+                <div className="space-y-3">
+                  {course?.course_reviews?.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      <p>No reviews yet. Be the first to share your experience!</p>
                     </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Review Form - Always visible at the top */}
-                  {userInfo ? (
-                    <Card className="bg-muted/30 sticky top-4 z-10">
-                      <CardContent className="p-4">
-                        <h4 className="text-lg font-semibold mb-4">
-                          {editing ? "Update Your Review" : "Write a Review"}
-                        </h4>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                          <div className="flex items-center space-x-1">
-                            <span className="text-sm text-muted-foreground mr-2">Rating:</span>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                type="button"
-                                key={star}
-                                onClick={() => setRating(star)}
-                                className={`transition-colors ${star <= rating ? "text-yellow-400" : "text-gray-300 hover:text-yellow-200"}`}
-                              >
-                                <Star className="h-5 w-5" fill={star <= rating ? "#facc15" : "none"} />
-                              </button>
-                            ))}
-                          </div>
-                          <textarea
-                            className="w-full border rounded-md p-3 min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                            value={review}
-                            onChange={(e) => setReview(e.target.value)}
-                            placeholder="Share your experience with this course?..."
-                            required
-                          />
-                          <div className="flex gap-2">
-                            <Button type="submit" disabled={loading || rating === 0}>
-                              {editing ? "Update Review" : "Post Review"}
-                            </Button>
-                            {editing && (
-                              <>
-                                <Button 
-                                  type="button" 
-                                  variant="outline" 
-                                  onClick={handleCancelEdit}
-                                  disabled={loading}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button 
-                                  type="button" 
-                                  variant="destructive" 
-                                  onClick={handleDelete} 
-                                  disabled={loading}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-1" />
-                                  Delete
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </form>
-                      </CardContent>
-                    </Card>
                   ) : (
-                    <Card className="bg-muted/30">
-                      <CardContent className="p-4 text-center">
-                        <p className="text-muted-foreground mb-2">Want to share your experience?</p>
-                        <Button variant="outline" asChild>
-                          <Link to="/login">Log in to post a review</Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Reviews List */}
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                    <h4 className="text-lg font-semibold sticky top-0 bg-background py-2">
-                      Student Reviews ({course?.course_reviews?.length || 0})
-                    </h4>
-                    
-                    {course?.course_reviews?.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <p>No reviews yet. Be the first to share your experience!</p>
-                      </div>
-                    ) : (
-                      course?.course_reviews?.map((reviewData) => (
-                        <Card key={reviewData?.id} className="relative">
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-2">
-                                  <Avatar className="h-8 w-8">
-                                    <AvatarFallback className="text-xs">
-                                      {/* {reviewData?.reviewer_name?.charAt(0) || 'U'} */}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    {/* <span className="font-medium text-sm">{reviewData?.reviewer_name || 'Anonymous'}</span> */}
-                                    <div className="flex items-center space-x-2">
-                                      <div className="flex">
-                                        {[...Array(reviewData.rating)].map((_, i) => (
-                                          <Star key={i} className="h-3 w-3 text-yellow-400 fill-current" />
-                                        ))}
-                                        {[...Array(5 - reviewData.rating)].map((_, i) => (
-                                          <Star key={i} className="h-3 w-3 text-gray-300" />
-                                        ))}
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">
-                                        {new Date(reviewData?.created_at).toLocaleDateString()}
-                                      </span>
+                    course?.course_reviews?.map((reviewData) => (
+                      <Card key={reviewData?.id} className="bg-white dark:bg-[#1a1f2e] border-gray-200 dark:border-gray-800">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarFallback className="bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                                    {reviewData?.review_from_name?.charAt(0) || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-semibold text-gray-900 dark:text-white">{reviewData?.review_from_name || 'Anonymous'}</div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex">
+                                      {[...Array(5)].map((_, i) => (
+                                        <Star 
+                                          key={i} 
+                                          className={`h-4 w-4 ${i < reviewData.rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300 dark:text-gray-600"}`}
+                                        />
+                                      ))}
                                     </div>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      {new Date(reviewData?.created_at).toLocaleDateString()}
+                                    </span>
                                   </div>
                                 </div>
-                                <p className="text-foreground text-sm leading-relaxed">{reviewData?.review}</p>
                               </div>
-                              
-                              {/* Edit/Delete buttons for user's own review */}
-                              {userInfo?.id === reviewData?.review_from_id && (
-                                <div className="flex space-x-1 ml-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleEditReview(reviewData)}
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditId(reviewData.id);
-                                      handleDelete();
-                                    }}
-                                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              )}
+                              <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm">{reviewData?.review}</p>
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    )}
-                  </div>
+                            {userInfo?.id === reviewData?.review_from_id && (
+                              <div className="flex gap-1 ml-4">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditReview(reviewData)}
+                                  className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditId(reviewData.id);
+                                    handleDelete();
+                                  }}
+                                  className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Enrollment Card */}
-            <Card className="sticky top-8">
-              <CardContent className="p-6">
-                <div className="text-center mb-6">
-                  <div className="flex items-center justify-center space-x-2 mb-2">
-                    <span className="text-3xl font-bold">${course?.price}</span>
-                    {/* <span className="text-lg text-muted-foreground line-through">${course?.originalPrice}</span> */}
+          <div className="space-y-4">
+            {/* Course Preview Card */}
+            <Card className="sticky top-6 overflow-hidden bg-white dark:bg-[#1a1f2e] border-gray-200 dark:border-gray-800">
+              <div className="relative">
+                <img
+                  src={import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path}
+                  alt={course?.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <Button size="lg" variant="secondary" className="bg-white/90 text-black hover:bg-white">
+                    <Play className="h-5 w-5 mr-2" />
+                    Preview this course
+                  </Button>
+                </div>
+              </div>
+
+              <CardContent className="p-5 space-y-4">
+                {/* Discount Badge and Timer */}
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-orange-500 text-white hover:bg-orange-600 text-sm px-3 py-1">
+                    🔥 75% OFF
+                  </Badge>
+                  <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                    <Clock className="h-4 w-4" />
+                    <span>Ends in 2 days</span>
                   </div>
-                  <Badge className="bg-red-500">50% OFF</Badge>
                 </div>
 
+                {/* Pricing */}
+                <div className="flex items-baseline gap-3">
+                  <span className="text-4xl font-bold text-gray-900 dark:text-white">${course?.price}</span>
+                  <span className="text-xl text-gray-500 dark:text-gray-400 line-through">$199</span>
+                </div>
+
+                {/* CTA Button */}
                 {userInfo ? (
                   userCoursesLoading || enrollmentLoading ? (
-                    <Button className="w-full mb-4" disabled>
+                    <Button className="w-full h-12 text-base" disabled>
                       Loading...
                     </Button>
                   ) : isPartiallyPaid ? (
-                    <div className="space-y-3">
-                      <Button className="w-full" variant="outline" asChild>
+                    <div className="space-y-2">
+                      <Button className="w-full h-12 text-base" variant="outline" asChild>
                         <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
                       </Button>
-                      <Button className="w-full" onClick={() => navigate(`/course/${id}/checkout`)}>
-                        Complete installment payment
+                      <Button 
+                        className="w-full h-12 text-base bg-orange-500 hover:bg-orange-600 text-white" 
+                        onClick={() => navigate(`/course/${id}/checkout`)}
+                      >
+                        Complete Payment
                       </Button>
                     </div>
                   ) : isPaid && (enrolledCourse?.id || course?.id) ? (
-                    <Button className="w-full mb-4" asChild>
+                    <Button className="w-full h-12 text-base bg-orange-500 hover:bg-orange-600 text-white" asChild>
                       <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
                     </Button>
                   ) : (
-                    <Button className="w-full mb-4" onClick={handleEnroll}>
+                    <Button className="w-full h-12 text-base bg-orange-500 hover:bg-orange-600 text-white" onClick={handleEnroll}>
                       Enroll Now
                     </Button>
                   )
                 ) : (
-                  <Button className="w-full mb-4" asChild>
+                  <Button className="w-full h-12 text-base bg-orange-500 hover:bg-orange-600 text-white" asChild>
                     <Link to="/login">Login to Enroll</Link>
                   </Button>
                 )}
-                {/* <Button variant="outline" className="w-full mb-6">
-                  Add to Wishlist
-                </Button> */}
 
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Duration:</span>
-                    <span>{course?.duration}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Level:</span>
-                    <span>{course?.level}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Language:</span>
-                    <span>{course?.language}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Updated:</span>
-                    {/* <span>{course?.lastUpdated}</span> */}
-                  </div>
+                {/* Money Back Guarantee */}
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <CheckCircle className="h-4 w-4 text-teal-500" />
+                  <span>30-Day Money-Back Guarantee</span>
                 </div>
 
-                <Separator className="my-4" />
+                <Separator className="dark:bg-gray-800" />
 
-                <div className="text-center text-sm text-muted-foreground">
-                  <p className="mb-2">30-Day Money-Back Guarantee</p>
-                  <p>Full Lifetime Access</p>
+                {/* Course Includes */}
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">This course includes:</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">52 hours on-demand video</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">45 coding exercises</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">15 real-world projects</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">Downloadable resources</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">Full lifetime access</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">Certificate of completion</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-
           </div>
         </div>
       </div>
