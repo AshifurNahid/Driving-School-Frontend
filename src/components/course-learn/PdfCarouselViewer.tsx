@@ -38,7 +38,7 @@ export const PdfCarouselViewer = ({ src, title }: PdfCarouselViewerProps) => {
 
       <Separator />
 
-      <div className="rounded-xl border bg-card shadow-sm overflow-hidden dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-xl border bg-card overflow-hidden dark:border-slate-800 dark:bg-slate-900">
         {loadError ? (
           <Alert variant="destructive" className="m-4">
             <AlertTitle>Unable to load PDF</AlertTitle>

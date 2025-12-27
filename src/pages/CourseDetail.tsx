@@ -470,20 +470,12 @@ const CourseDetail = () => {
 
               <CardContent className="p-5 space-y-4">
                 {/* Discount Badge and Timer */}
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-orange-500 text-white hover:bg-orange-600 text-sm px-3 py-1">
-                    🔥 75% OFF
-                  </Badge>
-                  <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                    <Clock className="h-4 w-4" />
-                    <span>Ends in 2 days</span>
-                  </div>
-                </div>
+               
 
                 {/* Pricing */}
                 <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">${course?.price}</span>
-                  <span className="text-xl text-gray-500 dark:text-gray-400 line-through">$199</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">${course?.price}</span>
+                
                 </div>
 
                 {/* CTA Button */}
@@ -533,16 +525,9 @@ const CourseDetail = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">52 hours on-demand video</span>
+                      <span className="text-gray-700 dark:text-gray-300">Quiz Exam</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">45 coding exercises</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">15 real-world projects</span>
-                    </div>
+                  
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-teal-500 flex-shrink-0" />
                       <span className="text-gray-700 dark:text-gray-300">Downloadable resources</span>
