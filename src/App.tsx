@@ -29,6 +29,7 @@ import UserAppointment from '@/pages/UserAppointment';
 import DrivingSchoolLearnerProfile from "./pages/DrivingSchoolLearnerProfile";
 import CheckoutPage from "./pages/Checkout";
 import PaymentResult from "./pages/PaymentResult";
+import RegisterVerifyOTP from "./pages/RegisterVerifyOTP";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/learner/profile" element={<DrivingSchoolLearnerProfile/>} />
                 <Route path="/learner/courses" element={<LearnerCourses />} />
                 <Route path="/appointments" element={<UserAppointment  />} />
+                <Route path="/register/verify" element={<RegisterVerifyOTP />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

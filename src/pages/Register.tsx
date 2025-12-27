@@ -67,16 +67,33 @@ const Register = () => {
   const { loading, error } = useAuth();
 
   // Show toasts based on Redux state changes
+
   useEffect(() => {
     if (!loading && error) {
       toast({ title: 'Registration Failed', description: error, variant: 'destructive' });
       setSubmitted(false);
     }
     if (!loading && submitted && !error) {
-      toast({ title: 'Registration Successful', description: 'You can now sign in with your credentials.' });
-      navigate('/login');
+      toast({
+        title: 'Registration Initiated',
+        description: 'Please check your email for verification code.'
+      });
+      // Store email for OTP verification
+      sessionStorage.setItem('registrationEmail', form.studentEmail);
+      navigate('/register/verify');  // Navigate to OTP page instead of login
     }
-  }, [loading, error, toast, submitted, navigate]);
+  }, [loading, error, toast, submitted, navigate, form.studentEmail]);
+
+  // useEffect(() => {
+  //   if (!loading && error) {
+  //     toast({ title: 'Registration Failed', description: error, variant: 'destructive' });
+  //     setSubmitted(false);
+  //   }
+  //   if (!loading && submitted && !error) {
+  //     toast({ title: 'Registration Successful', description: 'You can now sign in with your credentials.' });
+  //     navigate('/login');
+  //   }
+  // }, [loading, error, toast, submitted, navigate]);
 
   // Optional: handle success message if you store it in Redux; otherwise, you can rely on the action to dispatch a success message
   // For now, we assume success is handled by redirecting or by a global listener
@@ -330,8 +347,18 @@ const Register = () => {
             <Label className="block text-sm font-medium text-gray-700 mb-1">Contact Information <span className="text-red-500">*</span></Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">Student's E-mail <span className="text-red-500">*</span></Label>
-                <Input type="email" placeholder="Student's E-mail" value={form.studentEmail} onChange={e => handleFieldChange('studentEmail', e.target.value)} />
+                <Label className="block text-sm font-medium text-gray-700 mb-1">
+                  Student's E-mail <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="email"
+                  placeholder="Student's E-mail"
+                  value={form.studentEmail}
+                  onChange={e => handleFieldChange('studentEmail', e.target.value)}
+                />
+                <p className="text-xs text-blue-600 mt-1">
+                  📧 A verification code will be sent to this email address
+                </p>
               </div>
               <div className="flex flex-col">
                 <Label className="block text-sm font-medium text-gray-700 mb-1">Parent's E-mail (optional)</Label>
