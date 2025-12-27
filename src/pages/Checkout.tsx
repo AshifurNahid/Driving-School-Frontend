@@ -98,15 +98,15 @@ const CardCheckout = ({
   };
 
   return (
-    <Card className="bg-white/95 p-8 rounded-3xl shadow-2xl border border-indigo-50 dark:bg-slate-900/80 dark:border-slate-800">
+    <Card className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-200 dark:bg-[#111827] dark:border-gray-800">
       <CardHeader className="space-y-3 p-0">
         <div className="space-y-1">
           <CardTitle className="text-2xl font-semibold text-gray-900 dark:text-slate-50">Secure checkout</CardTitle>
           <CardDescription className="text-gray-600 dark:text-slate-300">Enter your details to complete payment.</CardDescription>
         </div>
-        <Separator className="bg-gray-200 dark:bg-slate-700" />
+        <Separator className="bg-gray-200 dark:bg-gray-800" />
         <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-slate-300">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-slate-800">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50 text-orange-600 dark:bg-[#1f2a3d] dark:text-orange-300">
             <CreditCard className="h-5 w-5" />
           </div>
           <div>
@@ -127,7 +127,7 @@ const CardCheckout = ({
             placeholder="Phone or email"
             value={receiptEmail}
             onChange={(event) => setReceiptEmail(event.target.value)}
-            className="h-11 rounded-xl border-gray-200 bg-white/80 text-gray-900 shadow-inner focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="h-11 rounded-xl border-gray-200 bg-white text-gray-900 shadow-inner focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-gray-800 dark:bg-[#0f172a] dark:text-slate-100"
           />
         </div>
 
@@ -140,14 +140,14 @@ const CardCheckout = ({
             placeholder="Full name on card"
             value={cardholderName}
             onChange={(event) => setCardholderName(event.target.value)}
-            className="h-11 rounded-xl border-gray-200 bg-white/80 text-gray-900 shadow-inner focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="h-11 rounded-xl border-gray-200 bg-white text-gray-900 shadow-inner focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-gray-800 dark:bg-[#0f172a] dark:text-slate-100"
           />
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-indigo-50 to-indigo-100/70 p-5 shadow-md dark:border-slate-700 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md dark:border-gray-800 dark:bg-[#0f172a]">
           <div className="mb-4 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-slate-200">
             <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-indigo-600" />
+              <CreditCard className="h-4 w-4 text-orange-500" />
               Card information
             </div>
             <div className="flex items-center gap-1 opacity-80">
@@ -156,7 +156,7 @@ const CardCheckout = ({
               <img src="https://img.icons8.com/color/48/amex.png" alt="Amex" className="h-5 w-8" />
             </div>
           </div>
-          <div className="rounded-xl border border-gray-300 bg-white p-4 shadow-inner focus-within:ring-2 focus-within:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800">
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-inner focus-within:ring-2 focus-within:ring-orange-500 dark:border-gray-800 dark:bg-[#1a1f2e]">
             <CardElement options={{ hidePostalCode: true }} />
           </div>
         </div>
@@ -172,7 +172,7 @@ const CardCheckout = ({
         <Button
           onClick={handleConfirmPayment}
           disabled={isConfirming}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed dark:bg-orange-500 dark:hover:bg-orange-600"
         >
           {isConfirming ? (
             <span className="flex items-center gap-2 justify-center">
@@ -349,8 +349,8 @@ const CheckoutContent = () => {
 
   if (loading || statusLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
-        <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
+      <div className="min-h-screen bg-[#f8fafc] text-gray-900 dark:bg-[#0f1419] dark:text-slate-100">
+        <header className="sticky top-0 z-50 bg-white/90 dark:bg-[#0f1419] backdrop-blur shadow-sm border-b border-gray-200 dark:border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
               <RoleBasedNavigation />
@@ -358,9 +358,9 @@ const CheckoutContent = () => {
           </div>
         </header>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Card className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
+          <Card className="bg-white p-6 rounded-2xl shadow-xl border border-gray-200 dark:bg-[#111827] dark:border-gray-800">
             <CardContent className="p-0 flex items-center gap-3 text-gray-700 dark:text-slate-200">
-              <Loader2 className="h-5 w-5 animate-spin text-indigo-600" /> Loading checkout details...
+              <Loader2 className="h-5 w-5 animate-spin text-orange-500" /> Loading checkout details...
             </CardContent>
           </Card>
         </main>
@@ -370,8 +370,8 @@ const CheckoutContent = () => {
 
   if (statusError) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
-        <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
+      <div className="min-h-screen bg-[#f8fafc] text-gray-900 dark:bg-[#0f1419] dark:text-slate-100">
+        <header className="sticky top-0 z-50 bg-white/90 dark:bg-[#0f1419] backdrop-blur shadow-sm border-b border-gray-200 dark:border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
               <RoleBasedNavigation />
@@ -379,7 +379,7 @@ const CheckoutContent = () => {
           </div>
         </header>
         <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <Card className="bg-white p-8 rounded-2xl shadow-xl border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
+          <Card className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200 dark:bg-[#111827] dark:border-gray-800">
             <CardHeader className="p-0 space-y-3">
               <CardTitle className="text-xl font-semibold text-gray-900 dark:text-slate-50">Unable to load checkout</CardTitle>
               <CardDescription className="text-gray-600 dark:text-slate-300">{statusError}</CardDescription>
@@ -394,8 +394,8 @@ const CheckoutContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-gray-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 dark:bg-[#0f1419] dark:text-slate-50">
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-[#0f1419] backdrop-blur shadow-sm border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <RoleBasedNavigation />
@@ -405,15 +405,15 @@ const CheckoutContent = () => {
 
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="space-y-6">
-          <div className="grid lg:grid-cols-[1.05fr,1.4fr] xl:grid-cols-[1.1fr,1.6fr] gap-8 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-br from-sky-50 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-8 flex flex-col gap-8">
+          <div className="grid lg:grid-cols-[1.05fr,1.4fr] xl:grid-cols-[1.1fr,1.6fr] gap-8 bg-white border border-gray-200 dark:bg-[#111827] dark:border-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-white p-8 flex flex-col gap-8 dark:bg-[#0f1419] lg:border-r lg:border-gray-100 dark:lg:border-gray-800">
               <div className="space-y-5">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm dark:bg-slate-800 dark:text-sky-200">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-700 shadow-sm dark:bg-orange-500/15 dark:text-orange-200">
                     <CheckCircle2 className="h-4 w-4" />
                     Secure payment
                   </div>
-                  <Badge variant="outline" className="bg-white/80 dark:bg-slate-800 text-indigo-700 dark:text-indigo-200 border-indigo-100 dark:border-slate-700">
+                  <Badge variant="outline" className="bg-white text-slate-700 border-gray-200 dark:bg-[#0f172a] dark:text-slate-100 dark:border-gray-800">
                     Status: {enrollmentStatus?.payment_status || "Unpaid"}
                   </Badge>
                 </div>
@@ -421,7 +421,7 @@ const CheckoutContent = () => {
                   <h2 className="text-2xl font-semibold text-gray-900 dark:text-slate-50">{course?.title || "Course"}</h2>
                 
                 </div>
-                <div className="rounded-2xl border border-white/80 bg-white/60 p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900/70">
+                <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-lg dark:border-gray-800 dark:bg-[#0f172a]">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-sm text-gray-600 dark:text-slate-300">Course price</p>
@@ -429,7 +429,7 @@ const CheckoutContent = () => {
                     </div>
                    
                   </div>
-                  <Separator className="my-4 bg-gray-200 dark:bg-slate-700" />
+                  <Separator className="my-4 bg-gray-200 dark:bg-gray-800" />
                   <ul className="space-y-2 text-sm text-gray-700 dark:text-slate-300">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Instant course unlock after final payment
@@ -453,8 +453,8 @@ const CheckoutContent = () => {
                       variant="outline"
                       className={`justify-start h-auto py-3 border transition-all ${
                         paymentType === "FullPayment"
-                          ? "bg-indigo-600 text-white border-indigo-600 shadow-md"
-                          : "bg-white text-indigo-700 border-indigo-100 hover:border-indigo-300"
+                          ? "bg-orange-500 text-white border-orange-500 shadow-md"
+                          : "bg-white text-slate-800 border-gray-200 hover:border-orange-200 dark:bg-[#0f172a] dark:text-slate-100 dark:border-gray-800"
                       } ${isInstallmentOnly ? "cursor-not-allowed opacity-60" : ""}`}
                       onClick={() => setPaymentType("FullPayment")}
                       disabled={isInstallmentOnly}
@@ -470,7 +470,7 @@ const CheckoutContent = () => {
                       className={`justify-start h-auto py-3 border transition-all ${
                         paymentType === "PayByInstallment"
                           ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
-                          : "bg-white text-indigo-700 border-indigo-100 hover:border-indigo-300"
+                          : "bg-white text-slate-800 border-gray-200 hover:border-orange-200 dark:bg-[#0f172a] dark:text-slate-100 dark:border-gray-800"
                       }`}
                       onClick={() => setPaymentType("PayByInstallment")}
                     >
@@ -490,10 +490,10 @@ const CheckoutContent = () => {
                 </div>
 
                 {paymentType === "PayByInstallment" && (
-                  <div className="rounded-2xl border border-white/80 bg-white/70 p-5 shadow-md space-y-4 dark:border-slate-800 dark:bg-slate-900/70">
+                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-md space-y-4 dark:border-gray-800 dark:bg-[#0f172a]">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-gray-900 dark:text-slate-100">Installment breakdown</p>
-                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-200">
                         Pay as you go
                       </Badge>
                     </div>
@@ -501,8 +501,8 @@ const CheckoutContent = () => {
                       <div
                         className={`rounded-xl border p-4 shadow-sm min-w-0 ${
                           enrollmentStatus?.payment_status === "Unpaid"
-                            ? "bg-indigo-50 border-indigo-100 dark:bg-indigo-950/30 dark:border-indigo-900"
-                            : "bg-white border-indigo-50 dark:bg-slate-900/60 dark:border-slate-800"
+                            ? "bg-orange-50 border-orange-200 dark:bg-orange-500/15 dark:border-orange-900"
+                            : "bg-white border-gray-200 dark:bg-[#111827] dark:border-gray-800"
                         }`}
                       >
                         <p className="text-xs text-gray-600 dark:text-slate-300">Initial installment</p>
@@ -514,7 +514,7 @@ const CheckoutContent = () => {
                         className={`rounded-xl border p-4 shadow-sm min-w-0 ${
                           enrollmentStatus?.payment_status === "PartiallyPaid"
                             ? "bg-emerald-50 border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900"
-                            : "bg-white border-indigo-50 dark:bg-slate-900/60 dark:border-slate-800"
+                            : "bg-white border-gray-200 dark:bg-[#111827] dark:border-gray-800"
                         }`}
                       >
                         <p className="text-xs text-gray-600 dark:text-slate-300">Finial nstallment</p>
@@ -527,10 +527,10 @@ const CheckoutContent = () => {
                 )}
 
                 {paymentType === "PayByInstallment" || enrollmentStatus?.payment_histories?.length ? (
-                  <div className="rounded-2xl border border-white/80 bg-white/60 p-5 shadow-md space-y-3 dark:border-slate-800 dark:bg-slate-900/70">
+                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-md space-y-3 dark:border-gray-800 dark:bg-[#0f172a]">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-gray-900 dark:text-slate-100">Payment history</p>
-                      <Badge variant="outline" className="border-indigo-200 text-indigo-700 dark:border-slate-700 dark:text-indigo-200">
+                      <Badge variant="outline" className="border-gray-200 text-slate-700 dark:border-gray-700 dark:text-slate-100">
                         {enrollmentStatus?.payment_histories?.length || 0} payment(s)
                       </Badge>
                     </div>
@@ -545,7 +545,7 @@ const CheckoutContent = () => {
                           const formattedDate = historyDate ? new Date(historyDate).toLocaleDateString() : "Date not provided";
 
                           return (
-                            <div key={`${transactionId}-${index}`} className="flex items-center justify-between rounded-xl bg-white/70 border border-indigo-50 p-4 dark:bg-slate-900/60 dark:border-slate-800">
+                            <div key={`${transactionId}-${index}`} className="flex items-center justify-between rounded-xl bg-white border border-gray-200 p-4 dark:bg-[#111827] dark:border-gray-800">
                               <div>
                                 <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Payment #{transactionId}</p>
                                 <p className="text-xs text-gray-600 dark:text-slate-400">{formattedDate}</p>
@@ -562,7 +562,7 @@ const CheckoutContent = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-slate-300">
-                        <AlertCircle className="h-4 w-4 text-indigo-500" />
+                        <AlertCircle className="h-4 w-4 text-orange-500" />
                         <p>Your payment history will appear here after the first installment.</p>
                       </div>
                     )}
@@ -572,7 +572,7 @@ const CheckoutContent = () => {
 
               <div className="mt-auto space-y-3">
                 <Button
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-orange-500 dark:hover:bg-orange-600"
                   onClick={handleCreateTransaction}
                   disabled={isCreatingTransaction || !course || !enrollmentStatus || nextPaymentAmount <= 0}
                 >
@@ -588,13 +588,13 @@ const CheckoutContent = () => {
               </div>
             </div>
 
-            <div className="p-8 bg-white/90 dark:bg-slate-900/80">
+            <div className="p-8 bg-gray-50 dark:bg-[#0f172a]">
               {transaction ? (
                 <CardCheckout transaction={transaction} courseName={course?.title} userEmail={userInfo?.email} />
               ) : (
-                <Card className="bg-white/80 dark:bg-slate-900/70 rounded-2xl border border-dashed border-indigo-200 dark:border-slate-700 h-full">
+                <Card className="bg-white dark:bg-[#111827] rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 h-full">
                   <CardContent className="h-full flex flex-col items-center justify-center text-center space-y-3 text-gray-600 dark:text-slate-300">
-                    <AlertCircle className="h-6 w-6 text-indigo-500" />
+                    <AlertCircle className="h-6 w-6 text-orange-500" />
                     <div className="space-y-1">
                       <p className="font-medium text-gray-800 dark:text-slate-100">Start checkout to continue</p>
                       <p className="text-sm">We will generate a secure payment session once you click the button on the left.</p>
