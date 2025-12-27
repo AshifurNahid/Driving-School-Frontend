@@ -205,7 +205,7 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
 
   return (
     <>
-      <Card className="border border-slate-200 bg-white shadow-xl shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
+      <Card className="border border-slate-200 bg-white shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
         <CardHeader className="space-y-4 border-b border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white pb-6 dark:border-[#222832] dark:from-[#1A1D23] dark:via-[#12161C] dark:to-[#0F1419]">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-[#FF7F50]/60 bg-[#FF7F50]/10 text-[#FF7F50] px-3 py-1 dark:bg-[#FF7F50]/15 dark:text-[#FFB4A2]">
@@ -243,7 +243,7 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
           return (
             <div
               key={question.id ?? idx}
-              className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-lg shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/20"
+              className="space-y-4 rounded-lg border border-slate-200 bg-white p-5 shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/20"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
@@ -348,7 +348,7 @@ export const QuizViewer = ({ quiz, courseId }: QuizViewerProps) => {
           );
         })}
 
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-lg shadow-black/10 dark:border-[#2A3038] dark:bg-[#1E2329] dark:shadow-black/20">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-md shadow-black/10 dark:border-[#2A3038] dark:bg-[#1E2329] dark:shadow-black/20">
           <p className="text-sm text-slate-600 dark:text-[#8B92A0]">
             {submitted ? "Quiz submitted! Review your answers above." : "Select your answers and click submit when ready."}
           </p>

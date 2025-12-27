@@ -14,7 +14,7 @@ export const LessonViewer = ({ lesson, attachmentUrl }: LessonViewerProps) => {
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden border border-slate-200 bg-white shadow-xl shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
+      <Card className="overflow-hidden border border-slate-200 bg-white shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
         <CardHeader className="space-y-4 border-b border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white pb-6 dark:border-[#222832] dark:from-[#1A1D23] dark:via-[#12161C] dark:to-[#0F1419]">
           <div className="flex flex-wrap items-center gap-2">
             <Badge

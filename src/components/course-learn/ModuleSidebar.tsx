@@ -42,7 +42,7 @@ const ModuleSidebarItem = ({
   const quizCount = quizzes.length;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
       <button
         className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-slate-50 dark:hover:bg-[#222832]"
         onClick={onToggle}
@@ -170,7 +170,7 @@ export const ModuleSidebar = ({
   return (
     <aside className="h-full w-full space-y-4 overflow-y-auto pb-10 p-4">
       {/* Course Progress Card */}
-      <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-lg shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
+      <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
         <div className="flex items-start gap-3">
           <BookOpenCheck className="mt-0.5 h-5 w-5 text-[#4ECDC4] flex-shrink-0" />
           <div className="flex-1 min-w-0">
