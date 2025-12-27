@@ -75,20 +75,22 @@ const SlotCard = ({
 }) => (
   <button
     onClick={() => onSelect(slot)}
-    className={`w-full text-left rounded-xl border-2 p-4 transition bg-[#1E2329] hover:border-[#4ECDC4] hover:shadow-lg hover:shadow-[#4ECDC4]/10 ${
-      selected ? "border-[#4ECDC4] ring-2 ring-[#4ECDC4]/40 shadow-lg shadow-[#4ECDC4]/10" : "border-[#2A3038]"
+    className={`w-full text-left rounded-xl border-2 p-4 transition bg-white hover:border-[#4ECDC4] hover:shadow-lg hover:shadow-[#4ECDC4]/10 dark:bg-[#1E2329] ${
+      selected
+        ? "border-[#4ECDC4] ring-2 ring-[#4ECDC4]/40 shadow-lg shadow-[#4ECDC4]/10"
+        : "border-slate-200 dark:border-[#2A3038]"
     }`}
   >
     <div className="flex items-center justify-between gap-3">
       <div className="space-y-1">
-        <p className="text-xs text-[#8B92A0]">Time</p>
-        <p className="font-semibold text-white">{formatTimeRange(slot.startTime, slot.endTime)}</p>
+        <p className="text-xs text-slate-500 dark:text-[#8B92A0]">Time</p>
+        <p className="font-semibold text-slate-900 dark:text-white">{formatTimeRange(slot.startTime, slot.endTime)}</p>
       </div>
-      <div className="text-xs px-2 py-1 rounded-full bg-[#103323] border border-[#22C55E]/40 text-[#22C55E] font-medium">
+      <div className="text-xs px-2 py-1 rounded-full bg-[#E6F6EE] text-[#15803D] font-medium border border-[#22C55E]/40 dark:bg-[#103323] dark:text-[#22C55E]">
         Available
       </div>
     </div>
-    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-[#9CA3AF]">
+    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-600 dark:text-[#9CA3AF]">
       <span className="flex items-center gap-2">Instructor: {slot.instructorName || `Instructor ${slot.instructorId}`}</span>
       <span className="flex items-center gap-2">Location: {slot.location || "TBD"}</span>
     </div>
@@ -297,12 +299,12 @@ const CourseLearn = () => {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-[#0F1419] via-[#0F1419] to-[#1A1D23]"
+      className="min-h-screen bg-[#f8f9fa] text-slate-900 dark:bg-gradient-to-br dark:from-[#0F1419] dark:via-[#0F1419] dark:to-[#1A1D23] dark:text-[#F8F9FA]"
       style={{ fontFamily: "'SF Pro Text', 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, -apple-system, sans-serif" }}
     >
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
 
-      <main className="flex mt-16 text-[#F8F9FA]">
+      <main className="flex mt-16 text-slate-900 dark:text-[#F8F9FA]">
         {isLoading && (
           <div className="flex-1 p-6">
             <CourseLearnSkeleton />
@@ -335,7 +337,7 @@ const CourseLearn = () => {
         {!isLoading && !isError && course && (
           <>
             {/* Fixed Sidebar - Desktop Only */}
-            <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-96 bg-[#1A1D23] overflow-y-auto border-r border-[#222832] shadow-xl/20">
+            <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-96 bg-white overflow-y-auto border-r border-slate-200 shadow-xl/10 dark:bg-[#1A1D23] dark:border-[#222832] dark:shadow-xl/20">
               <ModuleSidebar
                 courseTitle={course.title}
                 progressPercentage={data?.progress_percentage}
@@ -352,29 +354,29 @@ const CourseLearn = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-96 min-h-screen bg-[#0F1419]">
+            <div className="flex-1 lg:ml-96 min-h-screen bg-[#f8f9fa] dark:bg-[#0F1419]">
               {/* Offline Training Appointment Card */}
               {courseType !== 0 && (
-                <Card className="m-6 border border-[#222832] bg-gradient-to-r from-[#1E2329] via-[#151A20] to-[#1E2329] shadow-2xl shadow-[#00000033] rounded-2xl">
+                <Card className="m-6 border border-slate-200 bg-white shadow-xl rounded-2xl dark:border-[#222832] dark:bg-gradient-to-r dark:from-[#1E2329] dark:via-[#151A20] dark:to-[#1E2329] dark:shadow-2xl dark:shadow-[#00000033]">
                   <CardHeader className="pb-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                       <div className="space-y-2">
-                        <CardTitle className="text-xl lg:text-2xl font-semibold text-[#F8F9FA]">
+                        <CardTitle className="text-xl lg:text-2xl font-semibold text-slate-900 dark:text-[#F8F9FA]">
                           Schedule Your Offline Training
                         </CardTitle>
                       </div>
                       <div className="flex flex-wrap gap-3">
-                        <div className="rounded-lg bg-[#0F1419] px-4 py-2 border border-[#222832] shadow-inner">
-                          <p className="text-xs text-[#8B92A0]">Total</p>
-                          <p className="text-lg font-semibold text-white">{totalOfflineHours} hrs</p>
+                        <div className="rounded-lg bg-white px-4 py-2 border border-slate-200 shadow-inner dark:bg-[#0F1419] dark:border-[#222832]">
+                          <p className="text-xs text-slate-500 dark:text-[#8B92A0]">Total</p>
+                          <p className="text-lg font-semibold text-slate-900 dark:text-white">{totalOfflineHours} hrs</p>
                         </div>
-                        <div className="rounded-lg bg-[#0F1419] px-4 py-2 border border-[#222832] shadow-inner">
-                          <p className="text-xs text-[#8B92A0]">Used</p>
-                          <p className="text-lg font-semibold text-white">{consumedOfflineHours} hrs</p>
+                        <div className="rounded-lg bg-white px-4 py-2 border border-slate-200 shadow-inner dark:bg-[#0F1419] dark:border-[#222832]">
+                          <p className="text-xs text-slate-500 dark:text-[#8B92A0]">Used</p>
+                          <p className="text-lg font-semibold text-slate-900 dark:text-white">{consumedOfflineHours} hrs</p>
                         </div>
-                        <div className="rounded-lg bg-[#FF7F50]/15 px-4 py-2 border border-[#FF7F50]/40 shadow-inner">
-                          <p className="text-xs text-[#FFB4A2]">Remaining</p>
-                          <p className="text-lg font-semibold text-[#FF8C61]">{remainingOfflineHours} hrs</p>
+                        <div className="rounded-lg bg-[#FF7F50]/10 px-4 py-2 border border-[#FF7F50]/30 shadow-inner dark:bg-[#FF7F50]/15 dark:border-[#FF7F50]/40">
+                          <p className="text-xs text-[#FF7F50] dark:text-[#FFB4A2]">Remaining</p>
+                          <p className="text-lg font-semibold text-[#FF7F50] dark:text-[#FF8C61]">{remainingOfflineHours} hrs</p>
                         </div>
 
                         <Button
@@ -409,8 +411,8 @@ const CourseLearn = () => {
                           <Menu className="h-4 w-4" />
                         </Button>
                       </SheetTrigger>
-                      <SheetContent side="left" className="w-full max-w-md p-0 bg-[#0F1419] text-white">
-                        <div className="h-full overflow-y-auto bg-[#0F1419] p-4">
+                      <SheetContent side="left" className="w-full max-w-md p-0 bg-white text-slate-900 dark:bg-[#0F1419] dark:text-white">
+                        <div className="h-full overflow-y-auto bg-white p-4 dark:bg-[#0F1419]">
                           <ModuleSidebar
                             courseTitle={course.title}
                             progressPercentage={data?.progress_percentage}
@@ -446,22 +448,22 @@ const CourseLearn = () => {
 
                 {/* Empty State */}
                 {!activeLesson && !activeQuiz && (
-                  <Alert className="bg-[#1E2329] border border-[#2A3038] text-white">
-                    <AlertTitle className="text-[#F8F9FA]">Select a lesson or quiz</AlertTitle>
-                    <AlertDescription className="text-[#8B92A0]">
+                  <Alert className="bg-white border border-slate-200 text-slate-900 dark:bg-[#1E2329] dark:border-[#2A3038] dark:text-white">
+                    <AlertTitle className="text-slate-900 dark:text-[#F8F9FA]">Select a lesson or quiz</AlertTitle>
+                    <AlertDescription className="text-slate-600 dark:text-[#8B92A0]">
                       Use the course content navigation to open lessons and quizzes.
                     </AlertDescription>
                   </Alert>
                 )}
 
                 {/* Navigation Buttons */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t border-[#222832]">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t border-slate-200 dark:border-[#222832]">
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={goToPrevious}
                     disabled={currentIndex <= 0}
-                    className="gap-2 w-full sm:w-auto border-[#2A3038] text-[#F8F9FA] disabled:text-[#8B92A0] disabled:border-[#2A3038]"
+                    className="gap-2 w-full sm:w-auto border-slate-200 text-slate-900 hover:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 dark:border-[#2A3038] dark:text-[#F8F9FA] dark:hover:bg-[#222832] dark:disabled:text-[#8B92A0] dark:disabled:border-[#2A3038]"
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Previous
@@ -469,7 +471,7 @@ const CourseLearn = () => {
 
                   <Button
                     size="lg"
-                    className="gap-2 bg-[#FF7F50] hover:bg-[#FF8C61] text-[#0F1419] font-semibold w-full sm:w-auto order-first sm:order-none"
+                    className="gap-2 bg-[#FF7F50] hover:bg-[#FF8C61] text-white dark:text-[#0F1419] font-semibold w-full sm:w-auto order-first sm:order-none"
                   >
                     <Check className="h-4 w-4" />
                     Mark as Complete
@@ -479,7 +481,7 @@ const CourseLearn = () => {
                     size="lg"
                     onClick={goToNext}
                     disabled={currentIndex >= allItems.length - 1}
-                    className="gap-2 bg-[#4ECDC4] hover:bg-[#5DD9C1] text-[#0F1419] font-semibold w-full sm:w-auto disabled:bg-[#2A3038] disabled:text-[#8B92A0]"
+                    className="gap-2 bg-[#4ECDC4] hover:bg-[#5DD9C1] text-white dark:text-[#0F1419] font-semibold w-full sm:w-auto disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-[#2A3038] dark:disabled:text-[#8B92A0]"
                   >
                     Next
                     <ChevronRight className="h-4 w-4" />
@@ -492,40 +494,40 @@ const CourseLearn = () => {
 
         {/* Slot Picker Dialog */}
         <Dialog open={isSlotPickerOpen} onOpenChange={handleSlotPickerChange}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-[#1A1D23] text-white border border-[#2A3038]">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white text-slate-900 border border-slate-200 dark:bg-[#1A1D23] dark:text-white dark:border-[#2A3038]">
             <DialogHeader>
-              <DialogTitle className="text-[#F8F9FA]">Select an offline slot</DialogTitle>
-              <p className="text-sm text-[#8B92A0]">
+              <DialogTitle className="text-slate-900 dark:text-[#F8F9FA]">Select an offline slot</DialogTitle>
+              <p className="text-sm text-slate-600 dark:text-[#8B92A0]">
                 Choose a date after today to see the available in-car training times.
               </p>
             </DialogHeader>
 
             <div className="grid gap-6 md:grid-cols-[300px_1fr]">
               <div className="space-y-3">
-                <p className="text-sm text-[#F8F9FA] font-medium">Choose a date</p>
+                <p className="text-sm text-slate-900 dark:text-[#F8F9FA] font-medium">Choose a date</p>
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={(date) => setSelectedDate(date ?? nextAvailableDate())}
                   disabled={(date) => date < nextAvailableDate()}
-                  className="rounded-lg border border-[#2A3038] bg-[#0F1419] text-white"
+                  className="rounded-lg border border-slate-200 bg-white text-slate-900 dark:border-[#2A3038] dark:bg-[#0F1419] dark:text-white"
                 />
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-[#8B92A0]">Available slots</p>
-                  <p className="text-sm font-medium text-[#F8F9FA]">
+                  <p className="text-sm text-slate-600 dark:text-[#8B92A0]">Available slots</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-[#F8F9FA]">
                     {selectedDate ? formatDate(selectedDate) : "Select a date to view slots"}
                   </p>
                 </div>
 
-                {slotLoading && <p className="text-sm text-[#8B92A0]">Loading slots...</p>}
+                {slotLoading && <p className="text-sm text-slate-600 dark:text-[#8B92A0]">Loading slots...</p>}
 
                 {!slotLoading && selectedDate && availableSlots.length === 0 && (
-                  <Alert className="bg-[#1E2329] border border-[#2A3038] text-white">
-                    <AlertTitle className="text-[#F8F9FA]">No slots available</AlertTitle>
-                    <AlertDescription className="text-[#8B92A0]">
+                  <Alert className="bg-white border border-slate-200 text-slate-900 dark:bg-[#1E2329] dark:border-[#2A3038] dark:text-white">
+                    <AlertTitle className="text-slate-900 dark:text-[#F8F9FA]">No slots available</AlertTitle>
+                    <AlertDescription className="text-slate-600 dark:text-[#8B92A0]">
                       There are no appointment slots for the selected date. Please choose another day.
                     </AlertDescription>
                   </Alert>
