@@ -299,7 +299,7 @@ const CourseLearn = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#f8f9fa] text-slate-900 dark:bg-gradient-to-br dark:from-[#0F1419] dark:via-[#0F1419] dark:to-[#1A1D23] dark:text-[#F8F9FA]"
+      className="course-learn-font min-h-screen bg-[#f8f9fa] text-slate-900 dark:bg-gradient-to-br dark:from-[#0F1419] dark:via-[#0F1419] dark:to-[#1A1D23] dark:text-[#F8F9FA]"
       style={{
         fontFamily:
           "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
