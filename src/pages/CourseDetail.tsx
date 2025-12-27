@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Play, Clock, Users, Star, BookOpen, ChevronDown, ChevronRight, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,41 @@ const CourseDetail = () => {
   const dispatch = useDispatch();
   const { course, loading } = useCourseDetails(Number(id));
   const { courses: userCourseList, loading: userCoursesLoading } = useSelector((state: RootState) => state.userCourseList);
+
+  // Calculate real review statistics from backend data
+  const reviewStats = useMemo(() => {
+    if (!course?.course_reviews || course.course_reviews.length === 0) {
+      return {
+        averageRating: 0,
+        totalReviews: 0,
+        distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+        percentages: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+      };
+    }
+
+    const reviews = course.course_reviews;
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    
+    reviews.forEach(review => {
+      if (review.rating >= 1 && review.rating <= 5) {
+        distribution[review.rating as keyof typeof distribution]++;
+      }
+    });
+
+    const totalReviews = reviews.length;
+    const sumRatings = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalReviews > 0 ? (sumRatings / totalReviews).toFixed(1) : 0;
+
+    const percentages = {
+      5: totalReviews > 0 ? Math.round((distribution[5] / totalReviews) * 100) : 0,
+      4: totalReviews > 0 ? Math.round((distribution[4] / totalReviews) * 100) : 0,
+      3: totalReviews > 0 ? Math.round((distribution[3] / totalReviews) * 100) : 0,
+      2: totalReviews > 0 ? Math.round((distribution[2] / totalReviews) * 100) : 0,
+      1: totalReviews > 0 ? Math.round((distribution[1] / totalReviews) * 100) : 0
+    };
+
+    return { averageRating, totalReviews, distribution, percentages };
+  }, [course?.course_reviews]);
 
   useEffect(() => {
     if (userInfo?.id && (!userCourseList || userCourseList.length === 0)) {
@@ -258,10 +293,10 @@ const CourseDetail = () => {
                     <div className="flex items-center gap-12">
                       {/* Left Side - Overall Rating */}
                       <div className="flex flex-col items-center justify-center min-w-[180px]">
-                        <div className="text-6xl font-bold text-gray-900 dark:text-white mb-3">{course?.rating}</div>
+                        <div className="text-6xl font-bold text-gray-900 dark:text-white mb-3">{reviewStats.averageRating}</div>
                         <div className="flex items-center gap-1 mb-2">
                           {[...Array(5)].map((_, i) => {
-                            const rating = course?.rating || 0;
+                            const rating = parseFloat(reviewStats.averageRating.toString());
                             const isFullStar = i < Math.floor(rating);
                             const isHalfStar = i === Math.floor(rating) && rating % 1 >= 0.5;
                             
@@ -279,13 +314,14 @@ const CourseDetail = () => {
                             );
                           })}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{course?.total_reviews?.toLocaleString()} reviews</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{reviewStats.totalReviews.toLocaleString()} reviews</div>
                       </div>
 
                       {/* Right Side - Rating Breakdown */}
                       <div className="flex-1 space-y-3">
                         {[5, 4, 3, 2, 1].map((star) => {
-                          const percentage = star === 5 ? 78 : star === 4 ? 15 : star === 3 ? 5 : 1;
+                          const percentage = reviewStats.percentages[star as keyof typeof reviewStats.percentages];
+                          const count = reviewStats.distribution[star as keyof typeof reviewStats.distribution];
                           return (
                             <div key={star} className="flex items-center gap-4">
                               <div className="flex items-center gap-1 w-10">
@@ -470,7 +506,7 @@ const CourseDetail = () => {
 
               <CardContent className="p-5 space-y-4">
                 {/* Discount Badge and Timer */}
-               
+                   
 
                 {/* Pricing */}
                 <div className="flex items-baseline gap-3">
