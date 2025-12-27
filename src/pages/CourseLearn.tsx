@@ -300,7 +300,12 @@ const CourseLearn = () => {
   return (
     <div
       className="min-h-screen bg-[#f8f9fa] text-slate-900 dark:bg-gradient-to-br dark:from-[#0F1419] dark:via-[#0F1419] dark:to-[#1A1D23] dark:text-[#F8F9FA]"
-      style={{ fontFamily: "'SF Pro Text', 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, -apple-system, sans-serif" }}
+      style={{
+        fontFamily:
+          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
+        ["--font-mono" as string]:
+          "'Fira Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Courier New', monospace",
+      }}
     >
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
 
