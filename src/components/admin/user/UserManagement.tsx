@@ -204,47 +204,22 @@ const UserManagement = () => {
         title: "User Deleted",
         description: deleteMessage || "User successfully deleted.",
       });
-      dispatch(getAdminUsers());
+      dispatch(getAdminUsers(currentPage, pageSize));
+      // Reset delete success to prevent repeated toasts
+      dispatch({ type: 'ADMIN_USER_DELETE_RESET' });
     }
-  }, [deleteSuccess, deleteMessage, dispatch, toast]);
+  }, [deleteSuccess, deleteMessage, dispatch, toast, currentPage, pageSize]);
 
   // Fetch users on mount and when page changes
   useEffect(() => {
     dispatch(getAdminUsers(currentPage, pageSize));
-  }, [dispatch, currentPage]);
+  }, [dispatch, currentPage, pageSize]);
 
   useEffect(() => {
     if (createUserModalOpen && (!regions || regions.length === 0)) {
       dispatch(getAdminRegionList());
     }
   }, [createUserModalOpen, dispatch, regions]);
-
-  // useEffect(() => {
-  //   if (createSuccess) {
-  //     toast({
-  //       title: "User Created",
-  //       description: "The user was created successfully.",
-  //     });
-  //     dispatch(getAdminUsers(currentPage, pageSize));
-  //     setCreateUserModalOpen(false);
-  //     setForm({
-  //       regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
-  //       address1: '', address2: '', city: '', state: '', postal: '',
-  //       studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
-  //       permitYear: '', permitMonth: '', permitDay: '',
-  //       hasLicenseAnotherCountry: '', drivingExperience: '',
-  //       password: '', confirmPassword: '', agreements: [null, null, null, null],
-  //     });
-  //     setFormErrors(null);
-  //   }
-  //   if (createError) {
-  //     toast({
-  //       title: "User Creation Failed",
-  //       description: createError,
-  //       variant: "destructive",
-  //     });
-  //   }
-  // }, [createSuccess, createError, toast, dispatch, currentPage]);
 
   useEffect(() => {
     if (createSuccess) {
@@ -257,7 +232,8 @@ const UserManagement = () => {
       setCreateUserModalOpen(false);
       setOtpModalOpen(true);
 
-      // Don't clear form yet - we might need to recreate if OTP fails
+      // Reset create success to prevent repeated toasts
+      dispatch({ type: 'ADMIN_USER_CREATE_RESET' });
     }
     if (createError) {
       toast({
@@ -265,8 +241,10 @@ const UserManagement = () => {
         description: createError,
         variant: "destructive",
       });
+      // Reset create error to prevent repeated toasts
+      dispatch({ type: 'ADMIN_USER_CREATE_RESET' });
     }
-  }, [createSuccess, createError, toast, form.studentEmail]);
+  }, [createSuccess, createError]);
 
   // Add selector for OTP verification
   const {
@@ -275,9 +253,36 @@ const UserManagement = () => {
     successMessage: otpVerifySuccess
   } = useSelector((state: RootState) => state.auth);
 
-  // Add useEffect for OTP verification
-  // OTP verification is handled directly in the submit handler now
+  // Add useEffect for OTP verification success
+  useEffect(() => {
+    if (otpVerifySuccess && otpSubmitted) {
+      toast({
+        title: 'Email Verified',
+        description: 'User account has been activated successfully.',
+      });
 
+      setOtpModalOpen(false);
+      setOtp('');
+      setNewUserEmail('');
+      setOtpSubmitted(false);
+
+      // Clear form and refresh user list
+      setForm({
+        regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
+        address1: '', address2: '', city: '', state: '', postal: '',
+        studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
+        permitYear: '', permitMonth: '', permitDay: '',
+        hasLicenseAnotherCountry: '', drivingExperience: '',
+        password: '', confirmPassword: '', agreements: [null, null, null, null],
+      });
+      dispatch(getAdminUsers(currentPage, pageSize));
+      
+      // Reset OTP verification state
+      dispatch({ type: 'OTP_VERIFY_RESET' });
+    }
+  }, [otpVerifySuccess, otpSubmitted, toast, dispatch, currentPage, pageSize]);
+
+  // Add useEffect for OTP verification error
   useEffect(() => {
     if (otpVerifyError && otpSubmitted) {
       toast({
@@ -286,8 +291,10 @@ const UserManagement = () => {
         variant: 'destructive',
       });
       setOtpSubmitted(false);
+      // Reset OTP verification state
+      dispatch({ type: 'OTP_VERIFY_RESET' });
     }
-  }, [otpVerifyError, otpSubmitted, toast]);
+  }, [otpVerifyError, otpSubmitted, toast, dispatch]);
 
   // Add OTP submit handler
   const handleOtpSubmit = async (e: React.FormEvent) => {
@@ -304,34 +311,8 @@ const UserManagement = () => {
     setOtpSubmitted(true);
     try {
       await dispatch(verifyRegistrationOTP(newUserEmail, otp) as any);
-
-      toast({
-        title: 'Email Verified',
-        description: 'User account has been activated successfully.',
-      });
-
-      setOtpModalOpen(false);
-      setOtp('');
-      setNewUserEmail('');
-
-      // Clear form and refresh user list
-      setForm({
-        regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
-        address1: '', address2: '', city: '', state: '', postal: '',
-        studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
-        permitYear: '', permitMonth: '', permitDay: '',
-        hasLicenseAnotherCountry: '', drivingExperience: '',
-        password: '', confirmPassword: '', agreements: [null, null, null, null],
-      });
-      dispatch(getAdminUsers(currentPage, pageSize));
     } catch (err: any) {
-      toast({
-        title: 'Verification Failed',
-        description: err.response?.data?.status?.message || err.response?.data?.message || err.message || 'Verification failed',
-        variant: 'destructive',
-      });
-    } finally {
-      setOtpSubmitted(false);
+      console.error('OTP verification error:', err);
     }
   };
 
