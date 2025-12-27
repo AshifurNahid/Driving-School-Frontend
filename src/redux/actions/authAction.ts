@@ -181,18 +181,21 @@ export const resetPassword = (email: string, otp: string, newPassword: string) =
 export const verifyRegistrationOTP = (email: string, otp: string) => async (dispatch: any) => {
   try {
     dispatch({ type: VERIFY_OTP_REQUEST });
-    
+
     const { data } = await api.post('/verify-otp', { email, otp });
-    
+
     dispatch({
       type: VERIFY_OTP_SUCCESS,
       payload: data.status?.message || 'Email verified successfully'
     });
+
+    return data;
   } catch (error: any) {
     dispatch({
       type: VERIFY_OTP_FAIL,
         payload: error.response?.data?.status?.message || error.response?.data?.message || error.message,
     });
+    throw error;
   }
 };
 
@@ -200,7 +203,7 @@ export const resendRegistrationOTP = (email: string) => async (dispatch: any) =>
   try {
     dispatch({ type: 'RESEND_OTP_REQUEST' });
     
-    const { data } = await api.post('/forget-password', { email });
+    const { data } = await api.put('/forget-password', { email });
     
     dispatch({
       type: 'RESEND_OTP_SUCCESS',

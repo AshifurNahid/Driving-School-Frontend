@@ -39,6 +39,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { resendRegistrationOTP, verifyRegistrationOTP } from '@/redux/actions/authAction';
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -52,6 +53,13 @@ const UserManagement = () => {
   const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
   const [birthDateOpen, setBirthDateOpen] = useState(false);
   const [permitDateOpen, setPermitDateOpen] = useState(false);
+
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSubmitted, setOtpSubmitted] = useState(false);
+  const [resendingOtp, setResendingOtp] = useState(false);
+
   const [form, setForm] = useState({
     regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
     address1: '', address2: '', city: '', state: '', postal: '',
@@ -211,23 +219,45 @@ const UserManagement = () => {
     }
   }, [createUserModalOpen, dispatch, regions]);
 
+  // useEffect(() => {
+  //   if (createSuccess) {
+  //     toast({
+  //       title: "User Created",
+  //       description: "The user was created successfully.",
+  //     });
+  //     dispatch(getAdminUsers(currentPage, pageSize));
+  //     setCreateUserModalOpen(false);
+  //     setForm({
+  //       regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
+  //       address1: '', address2: '', city: '', state: '', postal: '',
+  //       studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
+  //       permitYear: '', permitMonth: '', permitDay: '',
+  //       hasLicenseAnotherCountry: '', drivingExperience: '',
+  //       password: '', confirmPassword: '', agreements: [null, null, null, null],
+  //     });
+  //     setFormErrors(null);
+  //   }
+  //   if (createError) {
+  //     toast({
+  //       title: "User Creation Failed",
+  //       description: createError,
+  //       variant: "destructive",
+  //     });
+  //   }
+  // }, [createSuccess, createError, toast, dispatch, currentPage]);
+
   useEffect(() => {
     if (createSuccess) {
       toast({
         title: "User Created",
-        description: "The user was created successfully.",
+        description: "Please verify the email address with the OTP sent.",
       });
-      dispatch(getAdminUsers(currentPage, pageSize));
+      // Store the email and open OTP modal instead of closing create modal
+      setNewUserEmail(form.studentEmail);
       setCreateUserModalOpen(false);
-      setForm({
-        regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
-        address1: '', address2: '', city: '', state: '', postal: '',
-        studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
-        permitYear: '', permitMonth: '', permitDay: '',
-        hasLicenseAnotherCountry: '', drivingExperience: '',
-        password: '', confirmPassword: '', agreements: [null, null, null, null],
-      });
-      setFormErrors(null);
+      setOtpModalOpen(true);
+
+      // Don't clear form yet - we might need to recreate if OTP fails
     }
     if (createError) {
       toast({
@@ -236,7 +266,85 @@ const UserManagement = () => {
         variant: "destructive",
       });
     }
-  }, [createSuccess, createError, toast, dispatch, currentPage]);
+  }, [createSuccess, createError, toast, form.studentEmail]);
+
+  // Add selector for OTP verification
+  const {
+    loading: otpVerifyLoading,
+    error: otpVerifyError,
+    successMessage: otpVerifySuccess
+  } = useSelector((state: RootState) => state.auth);
+
+  // Add useEffect for OTP verification
+  // OTP verification is handled directly in the submit handler now
+
+  useEffect(() => {
+    if (otpVerifyError && otpSubmitted) {
+      toast({
+        title: 'Verification Failed',
+        description: otpVerifyError,
+        variant: 'destructive',
+      });
+      setOtpSubmitted(false);
+    }
+  }, [otpVerifyError, otpSubmitted, toast]);
+
+  // Add OTP submit handler
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp.trim() || otp.length !== 6) {
+      toast({
+        title: 'Invalid OTP',
+        description: 'Please enter a valid 6-digit code',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setOtpSubmitted(true);
+    try {
+      await dispatch(verifyRegistrationOTP(newUserEmail, otp) as any);
+
+      toast({
+        title: 'Email Verified',
+        description: 'User account has been activated successfully.',
+      });
+
+      setOtpModalOpen(false);
+      setOtp('');
+      setNewUserEmail('');
+
+      // Clear form and refresh user list
+      setForm({
+        regionId: '', firstName: '', lastName: '', birthYear: '', birthMonth: '', birthDay: '',
+        address1: '', address2: '', city: '', state: '', postal: '',
+        studentEmail: '', parentEmail: '', studentPhone: '', parentPhone: '',
+        permitYear: '', permitMonth: '', permitDay: '',
+        hasLicenseAnotherCountry: '', drivingExperience: '',
+        password: '', confirmPassword: '', agreements: [null, null, null, null],
+      });
+      dispatch(getAdminUsers(currentPage, pageSize));
+    } catch (err: any) {
+      toast({
+        title: 'Verification Failed',
+        description: err.response?.data?.status?.message || err.response?.data?.message || err.message || 'Verification failed',
+        variant: 'destructive',
+      });
+    } finally {
+      setOtpSubmitted(false);
+    }
+  };
+
+  // Add resend OTP handler
+  const handleResendOtp = () => {
+    dispatch(resendRegistrationOTP(newUserEmail) as any);
+    setResendingOtp(true);
+    toast({
+      title: 'Code Resent',
+      description: 'A new verification code has been sent.',
+    });
+    setTimeout(() => setResendingOtp(false), 2000);
+  };
 
   // Filter users based on search term and filters
   const filteredUsers = users?.filter((user: User) => {
@@ -928,6 +1036,83 @@ const UserManagement = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={otpModalOpen} onOpenChange={setOtpModalOpen}>
+      <DialogContent className="w-[95vw] max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-semibold text-center">Verify Email</DialogTitle>
+          <p className="text-sm text-slate-500 text-center pt-2">
+            We've sent a verification code to <strong className="text-slate-900 dark:text-slate-100">{newUserEmail}</strong>
+          </p>
+        </DialogHeader>
+        
+        <form onSubmit={handleOtpSubmit} className="space-y-6 pt-4">
+          <div className="space-y-2">
+            <Label htmlFor="otp" className="text-sm font-medium">Verification Code</Label>
+            <div className="relative">
+              <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <Input
+                id="otp"
+                type="text"
+                placeholder="Enter 6-digit code"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="pl-10 text-center text-lg tracking-widest font-mono"
+                maxLength={6}
+                required
+                autoComplete="off"
+              />
+            </div>
+            <p className="text-xs text-slate-500 text-center">Enter the 6-digit code sent to the email</p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+              disabled={otpVerifyLoading || otp.length !== 6}
+            >
+              {otpVerifyLoading ? 'Verifying...' : 'Verify Email'}
+            </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={otpVerifyLoading || resendingOtp}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resendingOtp ? 'Resending...' : "Didn't receive the code? Resend"}
+              </button>
+            </div>
+
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setOtpModalOpen(false);
+                setOtp('');
+                // Optionally clear the form or allow retry
+                toast({
+                  title: 'Verification Cancelled',
+                  description: 'You can verify the email later from user management.',
+                  variant: 'destructive',
+                });
+              }}
+              className="w-full"
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+
+        <div className="pt-4 border-t">
+          <p className="text-xs text-center text-slate-500">
+            The user account is created but needs email verification to be activated.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
 
       <AlertDialog
         open={validationDialogOpen && !!formErrors}
