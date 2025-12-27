@@ -456,9 +456,6 @@ const CheckoutContent = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Payment option</p>
-                    <span className="text-xs rounded-full bg-white/80 px-3 py-1 text-gray-600 border border-indigo-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700">
-                      Next payment: ${formattedNextPayment} CAD
-                    </span>
                   </div>
                     <div className="grid sm:grid-cols-2 gap-3">
                     <Button
@@ -511,22 +508,29 @@ const CheckoutContent = () => {
                       </Badge>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800 min-w-0">
+                      <div
+                        className={`rounded-xl border p-4 shadow-sm min-w-0 ${
+                          enrollmentStatus?.payment_status === "Unpaid"
+                            ? "bg-indigo-50 border-indigo-100 dark:bg-indigo-950/30 dark:border-indigo-900"
+                            : "bg-white border-indigo-50 dark:bg-slate-900/60 dark:border-slate-800"
+                        }`}
+                      >
                         <p className="text-xs text-gray-600 dark:text-slate-300">Initial installment</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-slate-50 break-words">
                           ${initialInstallmentAmount.toFixed(2)} CAD
                         </p>
                       </div>
-                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800 min-w-0">
+                      <div
+                        className={`rounded-xl border p-4 shadow-sm min-w-0 ${
+                          enrollmentStatus?.payment_status === "PartiallyPaid"
+                            ? "bg-emerald-50 border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900"
+                            : "bg-white border-indigo-50 dark:bg-slate-900/60 dark:border-slate-800"
+                        }`}
+                      >
                         <p className="text-xs text-gray-600 dark:text-slate-300">Final installment</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-slate-50 break-words">
                           ${finalInstallmentAmount.toFixed(2)} CAD
                         </p>
-                      </div>
-                      <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-4 shadow-sm dark:bg-slate-800 dark:border-slate-700 min-w-0">
-                        <p className="text-xs text-indigo-700 dark:text-indigo-200">Next payment</p>
-                        <p className="text-lg font-semibold text-indigo-700 dark:text-indigo-200 break-words">${formattedNextPayment} CAD</p>
-                        <p className="text-[11px] text-indigo-600 dark:text-indigo-300 mt-1 break-words">Remaining {remainingBalance.toFixed(2)} CAD</p>
                       </div>
                     </div>
                   </div>
@@ -558,7 +562,9 @@ const CheckoutContent = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-gray-900 dark:text-slate-50">${Number(historyAmount).toFixed(2)} {historyCurrency}</p>
-                                <p className="text-[11px] text-gray-500 dark:text-slate-400">Installment</p>
+                                <p className="text-[11px] text-gray-500 dark:text-slate-400">
+                                  Installment • {formattedDate}
+                                </p>
                               </div>
                             </div>
                           );
