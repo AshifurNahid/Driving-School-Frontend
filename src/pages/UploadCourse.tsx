@@ -929,7 +929,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                NL Driving              </Link>
+                Fast Track Drivers Academy              </Link>
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />

@@ -515,7 +515,7 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 flex flex-col items-center py-8 px-2">
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-700 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Welcome to NL Driving Academy</h1>
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-700 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Welcome to Fast Track Drivers Academy Academy</h1>
         <div className="text-lg text-gray-700 font-medium">Let’s get you started — {steps.length} quick steps!</div>
       </div>
       <Card className="w-full max-w-2xl shadow-xl">
