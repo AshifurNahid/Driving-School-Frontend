@@ -565,13 +565,18 @@ const CourseDetail = () => {
                     <Button className="w-full mb-4" disabled>
                       Loading...
                     </Button>
+                  ) : isPartiallyPaid ? (
+                    <div className="space-y-3">
+                      <Button className="w-full" variant="outline" asChild>
+                        <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
+                      </Button>
+                      <Button className="w-full" onClick={() => navigate(`/course/${id}/checkout`)}>
+                        Complete installment payment
+                      </Button>
+                    </div>
                   ) : isPaid && (enrolledCourse?.id || course?.id) ? (
                     <Button className="w-full mb-4" asChild>
                       <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
-                    </Button>
-                  ) : isPartiallyPaid ? (
-                    <Button className="w-full mb-4" onClick={() => navigate(`/course/${id}/checkout`)}>
-                      Continue installment payment
                     </Button>
                   ) : (
                     <Button className="w-full mb-4" onClick={handleEnroll}>
