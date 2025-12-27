@@ -46,6 +46,7 @@ const ModuleSidebarItem = ({
       <button
         className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-[#222832]"
         onClick={onToggle}
+        aria-expanded={isOpen}
       >
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-semibold text-slate-900 dark:text-[#F8F9FA]">
@@ -62,8 +63,14 @@ const ModuleSidebarItem = ({
           <ChevronRight className="h-4 w-4 text-slate-500 dark:text-[#8B92A0]" />
         )}
       </button>
-      {isOpen && (
-        <div className="border-t border-slate-200 dark:border-[#222832] transition-all duration-200">
+      <div
+        className={cn(
+          "border-t border-slate-200 dark:border-[#222832] overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out",
+          isOpen ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"
+        )}
+        aria-hidden={!isOpen}
+      >
+        <div className="py-1">
           {lessons.map((lesson: ExtendedLesson, lessonIndex) => {
             const isActive = activeLessonId === lesson.id;
             return (
@@ -142,7 +149,7 @@ const ModuleSidebarItem = ({
             );
           })}
         </div>
-      )}
+      </div>
     </div>
   );
 };
