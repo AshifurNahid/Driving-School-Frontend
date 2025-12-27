@@ -386,16 +386,16 @@ const CheckoutContent = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-gray-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <RoleBasedNavigation />
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="space-y-6">
-          <div className="grid lg:grid-cols-[1.05fr,1.35fr] xl:grid-cols-[1.1fr,1.5fr] gap-6 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="grid lg:grid-cols-[1.05fr,1.4fr] xl:grid-cols-[1.1fr,1.6fr] gap-8 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-br from-sky-50 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-8 flex flex-col gap-8">
               <div className="space-y-5">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -450,7 +450,7 @@ const CheckoutContent = () => {
                       Next payment: ${formattedNextPayment} CAD
                     </span>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="grid sm:grid-cols-2 gap-3">
                     <Button
                       type="button"
                       variant="outline"
@@ -500,19 +500,23 @@ const CheckoutContent = () => {
                         Pay as you go
                       </Badge>
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
-                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800 min-w-0">
                         <p className="text-xs text-gray-600 dark:text-slate-300">Initial installment</p>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-slate-50">${initialInstallmentAmount.toFixed(2)} CAD</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-slate-50 break-words">
+                          ${initialInstallmentAmount.toFixed(2)} CAD
+                        </p>
                       </div>
-                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
+                      <div className="rounded-xl bg-white border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800 min-w-0">
                         <p className="text-xs text-gray-600 dark:text-slate-300">Final installment</p>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-slate-50">${finalInstallmentAmount.toFixed(2)} CAD</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-slate-50 break-words">
+                          ${finalInstallmentAmount.toFixed(2)} CAD
+                        </p>
                       </div>
-                      <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-4 shadow-sm dark:bg-slate-800 dark:border-slate-700">
+                      <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-4 shadow-sm dark:bg-slate-800 dark:border-slate-700 min-w-0">
                         <p className="text-xs text-indigo-700 dark:text-indigo-200">Next payment</p>
-                        <p className="text-lg font-semibold text-indigo-700 dark:text-indigo-200">${formattedNextPayment} CAD</p>
-                        <p className="text-[11px] text-indigo-600 dark:text-indigo-300 mt-1">Remaining {remainingBalance.toFixed(2)} CAD</p>
+                        <p className="text-lg font-semibold text-indigo-700 dark:text-indigo-200 break-words">${formattedNextPayment} CAD</p>
+                        <p className="text-[11px] text-indigo-600 dark:text-indigo-300 mt-1 break-words">Remaining {remainingBalance.toFixed(2)} CAD</p>
                       </div>
                     </div>
                   </div>
