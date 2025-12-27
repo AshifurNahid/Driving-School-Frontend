@@ -581,7 +581,7 @@ const CanadianDrivingSchool = () => {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center mb-4">
                 <Car className="w-10 h-10 text-blue-500 mr-3" />
-                <span className="text-2xl font-bold">NL Driver's academy</span>
+                <span className="text-2xl font-bold">Fast Track Drivers Academy</span>
               </div>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
                 Newfoundland's premier driving education provider. Building confident, safe drivers with professional instruction and modern teaching methods.
@@ -632,7 +632,7 @@ const CanadianDrivingSchool = () => {
           {/* Bottom bar */}
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2025 NL Driver's academy. All rights reserved. MTO Licensed & Insured.
+              © 2025 Fast Track Drivers Academy. All rights reserved. MTO Licensed & Insured.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               {['Privacy Policy', 'Terms of Service', 'Accessibility'].map((link) => (

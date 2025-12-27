@@ -9,7 +9,7 @@ const AboutSectionTwo = () => {
     {
       icon: <Award className="h-6 w-6" />,
       title: "10 Years in Market",
-      description: "NL Driver's Academy is a trusted leader in the driving education industry with over 10 years of experience, delivering top-notch training to students of all backgrounds globally.",
+      description: "Fast Track Drivers Academy is a trusted leader in the driving education industry with over 10 years of experience, delivering top-notch training to students of all backgrounds globally.",
     },
     {
       icon: <Users className="h-6 w-6" />,
@@ -19,7 +19,7 @@ const AboutSectionTwo = () => {
     {
       icon: <Car className="h-6 w-6" />,
       title: "500+ Successful Students",
-      description: "With over a decade of experience in the driving education market, NL Driver's Academy is a trusted provider of comprehensive training solutions to students worldwide.",
+      description: "With over a decade of experience in the driving education market, Fast Track Drivers Academy is a trusted provider of comprehensive training solutions to students worldwide.",
     },
     {
       icon: <Monitor className="h-6 w-6" />,

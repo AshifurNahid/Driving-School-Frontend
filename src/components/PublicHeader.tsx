@@ -38,7 +38,7 @@ const PublicHeader = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              <NavLink to="/">NL Driver's Academy</NavLink>
+              <NavLink to="/">Fast Track Drivers Academy</NavLink>
             </h1>
           </div>
           <nav className="hidden md:flex space-x-8">

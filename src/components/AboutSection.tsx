@@ -75,7 +75,7 @@ const AboutSection = () => {
     {
       icon: <Award className="h-6 w-6" />,
       title: "10 Years in Market",
-      description: "NL Driver's Academy is a trusted leader in the driving education industry with over 10 years of experience, delivering top-notch training to students of all backgrounds globally.",
+      description: "Fast Track Drivers Academy is a trusted leader in the driving education industry with over 10 years of experience, delivering top-notch training to students of all backgrounds globally.",
     },
     {
       icon: <Users className="h-6 w-6" />,
@@ -85,7 +85,7 @@ const AboutSection = () => {
     {
       icon: <Car className="h-6 w-6" />,
       title: "500+ Successful Students",
-      description: "With over a decade of experience in the driving education market, NL Driver's Academy is a trusted provider of comprehensive training solutions to students worldwide.",
+      description: "With over a decade of experience in the driving education market, Fast Track Drivers Academy is a trusted provider of comprehensive training solutions to students worldwide.",
     },
     {
       icon: <Monitor className="h-6 w-6" />,
@@ -120,7 +120,7 @@ const AboutSection = () => {
             <div className="grid lg:grid-cols-2 gap-12 items-start">
               <div className="px-4 md:px-6">
                 <p className={`text-lg leading-relaxed mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-justify`}>
-                  NL Driver's Academy is a renowned driving education and training company that helps students, 
+                  Fast Track Drivers Academy is a renowned driving education and training company that helps students, 
                   beginners, and experienced drivers accelerate their road skills. Our team comprises more than 25 highly 
                   motivated professionals proficient in the latest teaching methods and constantly improving their 
                   skills.

@@ -93,7 +93,7 @@ export default function AboutTwo() {
         <div className="relative max-w-7xl mx-auto px-6 py-20 sm:py-28">
           <div className="text-center">
             <h1 className={`text-5xl sm:text-6xl font-bold mb-6 tracking-tight ${isDarkMode ? 'text-blue-200' : 'text-slate-900'}`}>
-              NL Driver's Academy
+              Fast Track Drivers Academy
             </h1>
             <p className={`text-xl sm:text-2xl font-light mb-4 ${isDarkMode ? 'text-blue-200' : 'text-slate-600'}`}>
               Building Confidence. Building Safer Roads.
@@ -115,7 +115,7 @@ export default function AboutTwo() {
           </h2>
           <p className={`text-lg leading-relaxed mb-4 ${mutedText}`}
           >
-            NL Driver's Academy is a <span className={`${isDarkMode ? 'text-blue-400' : lightPalette.accentSoft} font-semibold`}>Government Accredited</span> driving school dedicated to providing exceptional driver education throughout Newfoundland and Labrador. Our mission is simple — to equip every student with the skills, knowledge, and confidence needed to drive safely, responsibly, and independently for life.
+            Fast Track Drivers Academy is a <span className={`${isDarkMode ? 'text-blue-400' : lightPalette.accentSoft} font-semibold`}>Government Accredited</span> driving school dedicated to providing exceptional driver education throughout Newfoundland and Labrador. Our mission is simple — to equip every student with the skills, knowledge, and confidence needed to drive safely, responsibly, and independently for life.
           </p>
           <p className={`text-lg leading-relaxed ${mutedText}`}
           >
@@ -132,7 +132,7 @@ export default function AboutTwo() {
           </h2>
           <p className={`text-xl text-center mb-12 max-w-3xl mx-auto ${isDarkMode ? 'text-gray-300' : lightPalette.muted}`}
           >
-            At NL Driver's Academy, we believe safe driving begins with:
+            At Fast Track Drivers Academy, we believe safe driving begins with:
           </p>
           <div className="grid md:grid-cols-3 gap-8">
             {philosophy.map((item, index) => (
@@ -194,7 +194,7 @@ export default function AboutTwo() {
       {/* Why Choose Us Section */}
       <div className={`${isDarkMode ? 'bg-gray-800' : lightPalette.softSurface} py-16`}>
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className={`text-3xl sm:text-4xl font-bold text-center mb-12 ${headlineText}`}>Why Choose NL Driver's Academy?</h2>
+          <h2 className={`text-3xl sm:text-4xl font-bold text-center mb-12 ${headlineText}`}>Why Choose Fast Track Drivers Academy?</h2>
           <div className="grid sm:grid-cols-2 gap-6">
             {benefits.map((benefit, index) => (
               <div key={index} className={`${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow duration-300 flex items-start gap-4`}>
@@ -212,7 +212,7 @@ export default function AboutTwo() {
           <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-center">Our Commitment</h2>
           <p className={`text-xl text-center mb-6 ${isDarkMode ? 'text-blue-200' : lightPalette.secondary}`}
           >
-            At NL Driver's Academy, <span className="font-bold">safety isn't just a subject — it's our promise.</span>
+            At Fast Track Drivers Academy, <span className="font-bold">safety isn't just a subject — it's our promise.</span>
           </p>
           <p className={`text-lg text-center mb-4 ${isDarkMode ? 'text-blue-100' : lightPalette.muted}`}
           >
