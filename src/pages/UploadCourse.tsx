@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import PhysicalCourseForm from '@/components/course/PhysicalCourseForm';
 import { QuizModal } from '@/components/course/QuizModal';
-import { createAdminCourse, getAdminCourseDetails, updateAdminCourse, getAdminRegionList } from '@/redux/actions/adminAction';
+import { createAdminCourse, getAdminCourseDetails, updateAdminCourse, getAdminRegionList, uploadCourseMaterial, deleteCourseMaterial } from '@/redux/actions/adminAction';
 import { toast } from '@/components/ui/use-toast';
 import { RootState, AppDispatch } from '@/redux/store';
 import ReactQuill from 'react-quill';
@@ -27,7 +27,15 @@ interface Subsection {
   description?: string;
   duration?: number | string;
   videoUrl: string;
-  lesson_attachment_path?: string;
+  lesson_attachment_path?: string; // Keep for backward compatibility
+  lesson_attachment_id?: number;
+  attachment_metadata?: {
+    id: number;
+    title: string;
+    file_path: string;
+    file_type: string;
+    file_size: number;
+  };
 }
 
 interface Question {
@@ -96,6 +104,9 @@ interface Course {
   materials: CourseMaterial[];
   region_id?: number | null; // only for offline and hybrid courses
   offline_training_hours?: number | null; // only for offline and hybrid courses
+  payment_type?: string; // "FullPayment" or "PayByInstallment"
+  initial_installment_amount?: number;
+  final_installment_amount?: number;
 }
 
 const steps = [
@@ -134,6 +145,9 @@ const defaultCourse: Course = {
   materials: [],
   region_id: null,
   offline_training_hours: null,
+  payment_type: 'FullPayment',
+  initial_installment_amount: 0,
+  final_installment_amount: 0,
 };
 interface ModalQuizQuestionDto {
   question: string;
@@ -230,7 +244,9 @@ interface ApiLesson {
   lesson_title?: string;
   lesson_description?: string;
   duration?: number;
-  lesson_attachment_path?: string;
+  lesson_attachment_path?: string; // Keep for backward compatibility
+  lesson_attachment_id?: number;
+  lesson_attachment_name?: string;
 }
 
 interface ApiQuestionOption {
@@ -285,6 +301,9 @@ interface AdminCourseApiResponse {
   materials?: CourseMaterial[];
   region_id?: number | null;
   offline_training_hours?: number | null;
+  payment_type?: string;
+  initial_installment_amount?: number;
+  final_installment_amount?: number;
 }
 
 const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Course => {
@@ -305,6 +324,16 @@ const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Cour
       description: lesson.lesson_description || '',
       duration: lesson.duration || 0,
       videoUrl: lesson.lesson_attachment_path || '',
+      lesson_attachment_id: lesson.lesson_attachment_id,
+      lesson_attachment_path: lesson.lesson_attachment_path, // Keep for backward compatibility
+      // Create attachment_metadata for existing files
+      attachment_metadata: lesson.lesson_attachment_id && lesson.lesson_attachment_path ? {
+        id: lesson.lesson_attachment_id,
+        title: ` ${lesson.lesson_attachment_name || 'File'}`, // We don't have the original filename, so create a descriptive one
+        file_path: lesson.lesson_attachment_path,
+        file_type: 'application/pdf', // Default to PDF since that's what we're working with
+        file_size: 0, // We don't have size info from API
+      } : undefined,
     })) || [],
     quiz: module.quizzes && module.quizzes.length > 0 ? {
       title: module.quizzes[0].title || '',
@@ -377,6 +406,9 @@ const transformApiResponseToCourse = (apiResponse: AdminCourseApiResponse): Cour
     materials: apiResponse.materials || [],
     region_id: apiResponse.region_id,
     offline_training_hours: apiResponse.offline_training_hours,
+    payment_type: apiResponse.payment_type || 'FullPayment',
+    initial_installment_amount: apiResponse.initial_installment_amount || 0,
+    final_installment_amount: apiResponse.final_installment_amount || 0,
   };
 };
 
@@ -392,6 +424,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
   const [course, setCourse] = useState<Course>(initialCourse || defaultCourse);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
 
   // Effect to handle edit mode data loading
   useEffect(() => {
@@ -523,6 +556,15 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       if (!course?.description?.trim()) missingFields.push('Course Description');
       if (!course?.content?.trim()) missingFields.push('Course Content');
       if (!course?.price || course?.price <= 0) missingFields.push('Price');
+      if (!course?.payment_type) missingFields.push('Payment Type');
+      if (course?.payment_type === 'PayByInstallment') {
+        if (!course?.initial_installment_amount || course?.initial_installment_amount <= 0) {
+          missingFields.push('Initial Installment Amount');
+        }
+        if (!course?.final_installment_amount || course?.final_installment_amount <= 0) {
+          missingFields.push('Final Installment Amount');
+        }
+      }
       if ((course?.courseType === 'online' || course?.courseType === 'hybrid') && (!course?.duration || course?.duration <= 0)) missingFields.push('Online Duration');
       if (!course?.level?.trim()) missingFields.push('Level');
       if (!course?.language?.trim()) missingFields.push('Language');
@@ -555,7 +597,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
             if (!subsection.title?.trim()) {
               missingFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
             }
-            if (!subsection.lesson_attachment_path?.trim()) {
+            if (!subsection.lesson_attachment_id?.toString()) {
               missingFields.push(`Lesson ${lessonIndex + 1} PDF in Module ${moduleIndex + 1}`);
             }
           });
@@ -606,6 +648,9 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
       materials: [],
       region_id: null,
       offline_training_hours: null,
+      payment_type: 'FullPayment',
+      initial_installment_amount: 0,
+      final_installment_amount: 0,
     }));
     
     // Reset to first step when course type changes
@@ -669,6 +714,99 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     setCourse({ ...course, modules: newModules });
   };
 
+  const handleFileUpload = async (file: File, moduleIndex: number, subsectionIndex: number) => {
+    const fileKey = `${moduleIndex}-${subsectionIndex}`;
+    
+    try {
+      // Add to uploading state
+      setUploadingFiles(prev => new Set(prev).add(fileKey));
+      
+      toast({
+        title: "Uploading file...",
+        description: "Please wait while we upload your file.",
+      });
+
+      const uploadResult = await dispatch(uploadCourseMaterial(file));
+      
+      // Update the subsection with the attachment ID and metadata
+      const newModules = [...course.modules];
+      newModules[moduleIndex].subsections[subsectionIndex] = {
+        ...newModules[moduleIndex].subsections[subsectionIndex],
+        lesson_attachment_id: uploadResult.id,
+        attachment_metadata: {
+          id: uploadResult.id,
+          title: uploadResult.title,
+          file_path: uploadResult.file_path,
+          file_type: uploadResult.file_type,
+          file_size: uploadResult.file_size,
+        },
+        lesson_attachment_path: undefined, // Clear the old path
+      };
+      
+      setCourse({ ...course, modules: newModules });
+      
+      toast({
+        title: "File uploaded successfully",
+        description: `${uploadResult.title} has been uploaded.`,
+      });
+    } catch (error: any) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error.response?.data?.message || error.message || "Failed to upload file",
+        variant: "destructive",
+      });
+    } finally {
+      // Remove from uploading state
+      setUploadingFiles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(fileKey);
+        return newSet;
+      });
+    }
+  };
+
+  const handleRemoveFile = async (moduleIndex: number, subsectionIndex: number) => {
+    const subsection = course.modules[moduleIndex].subsections[subsectionIndex];
+    
+    if (subsection.lesson_attachment_id) {
+      try {
+        // Call the delete API
+        await dispatch(deleteCourseMaterial(subsection.lesson_attachment_id));
+        
+        toast({
+          title: "File deleted",
+          description: "The file has been removed from the server.",
+        });
+      } catch (error: any) {
+        console.error('File deletion error:', error);
+        toast({
+          title: "Deletion failed",
+          description: error.response?.data?.message || error.message || "Failed to delete file from server",
+          variant: "destructive",
+        });
+        return; // Don't update local state if deletion failed
+      }
+    }
+    
+    // Update local state
+    const newModules = [...course.modules];
+    newModules[moduleIndex].subsections[subsectionIndex] = {
+      ...newModules[moduleIndex].subsections[subsectionIndex],
+      lesson_attachment_id: undefined,
+      attachment_metadata: undefined,
+      lesson_attachment_path: undefined,
+    };
+    
+    setCourse({ ...course, modules: newModules });
+    
+    // Clear the file input
+    const fileInput = document.getElementById(`lesson-pdf-${moduleIndex}-${subsectionIndex}`) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
   const handleSubmit = async () => {
     // Show loading toast immediately
     toast({
@@ -683,6 +821,15 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
     if (!course?.description?.trim()) requiredFields.push('Course Description');
     if (!course?.content?.trim()) requiredFields.push('Course content');
     if (!course?.price || course?.price <= 0) requiredFields.push('Price');
+    if (!course?.payment_type) requiredFields.push('Payment Type');
+    if (course?.payment_type === 'PayByInstallment') {
+      if (!course?.initial_installment_amount || course?.initial_installment_amount <= 0) {
+        requiredFields.push('Initial Installment Amount');
+      }
+      if (!course?.final_installment_amount || course?.final_installment_amount <= 0) {
+        requiredFields.push('Final Installment Amount');
+      }
+    }
     if ((course?.courseType === 'online' || course?.courseType === 'hybrid') && (!course?.duration || course?.duration <= 0)) requiredFields.push('Online Duration');
     if (!course?.level?.trim()) requiredFields.push('Level');
     if (!course?.language?.trim()) requiredFields.push('Language');
@@ -711,20 +858,8 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
               if (!subsection.title?.trim()) {
                 requiredFields.push(`Lesson ${lessonIndex + 1} Title in Module ${moduleIndex + 1}`);
               }
-              if (!subsection.lesson_attachment_path?.trim()) {
+              if (!subsection.lesson_attachment_id?.toString()) {
                 requiredFields.push(`Lesson ${lessonIndex + 1} PDF in Module ${moduleIndex + 1}`);
-              } else {
-                // Validate file type: must be pdf, doc, docx, ppt, or pptx
-                const path = subsection.lesson_attachment_path;
-                const allowedTypes = ['.pdf', '.doc', '.docx', '.ppt', '.pptx'];
-                const isBase64 = path.startsWith('data:');
-                const extension = isBase64
-                  ? path.split(':')[1].split(';')[0].replace('application/', '').replace('vnd.openxmlformats-officedocument.presentationml.presentation', 'pptx').replace('vnd.openxmlformats-officedocument.wordprocessingml.document', 'docx')
-                  : path.split('.').pop()?.toLowerCase();
-                const normalizedExt = isBase64 ? (extension === 'pdf' ? '.pdf' : extension === 'msword' ? '.doc' : extension === 'vnd.ms-powerpoint' ? '.ppt' : `.${extension}`) : `.${extension}`;
-                if (!allowedTypes.includes(normalizedExt)) {
-                  requiredFields.push(`Lesson ${lessonIndex + 1} file must be PDF, DOC, DOCX, PPT, or PPTX (Module ${moduleIndex + 1})`);
-                }
               }
             });
           }
@@ -773,7 +908,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
         title: course?.title,
         description: course?.description,
         content: course?.content,
-        price: toTwoDecimals(course?.price),
         duration: course?.courseType === 'online' || course?.courseType === 'hybrid'
           ? toTwoDecimals(course?.duration)
           : 0,
@@ -792,6 +926,15 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
           ? toTwoDecimals(course?.offline_training_hours)
           : 0,
         course_materials: null,
+        payment_type: course?.payment_type || 'FullPayment',
+        ...(course?.payment_type === 'FullPayment' 
+          ? { price: toTwoDecimals(course?.price) }
+          : {
+              initial_installment_amount: toTwoDecimals(course?.initial_installment_amount),
+              final_installment_amount: toTwoDecimals(course?.final_installment_amount),
+            }
+        ),
+        price: toTwoDecimals(course?.price),
         course_modules:
           course?.courseType === 'online' || course?.courseType === 'hybrid'
             ? course?.modules.map((mod, idx) => ({
@@ -799,24 +942,10 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                 module_description: mod.description,
                 sequence: idx,
                 course_module_lessons: mod.subsections.map((sub, subIdx) => {
-                  // Extract base64 from data URL if it's a base64 string
-                  let attachmentPath = null;
-                  if (sub.lesson_attachment_path) {
-                    if (sub.lesson_attachment_path.startsWith('data:application/pdf;base64,')) {
-                      // Extract base64 part from data URL
-                      attachmentPath = sub.lesson_attachment_path.split(',')[1];
-                    } else if (sub.lesson_attachment_path.startsWith('data:')) {
-                      // Generic data URL, extract base64
-                      attachmentPath = sub.lesson_attachment_path.split(',')[1];
-                    } else {
-                      // Already base64 or path, use as is
-                      attachmentPath = sub.lesson_attachment_path;
-                    }
-                  }
                   return {
                     lesson_title: sub.title,
                     lesson_description: sub.description,
-                    lesson_attachment_path: attachmentPath,
+                    lesson_attachment_id: sub.lesson_attachment_id || null,
                     duration: toTwoDecimals(sub.duration),
                     sequence: subIdx,
                   };
@@ -1104,6 +1233,60 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                         placeholder="e.g. 99.99"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="payment_type">Payment Type</Label>
+                      <Select
+                        value={course?.payment_type || 'FullPayment'}
+                        onValueChange={(value) => setCourse({ ...course, payment_type: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select payment type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="FullPayment">Full Payment</SelectItem>
+                          <SelectItem value="PayByInstallment">Pay By Installment</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Installment fields - only show when PayByInstallment is selected */}
+                  {course?.payment_type === 'PayByInstallment' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="initial_installment_amount">Initial Installment Amount (CAD)</Label>
+                        <Input
+                          id="initial_installment_amount"
+                          type="number"
+                          step="0.01"
+                          inputMode="decimal"
+                          onKeyDown={blockNonNumericKeys}
+                          value={course?.initial_installment_amount || ''}
+                          onChange={(e) => {
+                            const formatted = limitToTwoDecimalPlaces(e.target.value);
+                            setCourse({ ...course, initial_installment_amount: parseFloat(formatted) || 0 });
+                          }}
+                          placeholder="e.g. 50.00"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="final_installment_amount">Final Installment Amount (CAD)</Label>
+                        <Input
+                          id="final_installment_amount"
+                          type="number"
+                          step="0.01"
+                          inputMode="decimal"
+                          onKeyDown={blockNonNumericKeys}
+                          value={course?.final_installment_amount || ''}
+                          onChange={(e) => {
+                            const formatted = limitToTwoDecimalPlaces(e.target.value);
+                            setCourse({ ...course, final_installment_amount: parseFloat(formatted) || 0 });
+                          }}
+                          placeholder="e.g. 49.99"
+                        />
+                      </div>
+                    </div>
+                  )}
                     {(course?.courseType === 'online' || course?.courseType === 'hybrid') && (
                       <div className="space-y-2">
                         <Label htmlFor="duration">Online Duration (hours)</Label>
@@ -1122,7 +1305,6 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                         />
                       </div>
                     )}
-                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="level">Level</Label>
@@ -1254,7 +1436,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
         src={
   course?.thumbnail_photo_path?.startsWith('data:image')
     ? course.thumbnail_photo_path
-    : import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path
+    : import.meta.env.VITE_API_BASE_URL + "/r/" + course?.thumbnail_photo_path
 }
         alt="Course thumbnail_photo_path preview" 
                           className="w-32 h-20 object-cover rounded border"
@@ -1419,30 +1601,110 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                                       {/* PDF upload input */}
                                       <div>
                                         <label className="block text-sm font-medium mb-1" htmlFor={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}>Lesson PDF <span className="text-red-500">*</span></label>
-                                        <Input
-                                          id={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}
-                                          type="file"
-                                          accept="application/pdf"
-                                          required
-                                          onChange={async (e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                              const reader = new FileReader();
-                                              reader.onloadend = () => {
-                                                const base64 = reader.result as string;
-                                                updateSubsection(moduleIndex, subsectionIndex, 'lesson_attachment_path', base64);
-                                              };
-                                              reader.readAsDataURL(file);
-                                            } else {
-                                              updateSubsection(moduleIndex, subsectionIndex, 'lesson_attachment_path', '');
-                                            }
-                                          }}
-                                          className="bg-background"
-                                        />
-                                        {Boolean(subsection.lesson_attachment_path) ? (
-                                          <div className="text-xs text-green-600 mt-1">✓ PDF selected</div>
+                                        {subsection.attachment_metadata ? (
+                                          // Show uploaded file info with remove button
+                                          <div className="space-y-3">
+                                            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
+                                              <div className="flex items-center space-x-3">
+                                                <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center">
+                                                  <span className="text-xs font-medium text-green-600">
+                                                    {subsection.attachment_metadata.file_type.split('/')[1]?.toUpperCase() || 'FILE'}
+                                                  </span>
+                                                </div>
+                                                <div>
+                                                  <p className="text-sm font-medium text-green-800">{subsection.attachment_metadata.title}</p>
+                                                 <p className="text-xs text-green-600">
+                                                 {(subsection.attachment_metadata.file_size / 1024 / 1024).toFixed(2)} MB
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              <div className="flex items-center space-x-2">
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    // Toggle PDF preview
+                                                    const previewElement = document.getElementById(`pdf-preview-${moduleIndex}-${subsectionIndex}`);
+                                                    if (previewElement) {
+                                                      previewElement.style.display = previewElement.style.display === 'none' ? 'block' : 'none';
+                                                    }
+                                                  }}
+                                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                  title="Toggle PDF Preview"
+                                                >
+                                                  <Eye className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => handleRemoveFile(moduleIndex, subsectionIndex)}
+                                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                  title="Delete PDF"
+                                                >
+                                                  <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                              </div>
+                                            </div>
+                                            
+                                            {/* PDF Preview */}
+                                            <div 
+                                              id={`pdf-preview-${moduleIndex}-${subsectionIndex}`}
+                                              className="hidden border border-gray-200 rounded-md p-2 bg-gray-50"
+                                              style={{ display: 'none' }}
+                                            >
+                                              <div className="flex justify-between items-center mb-2">
+                                                <span className="text-sm font-medium text-gray-700">PDF Preview</span>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    const previewElement = document.getElementById(`pdf-preview-${moduleIndex}-${subsectionIndex}`);
+                                                    if (previewElement) {
+                                                      previewElement.style.display = 'none';
+                                                    }
+                                                  }}
+                                                >
+                                                  ×
+                                                </Button>
+                                              </div>
+                                              <div className="w-full h-96 bg-white border rounded">
+                                                <iframe
+                                                  src={`${import.meta.env.VITE_API_BASE_URL || ''}/r/${subsection.attachment_metadata.file_path}`}
+                                                  className="w-full h-full"
+                                                  title={subsection.attachment_metadata.title}
+                                                />
+                                              </div>
+                                            </div>
+                                          </div>
                                         ) : (
-                                          <div className="text-xs text-red-500 mt-1">PDF is required</div>
+                                          // Show file input or loader
+                                          <div className="space-y-2">
+                                            <Input
+                                              id={`lesson-pdf-${moduleIndex}-${subsectionIndex}`}
+                                              type="file"
+                                              accept=".pdf,.doc,.docx,.ppt,.pptx"
+                                              required
+                                              disabled={uploadingFiles.has(`${moduleIndex}-${subsectionIndex}`)}
+                                              onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                  await handleFileUpload(file, moduleIndex, subsectionIndex);
+                                                }
+                                              }}
+                                              className="bg-background"
+                                            />
+                                            {uploadingFiles.has(`${moduleIndex}-${subsectionIndex}`) && (
+                                              <div className="flex items-center space-x-2 text-blue-600">
+                                                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                                <span className="text-sm">Uploading file...</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        {subsection.attachment_metadata ? (
+                                          <div className="text-xs text-green-600 mt-1">✓ File uploaded successfully</div>
+                                        ) : (
+                                          <div className="text-xs text-red-500 mt-1">File is required</div>
                                         )}
                                       </div>
                                     </div>
@@ -1577,7 +1839,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
                       src={
   course?.thumbnail_photo_path?.startsWith('data:image')
     ? course.thumbnail_photo_path
-    : import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path
+    : import.meta.env.VITE_API_BASE_URL + "/r/" + course?.thumbnail_photo_path
 }
                       alt="Course thumbnail_photo_path"
                       className="w-full h-32 object-cover rounded-md"
@@ -1812,6 +2074,7 @@ const UploadCourse: React.FC<UploadCourseProps> = ({ initialCourse, mode = 'add'
 />
     
     </div>
-                  );
-                };
+  );
+};
+
 export default UploadCourse;

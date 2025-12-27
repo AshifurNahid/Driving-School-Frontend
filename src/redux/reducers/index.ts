@@ -7,7 +7,9 @@ import {
   adminUserDeleteReducer,
   adminRoleListReducer,
   adminCourseListReducer,
-  adminRegionListReducer
+  adminRegionListReducer,
+  courseMaterialUploadReducer,
+  courseMaterialDeleteReducer
 } from "./adminReducer";
 import { courseListReducer, enrolledCoursesReducer } from "./courseReducer";
 import { userCourseDetailsReducer, userCourseListReducer } from "./userCourseReducer";
@@ -70,6 +72,8 @@ const rootReducer = combineReducers({
   
   instructorList: instructorListReducer,
   regionList: adminRegionListReducer,
+  courseMaterialUpload: courseMaterialUploadReducer,
+  courseMaterialDelete: courseMaterialDeleteReducer,
 
   // Slot Pricing reducers
   slotPricingList: slotPricingListReducer,

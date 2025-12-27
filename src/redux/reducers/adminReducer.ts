@@ -26,7 +26,13 @@ import {
   ADMIN_REGION_UPDATE_FAIL,
   ADMIN_REGION_DELETE_REQUEST,
   ADMIN_REGION_DELETE_SUCCESS,
-  ADMIN_REGION_DELETE_FAIL
+  ADMIN_REGION_DELETE_FAIL,
+  COURSE_MATERIAL_UPLOAD_REQUEST,
+  COURSE_MATERIAL_UPLOAD_SUCCESS,
+  COURSE_MATERIAL_UPLOAD_FAIL,
+  COURSE_MATERIAL_DELETE_REQUEST,
+  COURSE_MATERIAL_DELETE_SUCCESS,
+  COURSE_MATERIAL_DELETE_FAIL
 } from "../constants/adminConstants";
 import { User, UserRole } from "@/types/user";
 import { Region } from "@/types/region";
@@ -357,6 +363,77 @@ export const adminRegionListReducer = (
     case ADMIN_REGION_DELETE_FAIL:
       return { ...state, loading: false, error: action.payload };
 
+    default:
+      return state;
+  }
+};
+
+// Course Material Upload State
+interface CourseMaterialUploadState {
+  loading: boolean;
+  success: boolean;
+  material: any | null;
+  error: string | null;
+}
+
+const initialCourseMaterialUploadState: CourseMaterialUploadState = {
+  loading: false,
+  success: false,
+  material: null,
+  error: null,
+};
+
+export const courseMaterialUploadReducer = (
+  state = initialCourseMaterialUploadState,
+  action: any
+): CourseMaterialUploadState => {
+  switch (action.type) {
+    case COURSE_MATERIAL_UPLOAD_REQUEST:
+      return { ...state, loading: true, success: false, error: null };
+    case COURSE_MATERIAL_UPLOAD_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        material: action.payload,
+        error: null,
+      };
+    case COURSE_MATERIAL_UPLOAD_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+// Course Material Delete State
+interface CourseMaterialDeleteState {
+  loading: boolean;
+  success: boolean;
+  error: string | null;
+}
+
+const initialCourseMaterialDeleteState: CourseMaterialDeleteState = {
+  loading: false,
+  success: false,
+  error: null,
+};
+
+export const courseMaterialDeleteReducer = (
+  state = initialCourseMaterialDeleteState,
+  action: any
+): CourseMaterialDeleteState => {
+  switch (action.type) {
+    case COURSE_MATERIAL_DELETE_REQUEST:
+      return { ...state, loading: true, success: false, error: null };
+    case COURSE_MATERIAL_DELETE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        success: true,
+        error: null,
+      };
+    case COURSE_MATERIAL_DELETE_FAIL:
+      return { ...state, loading: false, success: false, error: action.payload };
     default:
       return state;
   }
