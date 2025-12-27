@@ -33,6 +33,7 @@ import {
 } from "@/redux/actions/appointmentAction";
 import { RootState } from "@/redux/reducers";
 import { AppointmentSlot } from "@/redux/reducers/appointmentReducer";
+import { ExtendedQuiz } from "@/types/userCourse";
 
 const formatTimeRange = (start: string, end: string) => {
   const parseTime = (time: string) => {
@@ -110,6 +111,7 @@ const CourseLearn = () => {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<AppointmentSlot | null>(null);
+  const [blockedQuiz, setBlockedQuiz] = useState<ExtendedQuiz | null>(null);
 
   const { appointmentSlots, loading: slotLoading } = useSelector(
     (state: RootState) => state.appointmentSlots
@@ -118,13 +120,19 @@ const CourseLearn = () => {
 
   const course = data?.course;
   const modules = course?.course_modules || [];
-  const totalLessons = useMemo(
-    () => modules.reduce((sum, mod) => sum + (mod.course_module_lessons?.length || 0), 0),
+
+  const orderedModules = useMemo(
+    () => [...modules].sort((a, b) => (a.sequence || 0) - (b.sequence || 0)),
     [modules]
   );
+
+  const totalLessons = useMemo(
+    () => orderedModules.reduce((sum, mod) => sum + (mod.course_module_lessons?.length || 0), 0),
+    [orderedModules]
+  );
   const totalQuizzes = useMemo(
-    () => modules.reduce((sum, mod) => sum + (mod.quizzes?.length || 0), 0),
-    [modules]
+    () => orderedModules.reduce((sum, mod) => sum + (mod.quizzes?.length || 0), 0),
+    [orderedModules]
   );
 
   const nextAvailableDate = () => {
@@ -161,16 +169,16 @@ const CourseLearn = () => {
   }, [courseBooking.success, courseBooking.error]);
 
   useEffect(() => {
-    if (modules.length) {
-      const initial = findInitialSelection(modules);
+    if (orderedModules.length) {
+      const initial = findInitialSelection(orderedModules);
       setSelection(initial);
       const allOpen: Record<number, boolean> = {};
-      modules.forEach((mod) => {
+      orderedModules.forEach((mod) => {
         if (mod.id) allOpen[mod.id] = true;
       });
       setExpanded(allOpen);
     }
-  }, [modules]);
+  }, [orderedModules]);
 
   const toggleModule = (moduleId: number) => {
     setExpanded((prev) => ({ ...prev, [moduleId]: !prev[moduleId] }));
@@ -180,7 +188,34 @@ const CourseLearn = () => {
     setSelection({ moduleId, lessonId, quizId: undefined });
   };
 
+  const findPreviousQuizBlocker = (moduleId: number, quizId: number): ExtendedQuiz | null => {
+    const items: Array<{ type: "lesson" | "quiz"; moduleId: number; itemId: number }> = allItems;
+    const targetIndex = items.findIndex(
+      (item) => item.type === "quiz" && item.moduleId === moduleId && item.itemId === quizId
+    );
+
+    if (targetIndex <= 0) return null;
+
+    for (let i = targetIndex - 1; i >= 0; i--) {
+      const item = items[i];
+      if (item.type === "quiz") {
+        const quiz = findQuizById(orderedModules, item.moduleId, item.itemId);
+        if (quiz && quiz.user_passed === false) {
+          return quiz;
+        }
+        return null;
+      }
+    }
+
+    return null;
+  };
+
   const selectQuiz = (moduleId: number, quizId: number) => {
+    const blocker = findPreviousQuizBlocker(moduleId, quizId);
+    if (blocker) {
+      setBlockedQuiz(blocker);
+      return;
+    }
     setSelection({ moduleId, quizId, lessonId: undefined });
   };
 
@@ -233,13 +268,13 @@ const CourseLearn = () => {
   };
 
   const activeLesson = useMemo(
-    () => findLessonById(modules, selection?.moduleId, selection?.lessonId),
-    [modules, selection]
+    () => findLessonById(orderedModules, selection?.moduleId, selection?.lessonId),
+    [orderedModules, selection]
   );
 
   const activeQuiz = useMemo(
-    () => findQuizById(modules, selection?.moduleId, selection?.quizId),
-    [modules, selection]
+    () => findQuizById(orderedModules, selection?.moduleId, selection?.quizId),
+    [orderedModules, selection]
   );
 
   const availableSlots = useMemo(
@@ -254,19 +289,27 @@ const CourseLearn = () => {
 
   // Navigation functions
   const allItems = useMemo(() => {
-    const items: Array<{ type: 'lesson' | 'quiz', moduleId: number, itemId: number }> = [];
-    modules.forEach(mod => {
-      if (mod.id) {
-        mod.course_module_lessons?.forEach(lesson => {
-          if (lesson.id) items.push({ type: 'lesson', moduleId: mod.id!, itemId: lesson.id });
-        });
-        mod.quizzes?.forEach(quiz => {
-          if (quiz.id) items.push({ type: 'quiz', moduleId: mod.id!, itemId: quiz.id });
-        });
-      }
+    const items: Array<{ type: "lesson" | "quiz"; moduleId: number; itemId: number }> = [];
+
+    orderedModules.forEach((mod) => {
+      if (!mod.id) return;
+
+      const sortedLessons = [...(mod.course_module_lessons || [])].sort(
+        (a, b) => (a.sequence || 0) - (b.sequence || 0)
+      );
+      const sortedQuizzes = [...(mod.quizzes || [])].sort((a, b) => (a.id || 0) - (b.id || 0));
+
+      sortedLessons.forEach((lesson) => {
+        if (lesson.id) items.push({ type: "lesson", moduleId: mod.id!, itemId: lesson.id });
+      });
+
+      sortedQuizzes.forEach((quiz) => {
+        if (quiz.id) items.push({ type: "quiz", moduleId: mod.id!, itemId: quiz.id });
+      });
     });
+
     return items;
-  }, [modules]);
+  }, [orderedModules]);
 
   const currentIndex = useMemo(() => {
     return allItems.findIndex(item => 
@@ -348,7 +391,7 @@ const CourseLearn = () => {
                 progressPercentage={data?.progress_percentage}
                 totalLessons={totalLessons}
                 totalQuizzes={totalQuizzes}
-                modules={modules}
+                modules={orderedModules}
                 expanded={expanded}
                 onToggle={toggleModule}
                 onSelectLesson={selectLesson}
@@ -423,7 +466,7 @@ const CourseLearn = () => {
                             progressPercentage={data?.progress_percentage}
                             totalLessons={totalLessons}
                             totalQuizzes={totalQuizzes}
-                            modules={modules}
+                            modules={orderedModules}
                             expanded={expanded}
                             onToggle={toggleModule}
                             onSelectLesson={(moduleId, lessonId) => {
@@ -496,6 +539,24 @@ const CourseLearn = () => {
             </div>
           </>
         )}
+
+        <Dialog open={Boolean(blockedQuiz)} onOpenChange={(open) => !open && setBlockedQuiz(null)}>
+          <DialogContent className="bg-white text-slate-900 border border-slate-200 dark:bg-[#1A1D23] dark:text-white dark:border-[#2A3038]">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold text-slate-900 dark:text-[#F8F9FA]">
+                Complete the previous quiz first
+              </DialogTitle>
+              <AlertDescription className="text-sm text-slate-600 dark:text-[#8B92A0]">
+                You need to pass "{blockedQuiz?.title || "the previous quiz"}" before you can start this quiz.
+              </AlertDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => setBlockedQuiz(null)} className="bg-[#4ECDC4] hover:bg-[#5DD9C1] text-[#0F1419] font-semibold">
+                Got it
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Slot Picker Dialog */}
         <Dialog open={isSlotPickerOpen} onOpenChange={handleSlotPickerChange}>

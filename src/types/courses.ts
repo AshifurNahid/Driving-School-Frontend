@@ -35,6 +35,7 @@ export type Quiz = {
   description?: string;
   passing_score?: number;
   max_attempts?: number;
+  user_passed?: boolean;
   status?: number;
   questions?: QuizQuestion[];
 };
