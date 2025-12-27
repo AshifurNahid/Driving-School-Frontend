@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useCourseDetails } from "@/hooks/useCourseDetail";
 import RoleBasedNavigation from "@/components/navigation/RoleBasedNavigation";
 import api from "@/utils/axios";
-import { PaymentTransaction } from "@/types/payment";
+import { EnrollmentStatusPayload, PaymentTransaction, PaymentType } from "@/types/payment";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { fetchEnrollmentStatusByCourseId } from "@/services/userCourses";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
 
@@ -196,12 +198,74 @@ const CheckoutContent = () => {
   const { course, loading } = useCourseDetails(Number(id));
   const [transaction, setTransaction] = useState<PaymentTransaction | null>(null);
   const [isCreatingTransaction, setIsCreatingTransaction] = useState(false);
+  const [enrollmentStatus, setEnrollmentStatus] = useState<EnrollmentStatusPayload | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [paymentType, setPaymentType] = useState<PaymentType>("FullPayment");
   const { userInfo } = useAuth();
 
-  const amountLabel = useMemo(() => {
-    if (!course?.price) return "0.00";
-    return Number(course.price).toFixed(2);
-  }, [course?.price]);
+  const coursePrice = useMemo(() => {
+    if (typeof enrollmentStatus?.course_price === "number") return enrollmentStatus.course_price;
+    if (typeof course?.price === "number") return course.price;
+    return 0;
+  }, [course?.price, enrollmentStatus?.course_price]);
+
+  const coursePriceLabel = useMemo(() => {
+    return Number(coursePrice || 0).toFixed(2);
+  }, [coursePrice]);
+
+  const totalPaid = useMemo(() => {
+    if (!enrollmentStatus?.payment_histories?.length) return 0;
+
+    return enrollmentStatus.payment_histories.reduce((sum, history) => {
+      const rawAmount = history.payment_amount ?? history.PaymentAmount;
+      const parsedAmount = typeof rawAmount === "string" ? Number(rawAmount) : rawAmount;
+
+      if (typeof parsedAmount === "number" && !Number.isNaN(parsedAmount)) {
+        return sum + parsedAmount;
+      }
+
+      return sum;
+    }, 0);
+  }, [enrollmentStatus?.payment_histories]);
+
+  const remainingBalance = useMemo(() => {
+    const remaining = coursePrice - totalPaid;
+    return remaining > 0 ? remaining : 0;
+  }, [coursePrice, totalPaid]);
+
+  const nextPaymentAmount = useMemo(() => {
+    if (paymentType === "FullPayment") {
+      return coursePrice;
+    }
+
+    if (!enrollmentStatus) return 0;
+
+    if (enrollmentStatus.payment_status === "PartiallyPaid") {
+      if (!remainingBalance) return 0;
+      return enrollmentStatus.final_installment_amount ?? remainingBalance;
+    }
+
+    return enrollmentStatus.initial_installment_amount ?? coursePrice;
+  }, [coursePrice, enrollmentStatus, paymentType, remainingBalance]);
+
+  const formattedNextPayment = useMemo(() => Number(nextPaymentAmount || 0).toFixed(2), [nextPaymentAmount]);
+  const isInstallmentOnly = enrollmentStatus?.payment_status === "PartiallyPaid";
+  const initialInstallmentAmount = useMemo(() => {
+    if (typeof enrollmentStatus?.initial_installment_amount === "number") {
+      return enrollmentStatus.initial_installment_amount;
+    }
+
+    return coursePrice ? coursePrice / 2 : 0;
+  }, [coursePrice, enrollmentStatus?.initial_installment_amount]);
+
+  const finalInstallmentAmount = useMemo(() => {
+    if (typeof enrollmentStatus?.final_installment_amount === "number") {
+      return enrollmentStatus.final_installment_amount;
+    }
+
+    return remainingBalance;
+  }, [enrollmentStatus?.final_installment_amount, remainingBalance]);
 
   useEffect(() => {
     if (!userInfo) {
@@ -209,16 +273,60 @@ const CheckoutContent = () => {
     }
   }, [id, navigate, userInfo]);
 
+  useEffect(() => {
+    if (!id || !userInfo?.id) return;
+
+    const loadEnrollmentStatus = async () => {
+      setStatusLoading(true);
+      setStatusError(null);
+
+      try {
+        const data = await fetchEnrollmentStatusByCourseId(id);
+        setEnrollmentStatus(data);
+
+        if (data?.payment_status === "Paid") {
+          toast.success("You already own this course", {
+            description: "Redirecting you to Continue Learning.",
+          });
+          navigate(`/course/${id}/learn`, { replace: true });
+          return;
+        }
+
+        if (data?.payment_status === "PartiallyPaid") {
+          setPaymentType("PayByInstallment");
+        }
+      } catch (error) {
+        setStatusError("Unable to load your enrollment status. Please try again.");
+      } finally {
+        setStatusLoading(false);
+      }
+    };
+
+    loadEnrollmentStatus();
+  }, [id, navigate, userInfo?.id]);
+
   const handleCreateTransaction = async () => {
-    if (!course) return;
+    if (!course || !enrollmentStatus) {
+      toast.error("Missing course information", { description: "Please refresh and try again." });
+      return;
+    }
+
+    const paymentAmount = Number(nextPaymentAmount || 0);
+
+    if (!paymentAmount || paymentAmount <= 0) {
+      toast.error("No payment required", { description: "This course looks fully paid already." });
+      return;
+    }
+
     setIsCreatingTransaction(true);
 
     try {
       const { data } = await api.post("/payment-transactions", {
         transaction_type: "Course",
         transaction_reference_id: course.id,
-        amount: course.price,
+        amount: paymentAmount,
         currency: "CAD",
+        payment_type: paymentType,
       });
 
       const paymentTransaction: PaymentTransaction = data?.data;
@@ -231,7 +339,7 @@ const CheckoutContent = () => {
     }
   };
 
-  if (loading) {
+  if (loading || statusLoading) {
     return (
       <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
         <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
@@ -252,6 +360,31 @@ const CheckoutContent = () => {
     );
   }
 
+  if (statusError) {
+    return (
+      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+        <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center h-16">
+              <RoleBasedNavigation />
+            </div>
+          </div>
+        </header>
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <Card className="bg-white p-8 rounded-2xl shadow-xl border border-indigo-100 dark:bg-slate-900/80 dark:border-slate-800">
+            <CardHeader className="p-0 space-y-3">
+              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-slate-50">Unable to load checkout</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-slate-300">{statusError}</CardDescription>
+            </CardHeader>
+            <CardFooter className="p-0 mt-6">
+              <Button onClick={() => navigate(`/course/${id}`)}>Return to course</Button>
+            </CardFooter>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-gray-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm border-b border-indigo-100 dark:border-slate-800">
@@ -264,43 +397,164 @@ const CheckoutContent = () => {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="space-y-6">
-    
-
           <div className="grid lg:grid-cols-[1.05fr,1.2fr] gap-6 bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-br from-sky-50 via-white to-cyan-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 p-8 flex flex-col gap-8">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm dark:bg-slate-800 dark:text-sky-200">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Secure payment
+              <div className="space-y-5">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-sky-700 shadow-sm dark:bg-slate-800 dark:text-sky-200">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Secure payment
+                  </div>
+                  <Badge variant="outline" className="bg-white/80 dark:bg-slate-800 text-indigo-700 dark:text-indigo-200 border-indigo-100 dark:border-slate-700">
+                    Status: {enrollmentStatus?.payment_status || "Unpaid"}
+                  </Badge>
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-semibold text-gray-900 dark:text-slate-50">{course?.title || "Course"}</h2>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">
+                    Your checkout flow adapts based on your enrollment status. Choose how you want to pay and we will guide you through the right
+                    steps.
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-white/80 bg-white/60 p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="flex items-center justify-between">
+                  <div className="grid sm:grid-cols-3 gap-4">
                     <div className="space-y-1">
-                      <p className="text-sm text-gray-600 dark:text-slate-300">Total due</p>
-                      <p className="text-3xl font-bold text-gray-900 dark:text-slate-50">${amountLabel} { "CAD"}</p>
+                      <p className="text-sm text-gray-600 dark:text-slate-300">Course price</p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-slate-50">${coursePriceLabel} CAD</p>
                     </div>
-                    
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-600 dark:text-slate-300">Paid to date</p>
+                      <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">${totalPaid.toFixed(2)} CAD</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-600 dark:text-slate-300">Remaining</p>
+                      <p className="text-2xl font-semibold text-amber-600 dark:text-amber-400">${remainingBalance.toFixed(2)} CAD</p>
+                    </div>
                   </div>
                   <Separator className="my-4 bg-gray-200 dark:bg-slate-700" />
                   <ul className="space-y-2 text-sm text-gray-700 dark:text-slate-300">
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Instant course unlock after payment
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Instant course unlock after final payment
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Securely processed by Stripe
                     </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Enrollment status updated automatically
+                    </li>
                   </ul>
                 </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Payment option</p>
+                    <span className="text-xs text-gray-500 dark:text-slate-400">Next charge: ${formattedNextPayment} CAD</span>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant={paymentType === "FullPayment" ? "default" : "outline"}
+                      className="justify-start h-auto py-3 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                      onClick={() => setPaymentType("FullPayment")}
+                      disabled={isInstallmentOnly}
+                    >
+                      <div className="text-left">
+                        <p className="font-semibold">Full payment</p>
+                        <p className="text-xs text-indigo-100 dark:text-indigo-50/80">Pay ${coursePriceLabel} CAD now</p>
+                      </div>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={paymentType === "PayByInstallment" ? "default" : "outline"}
+                      className="justify-start h-auto py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-slate-800 dark:text-indigo-200"
+                      onClick={() => setPaymentType("PayByInstallment")}
+                    >
+                      <div className="text-left">
+                        <p className="font-semibold">Pay by installment</p>
+                        <p className="text-xs text-indigo-600 dark:text-indigo-200">
+                          Initial ${initialInstallmentAmount.toFixed(2)} CAD • Final ${finalInstallmentAmount.toFixed(2)} CAD
+                        </p>
+                      </div>
+                    </Button>
+                  </div>
+                  {isInstallmentOnly && (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 dark:bg-amber-950/30 dark:border-amber-900 dark:text-amber-200">
+                      You have already started an installment plan. Continue with the remaining balance to finish payment.
+                    </p>
+                  )}
+                </div>
+
+                {paymentType === "PayByInstallment" && (
+                  <div className="rounded-2xl border border-white/80 bg-white/60 p-5 shadow-md space-y-3 dark:border-slate-800 dark:bg-slate-900/70">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-gray-900 dark:text-slate-100">Installment breakdown</p>
+                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">
+                        Pay as you go
+                      </Badge>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="rounded-xl bg-white/70 border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
+                        <p className="text-xs text-gray-600 dark:text-slate-300">Initial installment</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-slate-50">${initialInstallmentAmount.toFixed(2)} CAD</p>
+                      </div>
+                      <div className="rounded-xl bg-white/70 border border-indigo-50 p-4 shadow-sm dark:bg-slate-900/60 dark:border-slate-800">
+                        <p className="text-xs text-gray-600 dark:text-slate-300">Final installment</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-slate-50">${finalInstallmentAmount.toFixed(2)} CAD</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-slate-400">
+                      We will update your payment status after each transaction: Unpaid → PartiallyPaid → Paid.
+                    </p>
+                  </div>
+                )}
+
+                {paymentType === "PayByInstallment" || enrollmentStatus?.payment_histories?.length ? (
+                  <div className="rounded-2xl border border-white/80 bg-white/60 p-5 shadow-md space-y-3 dark:border-slate-800 dark:bg-slate-900/70">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-gray-900 dark:text-slate-100">Payment history</p>
+                      <Badge variant="outline" className="border-indigo-200 text-indigo-700 dark:border-slate-700 dark:text-indigo-200">
+                        {enrollmentStatus?.payment_histories?.length || 0} payment(s)
+                      </Badge>
+                    </div>
+                    {enrollmentStatus?.payment_histories?.length ? (
+                      <div className="space-y-3">
+                        {enrollmentStatus.payment_histories.map((history, index) => {
+                          const transactionId = history.payment_transaction_id ?? history.PaymentTransactionId ?? index + 1;
+                          const historyAmount = history.payment_amount ?? history.PaymentAmount ?? 0;
+                          const historyCurrency = history.payment_currency ?? history.PaymentCurrency ?? "CAD";
+                          const historyDate = history.payment_date ?? history.PaymentDate;
+
+                          const formattedDate = historyDate ? new Date(historyDate).toLocaleDateString() : "Date not provided";
+
+                          return (
+                            <div key={`${transactionId}-${index}`} className="flex items-center justify-between rounded-xl bg-white/70 border border-indigo-50 p-4 dark:bg-slate-900/60 dark:border-slate-800">
+                              <div>
+                                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Payment #{transactionId}</p>
+                                <p className="text-xs text-gray-600 dark:text-slate-400">{formattedDate}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-gray-900 dark:text-slate-50">${Number(historyAmount).toFixed(2)} {historyCurrency}</p>
+                                <p className="text-[11px] text-gray-500 dark:text-slate-400">Installment</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-slate-300">
+                        <AlertCircle className="h-4 w-4 text-indigo-500" />
+                        <p>Your payment history will appear here after the first installment.</p>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
 
               <div className="mt-auto space-y-3">
                 <Button
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-600"
                   onClick={handleCreateTransaction}
-                  disabled={isCreatingTransaction || !course}
+                  disabled={isCreatingTransaction || !course || !enrollmentStatus || nextPaymentAmount <= 0}
                 >
                   {isCreatingTransaction ? (
                     <span className="flex items-center gap-2 justify-center">
@@ -308,7 +562,7 @@ const CheckoutContent = () => {
                       <span>Starting secure payment...</span>
                     </span>
                   ) : (
-                    `Start checkout • ${amountLabel} ${"CAD"}`
+                    `Start checkout • ${formattedNextPayment} CAD`
                   )}
                 </Button>
                 <p className="text-xs text-gray-600 text-center dark:text-slate-400">
