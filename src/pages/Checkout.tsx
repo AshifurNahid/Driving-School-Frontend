@@ -497,7 +497,7 @@ const CheckoutContent = () => {
                         Pay as you go
                       </Badge>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                       <div
                         className={`rounded-xl border p-4 shadow-sm min-w-0 ${
                           enrollmentStatus?.payment_status === "Unpaid"
@@ -517,7 +517,7 @@ const CheckoutContent = () => {
                             : "bg-white border-indigo-50 dark:bg-slate-900/60 dark:border-slate-800"
                         }`}
                       >
-                        <p className="text-xs text-gray-600 dark:text-slate-300">Final installment</p>
+                        <p className="text-xs text-gray-600 dark:text-slate-300">Finial nstallment</p>
                         <p className="text-lg font-semibold text-gray-900 dark:text-slate-50 break-words">
                           ${finalInstallmentAmount.toFixed(2)} CAD
                         </p>
