@@ -214,20 +214,27 @@ const CheckoutContent = () => {
     return Number(coursePrice || 0).toFixed(2);
   }, [coursePrice]);
 
+  const normalizePaymentAmount = (rawAmount: unknown) => {
+    const parsed = typeof rawAmount === "string" ? Number(rawAmount) : (rawAmount as number | undefined);
+
+    if (typeof parsed !== "number" || Number.isNaN(parsed)) return 0;
+
+    // Some APIs return cents; if the amount is far larger than the course price, scale it down.
+    if (coursePrice > 0 && parsed > coursePrice * 1.5) {
+      return parsed / 100;
+    }
+
+    return parsed;
+  };
+
   const totalPaid = useMemo(() => {
     if (!enrollmentStatus?.payment_histories?.length) return 0;
 
     return enrollmentStatus.payment_histories.reduce((sum, history) => {
-      const rawAmount = history.payment_amount ?? history.PaymentAmount;
-      const parsedAmount = typeof rawAmount === "string" ? Number(rawAmount) : rawAmount;
-
-      if (typeof parsedAmount === "number" && !Number.isNaN(parsedAmount)) {
-        return sum + parsedAmount;
-      }
-
-      return sum;
+      const normalized = normalizePaymentAmount(history.payment_amount ?? history.PaymentAmount);
+      return sum + (Number.isFinite(normalized) ? normalized : 0);
     }, 0);
-  }, [enrollmentStatus?.payment_histories]);
+  }, [coursePrice, enrollmentStatus?.payment_histories]);
 
   const remainingBalance = useMemo(() => {
     const remaining = coursePrice - totalPaid;
@@ -242,8 +249,11 @@ const CheckoutContent = () => {
     if (!enrollmentStatus) return 0;
 
     if (enrollmentStatus.payment_status === "PartiallyPaid") {
-      if (!remainingBalance) return 0;
-      return enrollmentStatus.final_installment_amount ?? remainingBalance;
+      const finalAmount = enrollmentStatus.final_installment_amount;
+      if (typeof finalAmount === "number" && finalAmount > 0) {
+        return finalAmount;
+      }
+      return remainingBalance > 0 ? remainingBalance : enrollmentStatus.final_installment_amount ?? coursePrice;
     }
 
     return enrollmentStatus.initial_installment_amount ?? coursePrice;
