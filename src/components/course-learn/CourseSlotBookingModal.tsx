@@ -156,7 +156,7 @@ const CourseSlotBookingModal: React.FC<CourseSlotBookingModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card text-foreground border border-border/70 shadow-xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card text-foreground border border-border/70">
         <DialogHeader className="space-y-2 pb-2 border-b border-border/70">
           <DialogTitle className="text-xl font-semibold">Confirm offline booking</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">

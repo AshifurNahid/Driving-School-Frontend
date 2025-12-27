@@ -75,9 +75,9 @@ const SlotCard = ({
 }) => (
   <button
     onClick={() => onSelect(slot)}
-    className={`w-full text-left rounded-xl border-2 p-4 transition bg-white hover:border-[#4ECDC4] hover:shadow-md hover:shadow-[#4ECDC4]/5 dark:bg-[#1E2329] ${
+    className={`w-full text-left rounded-xl border-2 p-4 transition-colors bg-white hover:border-[#4ECDC4] dark:bg-[#1E2329] ${
       selected
-        ? "border-[#4ECDC4] ring-2 ring-[#4ECDC4]/40 shadow-md shadow-[#4ECDC4]/10"
+        ? "border-[#4ECDC4] ring-2 ring-[#4ECDC4]/40"
         : "border-slate-200 dark:border-[#2A3038]"
     }`}
   >
@@ -342,7 +342,7 @@ const CourseLearn = () => {
         {!isLoading && !isError && course && (
           <>
             {/* Fixed Sidebar - Desktop Only */}
-            <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-96 bg-white overflow-y-auto border-r border-slate-200 shadow-md shadow-black/10 dark:bg-[#1A1D23] dark:border-[#222832] dark:shadow-md dark:shadow-black/25">
+      <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-96 bg-white overflow-y-auto border-r border-slate-200 dark:bg-[#1A1D23] dark:border-[#222832]">
               <ModuleSidebar
                 courseTitle={course.title}
                 progressPercentage={data?.progress_percentage}
@@ -362,7 +362,7 @@ const CourseLearn = () => {
             <div className="flex-1 lg:ml-96 min-h-screen bg-[#f8f9fa] dark:bg-[#0F1419]">
               {/* Offline Training Appointment Card */}
               {courseType !== 0 && (
-                <Card className="m-6 border border-slate-200 bg-white shadow-lg shadow-black/10 rounded-2xl dark:border-[#222832] dark:bg-gradient-to-r dark:from-[#1E2329] dark:via-[#151A20] dark:to-[#1E2329] dark:shadow-lg dark:shadow-black/30">
+                <Card className="m-6 border border-slate-200 bg-white rounded-2xl dark:border-[#222832] dark:bg-gradient-to-r dark:from-[#1E2329] dark:via-[#151A20] dark:to-[#1E2329]">
                   <CardHeader className="pb-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                       <div className="space-y-2">
@@ -371,15 +371,15 @@ const CourseLearn = () => {
                         </CardTitle>
                       </div>
                       <div className="flex flex-wrap gap-3">
-                        <div className="rounded-lg bg-white px-4 py-2 border border-slate-200 shadow-inner dark:bg-[#0F1419] dark:border-[#222832]">
+                        <div className="rounded-lg bg-white px-4 py-2 border border-slate-200 dark:bg-[#0F1419] dark:border-[#222832]">
                           <p className="text-xs text-slate-500 dark:text-[#8B92A0]">Total</p>
                           <p className="text-lg font-semibold text-slate-900 dark:text-white">{totalOfflineHours} hrs</p>
                         </div>
-                        <div className="rounded-lg bg-white px-4 py-2 border border-slate-200 shadow-inner dark:bg-[#0F1419] dark:border-[#222832]">
+                        <div className="rounded-lg bg-white px-4 py-2 border border-slate-200 dark:bg-[#0F1419] dark:border-[#222832]">
                           <p className="text-xs text-slate-500 dark:text-[#8B92A0]">Used</p>
                           <p className="text-lg font-semibold text-slate-900 dark:text-white">{consumedOfflineHours} hrs</p>
                         </div>
-                        <div className="rounded-lg bg-[#FF7F50]/10 px-4 py-2 border border-[#FF7F50]/30 shadow-inner dark:bg-[#FF7F50]/15 dark:border-[#FF7F50]/40">
+                        <div className="rounded-lg bg-[#FF7F50]/10 px-4 py-2 border border-[#FF7F50]/30 dark:bg-[#FF7F50]/15 dark:border-[#FF7F50]/40">
                           <p className="text-xs text-[#FF7F50] dark:text-[#FFB4A2]">Remaining</p>
                           <p className="text-lg font-semibold text-[#FF7F50] dark:text-[#FF8C61]">{remainingOfflineHours} hrs</p>
                         </div>

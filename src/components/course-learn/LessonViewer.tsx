@@ -14,7 +14,7 @@ export const LessonViewer = ({ lesson, attachmentUrl }: LessonViewerProps) => {
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden border border-slate-200 bg-white shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
+      <Card className="overflow-hidden border border-slate-200 bg-white dark:border-[#222832] dark:bg-[#1E2329]">
         <CardHeader className="space-y-4 border-b border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white pb-6 dark:border-[#222832] dark:from-[#1A1D23] dark:via-[#12161C] dark:to-[#0F1419]">
           <div className="flex flex-wrap items-center gap-2">
             <Badge
@@ -39,7 +39,7 @@ export const LessonViewer = ({ lesson, attachmentUrl }: LessonViewerProps) => {
         {attachmentUrl && (
           <CardContent className="p-3 sm:p-4 md:p-6 bg-white dark:bg-[#0F1419]">
             <div className="w-full max-w-4xl mx-auto">
-              <div className="aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] w-full bg-white dark:bg-[#1E2329] rounded-lg shadow-inner overflow-hidden border border-slate-200 dark:border-[#222832]">
+              <div className="aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] w-full bg-white dark:bg-[#1E2329] rounded-lg overflow-hidden border border-slate-200 dark:border-[#222832]">
                 <PdfCarouselViewer src={attachmentUrl} title={lesson.lesson_title} />
               </div>
             </div>

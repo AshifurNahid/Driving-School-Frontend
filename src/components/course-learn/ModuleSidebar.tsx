@@ -42,9 +42,9 @@ const ModuleSidebarItem = ({
   const quizCount = quizzes.length;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white transition-colors duration-200 dark:border-[#222832] dark:bg-[#1E2329]">
       <button
-        className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-slate-50 dark:hover:bg-[#222832]"
+        className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-[#222832]"
         onClick={onToggle}
       >
         <div className="flex flex-col gap-1.5">
@@ -63,21 +63,21 @@ const ModuleSidebarItem = ({
         )}
       </button>
       {isOpen && (
-        <div className="border-t border-slate-200 dark:border-[#222832]">
+        <div className="border-t border-slate-200 dark:border-[#222832] transition-all duration-200">
           {lessons.map((lesson: ExtendedLesson, lessonIndex) => {
             const isActive = activeLessonId === lesson.id;
             return (
               <button
                 key={lesson.id}
                 className={cn(
-                  "flex w-full items-center gap-3 px-4 py-3 text-left transition",
+                  "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200",
                   "hover:bg-slate-50 dark:hover:bg-[#222832]",
                   isActive && "bg-[#FF7F50]/10 border-l-3 border-l-[#FF7F50]"
                 )}
                 onClick={() => lesson.id && onSelectLesson(lesson.id)}
               >
                 <div className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0",
+                  "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 transition-colors duration-200",
                   isActive ? "bg-[#4ECDC4] text-[#0F1419]" : "bg-slate-100 text-slate-600 dark:bg-[#222832] dark:text-[#9CA3AF]"
                 )}>
                   {isActive ? (
@@ -93,7 +93,7 @@ const ModuleSidebarItem = ({
                   )}>
                     {lesson.lesson_title || "Lesson"}
                   </span>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-[#8B92A0]">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-[#8B92A0] transition-colors duration-200">
                     {lesson.duration && (
                       <span className="flex items-center gap-1">
                         <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -113,14 +113,14 @@ const ModuleSidebarItem = ({
               <button
                 key={quiz.id}
                 className={cn(
-                  "flex w-full items-center gap-3 px-4 py-3 text-left transition",
+                  "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200",
                   "hover:bg-slate-50 dark:hover:bg-[#222832]",
                   isActive && "bg-[#FF7F50]/10 border-l-3 border-l-[#FF7F50]"
                 )}
                 onClick={() => quiz.id && onSelectQuiz(quiz.id)}
               >
                 <div className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0",
+                  "flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 transition-colors duration-200",
                   isActive ? "bg-[#4ECDC4] text-[#0F1419]" : "bg-slate-100 text-slate-600 dark:bg-[#222832] dark:text-[#9CA3AF]"
                 )}>
                   <FileQuestion className="h-3.5 w-3.5" />
@@ -133,7 +133,7 @@ const ModuleSidebarItem = ({
                     {quiz.title || "Quiz"}
                   </span>
                   {quiz.questions?.length ? (
-                    <span className="text-xs text-slate-500 dark:text-[#8B92A0]">
+                    <span className="text-xs text-slate-500 dark:text-[#8B92A0] transition-colors duration-200">
                       {quiz.questions.length} question{quiz.questions.length > 1 ? "s" : ""}
                     </span>
                   ) : null}
@@ -170,7 +170,7 @@ export const ModuleSidebar = ({
   return (
     <aside className="h-full w-full space-y-4 overflow-y-auto pb-10 p-4">
       {/* Course Progress Card */}
-      <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-md shadow-black/10 dark:border-[#222832] dark:bg-[#1E2329] dark:shadow-black/30">
+      <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 transition-colors duration-200 dark:border-[#222832] dark:bg-[#1E2329]">
         <div className="flex items-start gap-3">
           <BookOpenCheck className="mt-0.5 h-5 w-5 text-[#4ECDC4] flex-shrink-0" />
           <div className="flex-1 min-w-0">
