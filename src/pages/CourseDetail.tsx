@@ -237,21 +237,33 @@ const CourseDetail = () => {
 
       <section className="relative overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-emerald-50/80 via-white to-transparent dark:from-slate-900 dark:via-slate-950" />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-2xl bg-white/80 dark:bg-slate-900 shadow-sm backdrop-blur border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-                <div className="flex items-center gap-3 text-emerald-600 dark:text-emerald-400 font-semibold mb-2">
-                  <BookOpen className="h-5 w-5" />
-                  <span>Course Overview</span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-3">{course?.title}</h1>
-                <p className="text-slate-700 dark:text-slate-200 leading-relaxed mb-4">{course?.description}</p>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {course?.category && <Badge variant="secondary" className="rounded-full">{course.category}</Badge>}
-                  {course?.level && <Badge variant="outline" className="rounded-full border-emerald-200 text-emerald-700 dark:text-emerald-300 dark:border-emerald-800">{course.level}</Badge>}
-                </div>
 
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-6 pb-14 space-y-6">
+          <div className="relative overflow-hidden rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm bg-slate-900/90">
+            <div className="absolute inset-0">
+              <img
+                src={import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path}
+                alt={course?.title}
+                className="h-full w-full object-cover opacity-80"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-slate-900/40" />
+            <div className="relative px-6 sm:px-10 py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div className="space-y-2">
+                <p className="text-emerald-300 font-semibold text-sm uppercase tracking-wide">Course</p>
+                <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight">{course?.title}</h1>
+                <p className="text-slate-200 max-w-3xl">{course?.description}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {course?.category && <Badge variant="secondary" className="rounded-full bg-white/15 text-white border-white/20">{course.category}</Badge>}
+                {course?.level && <Badge variant="outline" className="rounded-full border-emerald-200 text-emerald-50 bg-white/10">{course.level}</Badge>}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="rounded-2xl bg-white/90 dark:bg-slate-900 shadow-sm backdrop-blur border border-slate-100 dark:border-slate-800 p-5 sm:p-7">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Card className="border-none shadow-none bg-slate-50 dark:bg-slate-800/70">
                     <CardContent className="p-4">
@@ -390,7 +402,7 @@ const CourseDetail = () => {
                         {modules.map((section, index) => {
                           const isOpen = openModules.includes(index);
                           return (
-                            <Card key={index} className="border-slate-100 dark:border-slate-800">
+                            <Card key={index} className="border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
                               <CardHeader
                                 className="pb-3 cursor-pointer select-none"
                                 onClick={() => {
@@ -423,14 +435,14 @@ const CourseDetail = () => {
                                       return (
                                         <div
                                           key={itemIndex}
-                                          className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+                                          className="flex justify-between items-center py-3 px-2 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                                         >
-                                          <div className="flex items-center gap-3">
-                                            <span className="text-xs font-medium text-muted-foreground">{lessonNumber}</span>
-                                            <Play className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-foreground">{item?.lesson_title}</span>
+                                          <div className="flex items-center gap-3 text-slate-800 dark:text-slate-100">
+                                            <span className="text-xs font-semibold text-muted-foreground">{lessonNumber}</span>
+                                            <Play className="h-4 w-4 text-emerald-500" />
+                                            <span className="font-medium">{item?.lesson_title}</span>
                                           </div>
-                                          <span className="text-sm text-muted-foreground">{item?.duration || "—"}</span>
+                                          <span className="text-sm font-medium text-slate-500 dark:text-slate-300">{item?.duration || "—"}</span>
                                         </div>
                                       );
                                     })}
@@ -652,34 +664,34 @@ const CourseDetail = () => {
                     <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Best Seller</Badge>
                   </div>
 
-                  {userInfo ? (
-                    userCoursesLoading || enrollmentLoading ? (
-                      <Button className="w-full" disabled>
-                        Loading...
-                      </Button>
-                    ) : isPartiallyPaid ? (
-                      <div className="space-y-3">
-                        <Button className="w-full" variant="outline" asChild>
+                    {userInfo ? (
+                      userCoursesLoading || enrollmentLoading ? (
+                        <Button className="w-full" disabled>
+                          Loading...
+                        </Button>
+                      ) : isPartiallyPaid ? (
+                        <div className="space-y-3">
+                          <Button className="w-full" variant="outline" asChild>
+                            <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
+                          </Button>
+                          <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-lg font-semibold shadow-lg hover:from-orange-600 hover:to-amber-600" onClick={() => navigate(`/course/${id}/checkout`)}>
+                            Complete installment payment
+                          </Button>
+                        </div>
+                      ) : isPaid && (enrolledCourse?.id || course?.id) ? (
+                        <Button className="w-full" asChild>
                           <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
                         </Button>
-                        <Button className="w-full" onClick={() => navigate(`/course/${id}/checkout`)}>
-                          Complete installment payment
+                      ) : (
+                        <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-lg font-semibold shadow-lg hover:from-orange-600 hover:to-amber-600" onClick={handleEnroll}>
+                          Enroll Now
                         </Button>
-                      </div>
-                    ) : isPaid && (enrolledCourse?.id || course?.id) ? (
-                      <Button className="w-full" asChild>
-                        <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
-                      </Button>
+                      )
                     ) : (
-                      <Button className="w-full" onClick={handleEnroll}>
-                        Enroll Now
+                      <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-lg font-semibold shadow-lg hover:from-orange-600 hover:to-amber-600" asChild>
+                        <Link to="/login">Login to Enroll</Link>
                       </Button>
-                    )
-                  ) : (
-                    <Button className="w-full" asChild>
-                      <Link to="/login">Login to Enroll</Link>
-                    </Button>
-                  )}
+                    )}
 
                   <div className="rounded-xl border border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-900/60 space-y-3">
                     <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
