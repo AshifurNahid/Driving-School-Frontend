@@ -419,25 +419,15 @@ const CheckoutContent = () => {
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-semibold text-gray-900 dark:text-slate-50">{course?.title || "Course"}</h2>
-                  <p className="text-sm text-gray-600 dark:text-slate-300">
-                    Your checkout flow adapts based on your enrollment status. Choose how you want to pay and we will guide you through the right
-                    steps.
-                  </p>
+                
                 </div>
                 <div className="rounded-2xl border border-white/80 bg-white/60 p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-sm text-gray-600 dark:text-slate-300">Course price</p>
                       <p className="text-2xl font-bold text-gray-900 dark:text-slate-50">${coursePriceLabel} CAD</p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-600 dark:text-slate-300">Paid to date</p>
-                      <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">${totalPaid.toFixed(2)} CAD</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-600 dark:text-slate-300">Remaining</p>
-                      <p className="text-2xl font-semibold text-amber-600 dark:text-amber-400">${remainingBalance.toFixed(2)} CAD</p>
-                    </div>
+                   
                   </div>
                   <Separator className="my-4 bg-gray-200 dark:bg-slate-700" />
                   <ul className="space-y-2 text-sm text-gray-700 dark:text-slate-300">
