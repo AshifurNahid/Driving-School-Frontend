@@ -15,6 +15,8 @@ import { getUserCourses } from '@/redux/actions/userCourseAction';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
+import { fetchEnrollmentStatusByCourseId } from '@/services/userCourses';
+import { EnrollmentStatusPayload } from '@/types/payment';
 import "react-quill/dist/quill.snow.css";
 const CourseDetail = () => {
   const { userInfo } = useAuth();
@@ -26,6 +28,9 @@ const CourseDetail = () => {
   const [editing, setEditing] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [openModules, setOpenModules] = useState<number[]>([]);
+  const [enrollmentStatus, setEnrollmentStatus] = useState<EnrollmentStatusPayload | null>(null);
+  const [enrollmentLoading, setEnrollmentLoading] = useState(false);
+  const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
   if (!id) {
     return <div>Loading...</div>; // or navigate away, etc.
   }
@@ -40,8 +45,31 @@ const CourseDetail = () => {
     }
   }, [dispatch, userInfo?.id]);
 
+  useEffect(() => {
+    if (!id || !userInfo?.id) return;
+
+    const loadEnrollmentStatus = async () => {
+      setEnrollmentLoading(true);
+      setEnrollmentError(null);
+      try {
+        const data = await fetchEnrollmentStatusByCourseId(id);
+        setEnrollmentStatus(data);
+      } catch (error) {
+        setEnrollmentError("Unable to load enrollment status");
+      } finally {
+        setEnrollmentLoading(false);
+      }
+    };
+
+    loadEnrollmentStatus();
+  }, [id, userInfo?.id]);
+
   // Find the enrolled course for this course ID
   const enrolledCourse = userCourseList.find((uc: any) => uc?.course_id === Number(id));
+
+  const paymentStatus = enrollmentStatus?.payment_status;
+  const isPaid = paymentStatus === "Paid" || !!enrolledCourse;
+  const isPartiallyPaid = paymentStatus === "PartiallyPaid";
 
   // Check if user is enrolled in this course
   useEffect(() => {
@@ -533,13 +561,22 @@ const CourseDetail = () => {
                 </div>
 
                 {userInfo ? (
-                  userCoursesLoading ? (
+                  userCoursesLoading || enrollmentLoading ? (
                     <Button className="w-full mb-4" disabled>
                       Loading...
                     </Button>
-                  ) : isEnrolled && enrolledCourse?.id ? (
+                  ) : isPartiallyPaid ? (
+                    <div className="space-y-3">
+                      <Button className="w-full" variant="outline" asChild>
+                        <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
+                      </Button>
+                      <Button className="w-full" onClick={() => navigate(`/course/${id}/checkout`)}>
+                        Complete installment payment
+                      </Button>
+                    </div>
+                  ) : isPaid && (enrolledCourse?.id || course?.id) ? (
                     <Button className="w-full mb-4" asChild>
-                      <Link to={`/course/${enrolledCourse.id}/learn`}>Continue Learning</Link>
+                      <Link to={`/course/${enrolledCourse?.id || course?.id}/learn`}>Continue Learning</Link>
                     </Button>
                   ) : (
                     <Button className="w-full mb-4" onClick={handleEnroll}>
