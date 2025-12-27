@@ -297,12 +297,12 @@ const CourseLearn = () => {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-[#0F1419] via-[#0F1419] to-[#1A1D23] text-white"
+      className="min-h-screen bg-gradient-to-br from-[#0F1419] via-[#0F1419] to-[#1A1D23]"
       style={{ fontFamily: "'SF Pro Text', 'SF Pro Display', 'Inter', 'Helvetica Neue', system-ui, -apple-system, sans-serif" }}
     >
       <RoleBasedNavigation currentPath={`/course/${id}/learn`} />
 
-      <main className="flex mt-16 text-white">
+      <main className="flex mt-16 text-[#F8F9FA]">
         {isLoading && (
           <div className="flex-1 p-6">
             <CourseLearnSkeleton />
@@ -335,7 +335,7 @@ const CourseLearn = () => {
         {!isLoading && !isError && course && (
           <>
             {/* Fixed Sidebar - Desktop Only */}
-            <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-80 bg-[#1A1D23] overflow-y-auto border-r border-[#222832] shadow-xl/20">
+            <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-96 bg-[#1A1D23] overflow-y-auto border-r border-[#222832] shadow-xl/20">
               <ModuleSidebar
                 courseTitle={course.title}
                 progressPercentage={data?.progress_percentage}
@@ -352,7 +352,7 @@ const CourseLearn = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-80 min-h-screen bg-[#0F1419]">
+            <div className="flex-1 lg:ml-96 min-h-screen bg-[#0F1419]">
               {/* Offline Training Appointment Card */}
               {courseType !== 0 && (
                 <Card className="m-6 border border-[#222832] bg-gradient-to-r from-[#1E2329] via-[#151A20] to-[#1E2329] shadow-2xl shadow-[#00000033] rounded-2xl">
