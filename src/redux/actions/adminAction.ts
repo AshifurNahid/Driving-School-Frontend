@@ -9,6 +9,12 @@ import {
   ROLE_LIST_REQUEST,
   ROLE_LIST_SUCCESS,
   ROLE_LIST_FAIL,
+  COURSE_MATERIAL_UPLOAD_REQUEST,
+  COURSE_MATERIAL_UPLOAD_SUCCESS,
+  COURSE_MATERIAL_UPLOAD_FAIL,
+  COURSE_MATERIAL_DELETE_REQUEST,
+  COURSE_MATERIAL_DELETE_SUCCESS,
+  COURSE_MATERIAL_DELETE_FAIL,
 } from "../constants/adminConstants";
 
 // Get Users (Admin)
@@ -265,5 +271,44 @@ export const deleteAdminRegion = (id: number) => async (dispatch: any) => {
       type: "ADMIN_REGION_DELETE_FAIL",
       payload: error.response?.data?.message || error.message,
     });
+  }
+};
+
+// Upload Course Material
+export const uploadCourseMaterial = (file: File) => async (dispatch: any) => {
+  try {
+    dispatch({ type: COURSE_MATERIAL_UPLOAD_REQUEST });
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const { data } = await api.post("/course-materials", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    dispatch({ type: COURSE_MATERIAL_UPLOAD_SUCCESS, payload: data.data });
+    return data.data;
+  } catch (error: any) {
+    dispatch({
+      type: COURSE_MATERIAL_UPLOAD_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+    throw error;
+  }
+};
+
+// Delete Course Material
+export const deleteCourseMaterial = (materialId: number) => async (dispatch: any) => {
+  try {
+    dispatch({ type: COURSE_MATERIAL_DELETE_REQUEST });
+    await api.delete(`/course-materials/${materialId}`);
+    dispatch({ type: COURSE_MATERIAL_DELETE_SUCCESS, payload: materialId });
+  } catch (error: any) {
+    dispatch({
+      type: COURSE_MATERIAL_DELETE_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+    throw error;
   }
 };

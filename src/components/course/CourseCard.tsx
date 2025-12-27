@@ -18,7 +18,7 @@ export const CourseCard = ({ course }: { course: Course }) => {
     
     // Construct the full URL
     const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dms-edu.runasp.net';
-    const fullUrl = `${baseUrl}/${cleanPath}`;
+    const fullUrl = `${baseUrl}/r/${cleanPath}`;
     console.log(`CourseCard - Constructed URL: ${fullUrl} from path: ${thumbnailPath}`);
     return fullUrl;
   };
