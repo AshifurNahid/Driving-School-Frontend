@@ -525,8 +525,8 @@ const CanadianDrivingSchool = () => {
               icon: <Mail className="w-6 h-6" />,
               title: "Email Direct",
               subtitle: "Quick Response",
-              action: "info@nldriversacademy.ca",
-              href: "mailto:info@nldriversacademy.ca",
+              action: "fasttrackdta@gmail.com",
+              href: "mailto:fasttrackdta@gmail.com",
               color: "blue"
             },
             {
@@ -620,7 +620,7 @@ const CanadianDrivingSchool = () => {
                 </div>
                 <div className="flex items-center">
                   <Mail className="w-4 h-4 mr-3 text-blue-500" />
-                  <span className="text-sm">info@nldriversacademy.ca</span>
+                  <span className="text-sm">fasttrackdta@gmail.com</span>
                 </div>
                 <div className="flex items-start">
                   <MapPin className="w-4 h-4 mr-3 text-blue-500 mt-0.5" />

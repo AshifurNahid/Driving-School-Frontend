@@ -132,7 +132,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
     // Contact Info (Right aligned)
     pdf.setFontSize(10);
     pdf.text('+1 (709) 351-6738', pageWidth - 70, 25);
-    pdf.text('info@nldriversacademy.ca', pageWidth - 70, 32);
+    pdf.text('fasttrackdta@gmail.com', pageWidth - 70, 32);
     
     // Document Title
     pdf.setTextColor(textColor[0], textColor[1], textColor[2]);

@@ -52,11 +52,11 @@ const ContactSection = () => {
     {
       icon: Mail,
       title: 'Email Us',
-      primary: 'info@nldriversacademy.ca',
+      primary: 'fasttrackdta@gmail.com',
       secondary: 'We respond within 4 hours',
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
       iconColor: 'text-blue-600 dark:text-blue-400',
-      link: 'mailto:info@nldriversacademy.ca',
+      link: 'mailto:fasttrackdta@gmail.com',
       isLink: true
     },
     {
