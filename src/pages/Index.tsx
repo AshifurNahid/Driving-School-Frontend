@@ -8,29 +8,34 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import RoleBasedNavigation from '@/components/navigation/RoleBasedNavigation';
+import { useTheme } from "@/components/ThemeProvider";
 
 
 
 
 const heroImages = [
- "/hero/slide1.jpg",
+  "/hero/slide1.jpg",
   "/hero/slide2.jpg",
 ];
 
 const CanadianDrivingSchool = () => {
   // All hooks must be inside the component function
+  const { theme } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedRegion, setSelectedRegion] = useState('all');
   const { courses, loading, error } = useCourses(1, 8); // Fetch 8 courses for the homepage
   const { regions, loading: regionsLoading, error: regionsError } = useRegions();
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
+  
+  const currentHeroImages = heroImages;
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentHeroImage((prev) => (prev + 1) % heroImages.length);
+      setCurrentHeroImage((prev) => (prev + 1) % currentHeroImages.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentHeroImages]);
 
   // Driving course categories
   const categories = [
@@ -59,151 +64,122 @@ const CanadianDrivingSchool = () => {
   return (
     <div className="min-h-screen bg-gray-50 text-foreground transition-colors dark:bg-gray-950">
       <RoleBasedNavigation />
-      {/* Hero Section */}
 
-      {/* Enhanced Hero Section */}
-<section className="relative py-24 overflow-hidden bg-gray-950 text-white">
-  {/* Advanced gradient overlay system */}
-  <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-transparent z-[1]" />
-  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 z-[1]" />
-  
-  {/* Enhanced background carousel with better transitions */}
-  <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-    {heroImages.map((img, idx) => (
-      <div
-        key={img}
-        className={`
-          absolute inset-0 w-full h-full transition-all duration-[2000ms] ease-out
-          ${idx === currentHeroImage 
-            ? "opacity-100 scale-100" 
-            : "opacity-0 scale-105"
-          }
-        `}
-      >
+      <section className="relative min-h-screen overflow-hidden bg-slate-900">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
         <img
-          src={img}
-          alt=""
-          className="w-full h-full object-cover"
-          style={{ filter: 'brightness(0.7) contrast(1.1)' }}
+          src={currentHeroImages[currentHeroImage]}
+          alt="Driving School Hero Image"
+          className="w-full h-full object-cover opacity-55"
           draggable={false}
         />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/75 to-slate-900/30" />
+        <div className="absolute inset-0 bg-teal-900/25 dark:bg-slate-950/30" />
       </div>
-    ))}
+
+      {/* Main Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 pt-32 pb-20 min-h-screen flex flex-col justify-center">
+        
+        {/* Trust Badges */}
+        <div className="flex flex-wrap gap-3 mb-8">
+  <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/30">
+    <Award className="w-4 h-4 text-amber-500" />
+    <span className="text-sm text-white font-medium">Government Recognized Curriculum</span>
   </div>
-
-  {/* Animated background elements */}
-  <div className="absolute inset-0 z-[1]">
-    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse" />
-    <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+  <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/30">
+    <Award className="w-4 h-4 text-amber-500" />
+    <span className="text-sm text-white font-medium">Experienced Instructors</span>
   </div>
+  <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/30">
+    <CheckCircle className="w-4 h-4 text-amber-500" />
+    <span className="text-sm text-white font-medium">Focused on Safety & Confidence</span>
+  </div>
+</div>
 
-  {/* Main content container */}
-  <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    {/* Premium badge with glassmorphism */}
-    <div className="text-center mb-8">
-      <div className="inline-flex items-center px-6 py-3 rounded-full mb-8 bg-white/15 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/20 transition-all duration-300">
-        <Award className="w-5 h-5 text-yellow-400 mr-3 drop-shadow-lg" />
-        <span className="font-bold text-white text-base tracking-wide">
-        Government Recognized Curriculum • Experienced Instructors • Focused on Safety & Confidence        </span>
-      </div>
-      
-      {/* Enhanced headline with better typography */}
-      <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-[0.9] tracking-tight">
-        Learn to Drive with{' '}
-        <span className="bg-gradient-to-r from-red-400 via-pink-500 to-red-600 bg-clip-text text-transparent drop-shadow-2xl">
-          Canada's Best
-        </span>
-      </h1>
-      
-      {/* Refined description */}
-      <p className="text-lg md:text-xl text-white/95 font-medium mb-12 max-w-4xl mx-auto leading-relaxed drop-shadow-lg">
-        Professional driving instruction across St. John’s and  Corner Brook. From learner's license (Level I) to full Class 5 license, 
-        we'll get you road-ready with confidence and safety.
-      </p>
+        {/* Main Heading */}
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
+          Learn to Drive with{' '}
+          <span className="text-amber-500">Canada's Best</span>
+        </h1>
 
-      {/* Modern trust indicators */}
-      <div className="flex flex-wrap justify-center items-center gap-8 mb-12">
-        <div className="flex items-center group">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mr-3 shadow-lg group-hover:scale-110 transition-transform">
-            <CheckCircle className="w-5 h-5 text-white" />
+        {/* Description */}
+        <p className="text-lg text-gray-200 mb-8 max-w-3xl leading-relaxed">
+          Professional driving instruction across St. John's and Corner Brook. From learner's license (Level I) to full Class 5 license, we'll get you road-ready with confidence and safety.
+        </p>
+
+        {/* Feature List */}
+        <div className="flex flex-wrap gap-6 mb-10">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-amber-500" />
+            <span className="text-base text-white font-medium">Personalized Training for Every Student</span>
           </div>
-          <div className="text-left">
-            <div className="text-2xl font-black text-white">Personalized Training for Every Student</div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-amber-500" />
+            <span className="text-base text-white font-medium">Fully Licensed & Certified Instructors</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-amber-500" />
+            <span className="text-base text-white font-medium">Easy Online Scheduling</span>
           </div>
         </div>
-        <div className="flex items-center group">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center mr-3 shadow-lg group-hover:scale-110 transition-transform">
-            <CheckCircle className="w-5 h-5 text-white" />
-          </div>
-          <div className="text-left">
-            <div className="text-2xl font-black text-white">Fully Licensed & Certified Instructors</div>
-          </div>
-        </div>
-        <div className="flex items-center group">
-          <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center mr-3 shadow-lg group-hover:scale-110 transition-transform">
-            <CheckCircle className="w-5 h-5 text-white" />
-          </div>
-          <div className="text-left">
-            <div className="text-2xl font-black text-white">Easy Online Scheduling</div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    {/* Enhanced CTA section */}
-    <div className="text-center">
-      <p className="text-lg text-white/95 font-medium mb-6 max-w-2xl mx-auto">
-        Book your driving lesson today! Choose from morning, afternoon, or evening slots.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link to="/appointments">
-          <button className="group relative bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-lg px-10 py-4 font-bold shadow-2xl hover:shadow-green-500/25 transition-all duration-300 rounded-2xl hover:scale-105 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <Calendar className="mr-3 h-6 w-6 inline relative z-10" />
-            <span className="relative z-10">Book Driving Lesson</span>
+        {/* CTA Buttons */}
+        <div className="flex flex-wrap gap-4 mb-3">
+          <Link to="/appointments">
+            <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-lg font-bold transition-all duration-300 h-14 px-10 bg-amber-500 text-slate-900 hover:scale-105 hover:bg-amber-600 shadow-lg hover:shadow-[0_0_50px_rgba(245,158,11,0.5)]">
+              <Calendar className="w-5 h-5" />
+              <span>Book Driving Lesson</span>
+            </button>
+          </Link>
+          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-lg font-semibold transition-all duration-300 h-14 px-10 bg-slate-700/30 backdrop-blur-sm text-white border-2 border-slate-600/50 hover:bg-slate-700/50 hover:border-slate-500/70">
+            <PlayCircle className="w-5 h-5" />
+            <span>Watch Demo Video</span>
           </button>
-        </Link>
-        <button className="group relative bg-white/15 backdrop-blur-md border-2 border-white/40 text-white hover:bg-white/25 text-lg px-10 py-4 font-bold rounded-2xl transition-all duration-300 hover:scale-105 hover:-translate-y-2 shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <PlayCircle className="mr-3 h-6 w-6 inline relative z-10" />
-          <span className="relative z-10">Watch Demo Video</span>
-        </button>
-      </div>
-    </div>
-  </div>
+        </div>
 
-  {/* Scroll indicator */}
-  <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
-    <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center">
-      <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-bounce" />
-    </div>
-  </div>
-</section>
+        <p className="text-sm text-gray-400 mb-16">
+          Book your driving lesson today! Choose from morning, afternoon, or evening slots.
+        </p>
 
-      
-      {/* <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-800 to-slate-900 dark:from-[#181830] dark:to-[#23235b] transition-colors">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="text-white">
-              <div className="text-4xl md:text-5xl font-bold mb-2">50,000+</div>
-              <div className="text-red-100 font-medium">Students Trained</div>
+        {/* Stats Section */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-12 border-t border-slate-700/50">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="w-5 h-5 text-amber-500" />
+              <span className="text-3xl font-bold text-white">10,000+</span>
             </div>
-            <div className="text-white">
-              <div className="text-4xl md:text-5xl font-bold mb-2">98%</div>
-              <div className="text-red-100 font-medium">Pass Rate</div>
+            <p className="text-sm text-gray-400">Students Trained</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Award className="w-5 h-5 text-amber-500" />
+              <span className="text-3xl font-bold text-white">95%</span>
             </div>
-            <div className="text-white">
-              <div className="text-4xl md:text-5xl font-bold mb-2">25+</div>
-              <div className="text-red-100 font-medium">Years Experience</div>
+            <p className="text-sm text-gray-400">First-Time Pass Rate</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Car className="w-5 h-5 text-amber-500" />
+              <span className="text-3xl font-bold text-white">15+</span>
             </div>
-            <div className="text-white">
-              <div className="text-4xl md:text-5xl font-bold mb-2">15+</div>
-              <div className="text-red-100 font-medium">Certified Instructors</div>
+            <p className="text-sm text-gray-400">Years Experience</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <MapPin className="w-5 h-5 text-amber-500" />
+              <span className="text-3xl font-bold text-white">2</span>
             </div>
+            <p className="text-sm text-gray-400">NL Locations</p>
           </div>
         </div>
-      </section> */}
+      </div>
+    </section>
+
+
+
+      
+    
 
       {/* Enhanced Statistics Section */}
 <section className="relative py-12 bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 overflow-hidden">
