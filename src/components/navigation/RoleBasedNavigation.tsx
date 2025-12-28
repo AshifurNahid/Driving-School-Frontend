@@ -88,16 +88,32 @@ const RoleBasedNavigation = ({ currentPath }: RoleBasedNavigationProps) => {
           <div className="flex items-center justify-between h-16 sm:h-[72px] px-3 sm:px-6 lg:px-8">
             
             {/* Logo - Left Corner */}
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 lg:flex-initial justify-start">
+            {/* <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 lg:flex-initial justify-start">
               <NavLink 
                 to="/" 
                 className="flex items-center space-x-2 sm:space-x-3 group transition-all duration-300 hover:scale-[1.02] min-w-0"
                 onClick={closeMobileMenu}
+              > */}
+            <div className="flex items-center min-w-0 flex-1 lg:flex-initial justify-start">
+              <NavLink
+                to="/"
+                className="flex items-center gap-0 sm:gap-0 group transition-all duration-300 hover:scale-[1.02] min-w-0"
+                onClick={closeMobileMenu}
               >
-                <div className="relative flex-shrink-0">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    <Car className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                {/* <div className="relative flex-shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-tr from-blue-600 via-indigo-600 to-white-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                    {/* <Car className="w-4 h-4 sm:w-5 sm:h-5 text-white" /> 
+                  <img src="/favicon.png" alt="logo"className="w-10 h-10"/>
                   </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div> */}
+                <div className="relative flex-shrink-0">
+                  {/* Removed bg-gradient and shadow. Just a sizing container now. */}
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    {/* Image fits the sizing container */}
+                    <img src="/favicon.png" alt="logo" className="w-full h-full object-contain" />
+                  </div>
+                  {/* Kept the dot, but it might look weird floating without the box underneath. You might want to remove this too. */}
                   <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
                 <div className="min-w-0">

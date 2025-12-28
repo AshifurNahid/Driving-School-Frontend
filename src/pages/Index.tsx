@@ -580,7 +580,8 @@ const CanadianDrivingSchool = () => {
             {/* Logo and description */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center mb-4">
-                <Car className="w-10 h-10 text-blue-500 mr-3" />
+                {/* <Car className="w-10 h-10 text-blue-500 mr-3" /> */}
+                <img src="/favicon.png" alt="logo" className="w-12 h-12 object-contain drop-shadow-lg"/>
                 <span className="text-2xl font-bold">Fast Track Drivers Academy</span>
               </div>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
