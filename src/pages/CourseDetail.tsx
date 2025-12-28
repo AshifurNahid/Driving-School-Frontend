@@ -492,7 +492,7 @@ const CourseDetail = () => {
             <Card className="sticky top-6 overflow-hidden bg-white dark:bg-[#1a1f2e] border-gray-200 dark:border-gray-800">
               <div className="relative">
                 <img
-                  src={import.meta.env.VITE_API_BASE_URL + "/" + course?.thumbnail_photo_path}
+                  src={import.meta.env.VITE_API_BASE_URL + "/r/" + course?.thumbnail_photo_path}
                   alt={course?.title}
                   className="w-full h-48 object-cover"
                 />
