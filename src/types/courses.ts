@@ -2,6 +2,7 @@ export type CourseReview = {
   id?: number;
   course_id?: number;
   review_from_id?: number;
+  review_from_name?: string;
   rating?: number;
   review?: string;
   is_verified_purchase?: boolean;
