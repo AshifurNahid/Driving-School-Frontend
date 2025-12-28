@@ -138,41 +138,10 @@ const CanadianDrivingSchool = () => {
           </button>
         </div>
 
-        <p className="text-sm text-gray-400 mb-16">
+        <p className="text-sm text-gray-400 mb-10">
           Book your driving lesson today! Choose from morning, afternoon, or evening slots.
         </p>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-12 border-t border-slate-700/50">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-5 h-5 text-amber-500" />
-              <span className="text-3xl font-bold text-white">10,000+</span>
-            </div>
-            <p className="text-sm text-gray-400">Students Trained</p>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Award className="w-5 h-5 text-amber-500" />
-              <span className="text-3xl font-bold text-white">95%</span>
-            </div>
-            <p className="text-sm text-gray-400">First-Time Pass Rate</p>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Car className="w-5 h-5 text-amber-500" />
-              <span className="text-3xl font-bold text-white">15+</span>
-            </div>
-            <p className="text-sm text-gray-400">Years Experience</p>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <MapPin className="w-5 h-5 text-amber-500" />
-              <span className="text-3xl font-bold text-white">2</span>
-            </div>
-            <p className="text-sm text-gray-400">NL Locations</p>
-          </div>
-        </div>
       </div>
     </section>
 
