@@ -31,6 +31,8 @@ import 'react-phone-number-input/style.css';
 const BIRTH_YEAR_FROM = 1920;
 const BIRTH_YEAR_TO = new Date().getFullYear() - 12;
 const MIN_PHONE_DIGITS = 10;
+const MAX_PHONE_DIGITS = 11;
+const MIN_AGE = 18;
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -132,11 +134,31 @@ const Register = () => {
         form.agreements.every((a) => a !== null)
       );
     } else if (s.includes('studentEmail')) {
-      const studentDigits = (form.studentPhone || '').replace(/\D/g, '');
-      return !!form.studentEmail && studentDigits.length >= MIN_PHONE_DIGITS;
+      const phoneDigits = (form.studentPhone || '').replace(/\D/g, '');
+      return !!form.studentEmail && (phoneDigits.length >= MIN_PHONE_DIGITS && phoneDigits.length <= MAX_PHONE_DIGITS);
+    } else if (s.includes('studentPhone')) {
+      const phoneDigits = (form.studentPhone || '').replace(/\D/g, '');
+      return !!form.studentPhone && (phoneDigits.length >= MIN_PHONE_DIGITS && phoneDigits.length <= MAX_PHONE_DIGITS);
     } else if (s.includes('address1')) {
       return !!form.address1 && !!form.city && !!form.state && !!form.postal;
     } else if (s.includes('regionId')) {
+      // Check age for birth date fields
+      if (form.birthYear && form.birthMonth && form.birthDay) {
+        const dob = new Date(
+          `${form.birthYear}-${form.birthMonth.toString().padStart(2, '0')}-${form.birthDay.toString().padStart(2, '0')}`
+        );
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+          age--;
+        }
+        
+        if (age < MIN_AGE) {
+          return false; // Under 18, invalid
+        }
+      }
+      
       return (
         !!form.regionId &&
         !!form.firstName &&
@@ -182,10 +204,10 @@ const Register = () => {
       if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
         age--;
       }
-      if (age < 16) {
+      if (age < MIN_AGE) {
         toast({
           title: 'Invalid Date of Birth',
-          description: 'You must be at least 16 years old to register.',
+          description: 'You must be at least 18 years old to register.',
           variant: 'destructive',
         } as any);
         return;
@@ -292,7 +314,7 @@ const Register = () => {
               </div>
             </div>
             <Label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
-            <div className="mt-1 border rounded-md p-2 bg-white">
+            <div className="mt-1 border rounded-md p-2 bg-white dark:bg-gray-800 dark:border-gray-600">
               <DayPicker
                 mode="single"
                 selected={birthDate}
@@ -309,6 +331,8 @@ const Register = () => {
                 fromYear={BIRTH_YEAR_FROM}
                 toYear={BIRTH_YEAR_TO}
                 captionLayout="dropdown"
+
+               
               />
             </div>
           </div>
@@ -542,8 +566,125 @@ const Register = () => {
                 <Button
                   type="button"
                   className="px-8"
-                  disabled={!fieldsValidFor(step)}
-                  onClick={() => fieldsValidFor(step) && setStep(s => Math.min(steps.length-1, s+1))}
+                  onClick={() => {
+                  // Always allow clicking Next, but validate on click
+                  const currentStepFields = steps[step].fields;
+                  
+                  // Check age validation first
+                  if (currentStepFields.includes('birthYear') || currentStepFields.includes('birthMonth') || currentStepFields.includes('birthDay')) {
+                    if (form.birthYear && form.birthMonth && form.birthDay) {
+                      const dob = new Date(
+                        `${form.birthYear}-${form.birthMonth.toString().padStart(2, '0')}-${form.birthDay.toString().padStart(2, '0')}`
+                      );
+                      const today = new Date();
+                      let age = today.getFullYear() - dob.getFullYear();
+                      const m = today.getMonth() - dob.getMonth();
+                      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                      }
+                      
+                      if (age < MIN_AGE) {
+                        toast({
+                          title: 'Invalid Date of Birth',
+                          description: 'Please enter a valid date of birth. You must be at least 18 years old.',
+                          variant: 'destructive',
+                        });
+                        return; // Stop here, don't proceed
+                      }
+                    } else {
+                      toast({
+                        title: 'Invalid Date of Birth',
+                        description: 'Please enter a valid date of birth. You must be at least 18 years old.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  }
+                  
+                  // Check other validations
+                  if (currentStepFields.includes('regionId') || currentStepFields.includes('firstName') || currentStepFields.includes('lastName')) {
+                    if (!form.regionId || !form.firstName || !form.lastName) {
+                      toast({
+                        title: 'Missing Information',
+                        description: 'Please fill in all required personal information fields.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  }
+                  
+                  if (currentStepFields.includes('address1') || currentStepFields.includes('city') || currentStepFields.includes('state') || currentStepFields.includes('postal')) {
+                    if (!form.address1 || !form.city || !form.state || !form.postal) {
+                      toast({
+                        title: 'Missing Address',
+                        description: 'Please fill in all required address fields.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  }
+                  
+                  if (currentStepFields.includes('studentEmail') || currentStepFields.includes('studentPhone')) {
+                    const phoneDigits = (form.studentPhone || '').replace(/\D/g, '');
+                    if (!form.studentEmail || phoneDigits.length < MIN_PHONE_DIGITS || phoneDigits.length > MAX_PHONE_DIGITS) {
+                      toast({
+                        title: 'Invalid Contact',
+                        description: 'Please enter a valid email and phone number (10-11 digits).',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  }
+                  
+                  if (currentStepFields.includes('permitYear') || currentStepFields.includes('permitMonth') || currentStepFields.includes('permitDay')) {
+                    if (form.permitYear && form.permitMonth && form.permitDay) {
+                      const permitDate = new Date(
+                        `${form.permitYear}-${form.permitMonth.toString().padStart(2, '0')}-${form.permitDay.toString().padStart(2, '0')}`
+                      );
+                      const today = new Date();
+                      if (permitDate > today) {
+                        toast({
+                          title: 'Invalid Permit Date',
+                          description: 'Learner\'s permit issue date cannot be in the future.',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                    } else {
+                      toast({
+                        title: 'Invalid Permit Date',
+                        description: 'Please enter a valid learner\'s permit date.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  }
+                  
+                  if (currentStepFields.includes('hasLicenseAnotherCountry') || currentStepFields.includes('drivingExperience')) {
+                    if (!form.hasLicenseAnotherCountry || !form.drivingExperience) {
+                      toast({
+                        title: 'Missing Information',
+                        description: 'Please complete all permit and experience fields.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  }
+                  
+                  if (currentStepFields.includes('password') || currentStepFields.includes('confirmPassword') || currentStepFields.includes('agreements')) {
+                    if (!form.password || !form.confirmPassword || form.password !== form.confirmPassword || !form.agreements.every((a) => a !== null)) {
+                      toast({
+                        title: 'Security Required',
+                        description: 'Please set a password and accept all agreements.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                  }
+                  
+                  // If all validations pass, proceed to next step
+                  setStep(s => Math.min(steps.length-1, s+1));
+                }}
                 >
                   Next
                 </Button>
