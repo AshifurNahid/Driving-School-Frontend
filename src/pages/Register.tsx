@@ -71,7 +71,7 @@ const Register = () => {
   // Show toasts based on Redux state changes
 
   useEffect(() => {
-    if (!loading && error) {
+    if (!loading && error && submitted) {
       toast({ title: 'Registration Failed', description: error, variant: 'destructive' });
       setSubmitted(false);
     }
