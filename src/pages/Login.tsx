@@ -1,10 +1,8 @@
-
-import { useState ,useEffect} from 'react';
-import { Link ,useNavigate} from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useDispatch, useSelector } from 'react-redux';
-import { login } from '@/redux/actions/authAction';
-import { RootState } from '@/redux/store';
+import { useDispatch } from 'react-redux';
+import { forgotPassword, login } from '@/redux/actions/authAction';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +17,25 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
- const dispatch = useDispatch();
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { loading, error, userInfo } = useAuth();
 
   useEffect(() => {
     if (userInfo) {
+      if (!userInfo.is_email_verified) {
+        setNeedsVerification(true);
+        toast({
+          title: 'Email Not Verified',
+          description: 'Please verify your email to continue.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      setNeedsVerification(false);
       toast({
         title: 'Login Successful',
         description: `Welcome back, ${userInfo.full_name}!`
@@ -50,6 +60,39 @@ const Login = () => {
     e.preventDefault();
     dispatch(login(email, password) as any);
     setSubmitted(true);
+  };
+
+  const handleSendVerification = async () => {
+    const targetEmail = userInfo?.email || email;
+
+    if (!targetEmail) {
+      toast({
+        title: 'Email Required',
+        description: 'Please enter your email first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setVerificationLoading(true);
+      await dispatch(forgotPassword(targetEmail) as any);
+      sessionStorage.setItem('verificationEmail', targetEmail);
+      sessionStorage.setItem('verificationContext', 'login');
+      toast({
+        title: 'Verification Code Sent',
+        description: `A verification code has been sent to ${targetEmail}.`,
+      });
+      navigate('/register/verify');
+    } catch (err: any) {
+      toast({
+        title: 'Unable to send code',
+        description: err.response?.data?.message || err.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setVerificationLoading(false);
+    }
   };
 
 
@@ -135,6 +178,23 @@ const Login = () => {
                 {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
+
+            {needsVerification && (
+              <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/30 dark:text-yellow-100 space-y-3">
+                <div className="text-sm font-medium">
+                  Your email address is not verified. Please verify to access your account.
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-yellow-300 text-yellow-800 dark:border-yellow-700 dark:text-yellow-100"
+                  onClick={handleSendVerification}
+                  disabled={verificationLoading}
+                >
+                  {verificationLoading ? 'Sending Code...' : 'Verify Email'}
+                </Button>
+              </div>
+            )}
 
             <Separator className="bg-gray-200 dark:bg-gray-700" />
 
