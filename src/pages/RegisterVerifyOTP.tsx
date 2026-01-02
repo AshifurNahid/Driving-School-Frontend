@@ -49,24 +49,33 @@ const RegisterVerifyOTP = () => {
         description: successMessage,
       });
       const storedUser = localStorage.getItem('userInfo');
+      let redirectPath = '/login';
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser?.email === verificationEmail) {
-            localStorage.setItem(
-              'userInfo',
-              JSON.stringify({ ...parsedUser, is_email_verified: true })
-            );
+            const updatedUser = { ...parsedUser, is_email_verified: true };
+            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            if (verificationContext === 'login') {
+              redirectPath =
+                parsedUser?.role?.title === 'Admin'
+                  ? '/admin'
+                  : '/';
+            }
+          } else if (verificationContext === 'login') {
+            redirectPath = '/';
           }
         } catch (err) {
           console.error('Failed to update user verification status', err);
         }
+      } else if (verificationContext === 'login') {
+        redirectPath = '/';
       }
       // Clear email from sessionStorage
       sessionStorage.removeItem('registrationEmail');
       sessionStorage.removeItem('verificationEmail');
       sessionStorage.removeItem('verificationContext');
-      navigate('/login');
+      navigate(redirectPath);
       setSubmitted(false);
     }
   }, [successMessage, submitted, navigate, toast, verificationEmail]);
