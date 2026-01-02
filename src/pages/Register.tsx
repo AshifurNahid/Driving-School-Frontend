@@ -7,13 +7,14 @@ import { getAdminRegionList } from '@/redux/actions/adminAction';
 import { useToast } from '@/hooks/use-toast';
 
 import { RootState } from '@/redux/store';
-import { Eye, EyeOff, Lock, User } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -23,8 +24,6 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 
@@ -33,10 +32,6 @@ const BIRTH_YEAR_TO = new Date().getFullYear() - 12;
 const MIN_PHONE_DIGITS = 10;
 const MAX_PHONE_DIGITS = 11;
 const MIN_AGE = 18;
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 const steps = [
   { label: 'Location & Personal', fields: [ 'regionId', 'firstName', 'lastName', 'birthYear', 'birthMonth', 'birthDay' ] },
@@ -58,6 +53,8 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [birthCalendarOpen, setBirthCalendarOpen] = useState(false);
+  const [permitCalendarOpen, setPermitCalendarOpen] = useState(false);
   const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
   const [submitted, setSubmitted] = useState(false);
   const dispatch = useDispatch();
@@ -103,10 +100,6 @@ const Register = () => {
   useEffect(() => {
     if (!regions || regions.length === 0) { dispatch(getAdminRegionList() as any); }
   }, [dispatch, regions]);
-
-  const years = Array.from({length: BIRTH_YEAR_TO - BIRTH_YEAR_FROM + 1}, (_, i) => (BIRTH_YEAR_TO - i).toString());
-  const days = Array.from({length: 31}, (_, i) => (i+1).toString());
-  const permitYears = Array.from({length: 40}, (_, i) => (new Date().getFullYear() - i).toString());
 
   const AGREE_TEXTS = [
     'I agree that 50% of the Certificate Programs needs to be paid before Online portion begins and the remaining 50% before 1st IN CAR lesson.',
@@ -279,8 +272,6 @@ const Register = () => {
 
     const birthDate = birthDateISO ? new Date(birthDateISO) : undefined;
     const permitDate = permitDateISO ? new Date(permitDateISO) : undefined;
-    const todayISO = new Date().toISOString().split('T')[0];
-
     const handleBirthDateChange = (val: string) => {
       const [y, m, d] = val.split('-');
       handleFieldChange('birthYear', y || '');
@@ -298,80 +289,95 @@ const Register = () => {
       case 0:
         return (
           <div style={stepFadeStyle}>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Please choose a location <span className="text-red-500">*</span></Label>
+            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">
+              Please choose a location <span className="text-red-500">*</span>
+            </Label>
             <Select value={form.regionId} onValueChange={val => handleFieldChange('regionId', val)}>
-              <SelectTrigger className="mt-2"><SelectValue placeholder="Please Select" /></SelectTrigger>
-              <SelectContent>{regions?.map(r => <SelectItem key={r.id} value={r.id?.toString() || ''}>{r.region_name || `Region ${r.id}`}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="mt-2 bg-white dark:bg-gray-800 dark:border-gray-700">
+                <SelectValue placeholder="Please Select" />
+              </SelectTrigger>
+              <SelectContent className="dark:bg-gray-900 dark:text-gray-100">{regions?.map(r => <SelectItem key={r.id} value={r.id?.toString() || ''}>{r.region_name || `Region ${r.id}`}</SelectItem>)}</SelectContent>
             </Select>
-            <div className="grid grid-cols-2 gap-2 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">First Name <span className="text-red-500">*</span></Label>
-                <Input placeholder="First Name" value={form.firstName} onChange={e => handleFieldChange('firstName', e.target.value)} />
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">First Name <span className="text-red-500">*</span></Label>
+                <Input placeholder="First Name" value={form.firstName} onChange={e => handleFieldChange('firstName', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
               </div>
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">Last Name <span className="text-red-500">*</span></Label>
-                <Input placeholder="Last Name" value={form.lastName} onChange={e => handleFieldChange('lastName', e.target.value)} />
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Last Name <span className="text-red-500">*</span></Label>
+                <Input placeholder="Last Name" value={form.lastName} onChange={e => handleFieldChange('lastName', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
               </div>
             </div>
-            <Label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
-            <div className="mt-1 border rounded-md p-2 bg-white dark:bg-gray-800 dark:border-gray-600">
-              <DayPicker
-                mode="single"
-                selected={birthDate}
-                onSelect={(date) => {
-                  if (!date) {
-                    handleBirthDateChange('');
-                    return;
-                  }
-                  const y = date.getFullYear().toString();
-                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-                  const d = date.getDate().toString().padStart(2, '0');
-                  handleBirthDateChange(`${y}-${m}-${d}`);
-                }}
-                fromYear={BIRTH_YEAR_FROM}
-                toYear={BIRTH_YEAR_TO}
-                captionLayout="dropdown"
-
-               
-              />
-            </div>
+            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
+            <Popover open={birthCalendarOpen} onOpenChange={setBirthCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+                >
+                  {birthDate ? birthDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : <span className="text-gray-500 dark:text-gray-400">Select date of birth</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start" side="bottom" sideOffset={4}>
+                <Calendar
+                  selected={birthDate}
+                  onSelect={(date) => {
+                    if (!date) {
+                      handleBirthDateChange('');
+                      return;
+                    }
+                    const y = date.getFullYear().toString();
+                    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const d = date.getDate().toString().padStart(2, '0');
+                    handleBirthDateChange(`${y}-${m}-${d}`);
+                    setBirthCalendarOpen(false);
+                  }}
+                  fromYear={BIRTH_YEAR_FROM}
+                  toYear={BIRTH_YEAR_TO}
+                  disabled={(date) => date.getFullYear() < BIRTH_YEAR_FROM || date.getFullYear() > BIRTH_YEAR_TO}
+                  initialFocus
+                  className="bg-white dark:bg-gray-800 rounded-md"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         );
       case 1:
         return (
           <div style={stepFadeStyle}>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Address <span className="text-red-500">*</span></Label>
+            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Address <span className="text-red-500">*</span></Label>
             <div className="flex flex-col mt-2">
-              <Label className="block text-sm font-medium text-gray-700 mb-1">Street Address <span className="text-red-500">*</span></Label>
-              <Input placeholder="Street Address" value={form.address1} onChange={e => handleFieldChange('address1', e.target.value)} />
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Street Address <span className="text-red-500">*</span></Label>
+              <Input placeholder="Street Address" value={form.address1} onChange={e => handleFieldChange('address1', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
             </div>
             <div className="flex flex-col mt-2">
-              <Label className="block text-sm font-medium text-gray-700 mb-1">Street Address Line 2 (optional)</Label>
-              <Input placeholder="Street Address Line 2 (optional)" value={form.address2} onChange={e => handleFieldChange('address2', e.target.value)} />
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Street Address Line 2 (optional)</Label>
+              <Input placeholder="Street Address Line 2 (optional)" value={form.address2} onChange={e => handleFieldChange('address2', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">City <span className="text-red-500">*</span></Label>
-                <Input placeholder="City" value={form.city} onChange={e => handleFieldChange('city', e.target.value)} />
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">City <span className="text-red-500">*</span></Label>
+                <Input placeholder="City" value={form.city} onChange={e => handleFieldChange('city', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
               </div>
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">State / Province <span className="text-red-500">*</span></Label>
-                <Input placeholder="State / Province" value={form.state} onChange={e => handleFieldChange('state', e.target.value)} />
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">State / Province <span className="text-red-500">*</span></Label>
+                <Input placeholder="State / Province" value={form.state} onChange={e => handleFieldChange('state', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
               </div>
             </div>
             <div className="flex flex-col mt-2">
-              <Label className="block text-sm font-medium text-gray-700 mb-1">Postal / Zip Code <span className="text-red-500">*</span></Label>
-              <Input placeholder="Postal / Zip Code" value={form.postal} onChange={e => handleFieldChange('postal', e.target.value)} />
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Postal / Zip Code <span className="text-red-500">*</span></Label>
+              <Input placeholder="Postal / Zip Code" value={form.postal} onChange={e => handleFieldChange('postal', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
             </div>
           </div>
         );
       case 2:
         return (
           <div style={stepFadeStyle}>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Contact Information <span className="text-red-500">*</span></Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Contact Information <span className="text-red-500">*</span></Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">
                   Student's E-mail <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -379,35 +385,36 @@ const Register = () => {
                   placeholder="Student's E-mail"
                   value={form.studentEmail}
                   onChange={e => handleFieldChange('studentEmail', e.target.value)}
+                  className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                 />
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                   📧 A verification code will be sent to this email address
                 </p>
               </div>
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">Parent's E-mail (optional)</Label>
-                <Input type="email" placeholder="Parent's E-mail (optional)" value={form.parentEmail} onChange={e => handleFieldChange('parentEmail', e.target.value)} />
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Parent's E-mail (optional)</Label>
+                <Input type="email" placeholder="Parent's E-mail (optional)" value={form.parentEmail} onChange={e => handleFieldChange('parentEmail', e.target.value)} className="bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">Student Phone <span className="text-red-500">*</span></Label>
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Student Phone <span className="text-red-500">*</span></Label>
                 <PhoneInput
                   international
                   defaultCountry="CA"
                   value={form.studentPhone}
                   onChange={val => handleFieldChange('studentPhone', val || '')}
-                  className="border rounded-md px-3 py-2 text-sm bg-white"
+                  className="border rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                 />
               </div>
               <div className="flex flex-col">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">Parent/Guardian Phone (optional)</Label>
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Parent/Guardian Phone (optional)</Label>
                 <PhoneInput
                   international
                   defaultCountry="CA"
                   value={form.parentPhone}
                   onChange={val => handleFieldChange('parentPhone', val || '')}
-                  className="border rounded-md px-3 py-2 text-sm bg-white"
+                  className="border rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                 />
               </div>
             </div>
@@ -416,40 +423,57 @@ const Register = () => {
       case 3:
         return (
           <div style={stepFadeStyle}>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Learner's Permit Issue Date <span className="text-red-500">*</span></Label>
-            <div className="mt-2 border rounded-md p-2 bg-white">
-              <DayPicker
-                mode="single"
-                selected={permitDate}
-                onSelect={(date) => {
-                  if (!date) {
-                    handlePermitDateChange('');
-                    return;
-                  }
-                  const y = date.getFullYear().toString();
-                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-                  const d = date.getDate().toString().padStart(2, '0');
-                  handlePermitDateChange(`${y}-${m}-${d}`);
-                }}
-                captionLayout="dropdown"
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Date cannot be in the future.</p>
+            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Learner's Permit Issue Date <span className="text-red-500">*</span></Label>
+            <Popover open={permitCalendarOpen} onOpenChange={setPermitCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+                >
+                  {permitDate ? permitDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : <span className="text-gray-500 dark:text-gray-400">Select permit issue date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start" side="bottom" sideOffset={4}>
+                <Calendar
+                  selected={permitDate}
+                  onSelect={(date) => {
+                    if (!date) {
+                      handlePermitDateChange('');
+                      return;
+                    }
+                    const y = date.getFullYear().toString();
+                    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const d = date.getDate().toString().padStart(2, '0');
+                    handlePermitDateChange(`${y}-${m}-${d}`);
+                    setPermitCalendarOpen(false);
+                  }}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
+                  className="bg-white dark:bg-gray-800 rounded-md"
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-gray-500 dark:text-gray-300 mt-1">Date cannot be in the future.</p>
             <div className="mt-5">
-              <Label className="block text-sm font-medium text-gray-700 mb-1">Do you have a driver licence from another country? <span className="text-red-500">*</span></Label>
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Do you have a driver licence from another country? <span className="text-red-500">*</span></Label>
               <Select value={form.hasLicenseAnotherCountry} onValueChange={val => handleFieldChange('hasLicenseAnotherCountry', val)}>
-                <SelectTrigger><SelectValue placeholder="Please Select" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="bg-white dark:bg-gray-800 dark:border-gray-700">
+                  <SelectValue placeholder="Please Select" />
+                </SelectTrigger>
+                <SelectContent className="dark:bg-gray-900 dark:text-gray-100">
                   <SelectItem value="yes">Yes</SelectItem>
                   <SelectItem value="no">No</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="mt-3">
-              <Label className="block text-sm font-medium text-gray-700 mb-1">How much driving experience do you have? <span className="text-red-500">*</span></Label>
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">How much driving experience do you have? <span className="text-red-500">*</span></Label>
               <Select value={form.drivingExperience} onValueChange={val => handleFieldChange('drivingExperience', val)}>
-                <SelectTrigger><SelectValue placeholder="Please Select" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="bg-white dark:bg-gray-800 dark:border-gray-700">
+                  <SelectValue placeholder="Please Select" />
+                </SelectTrigger>
+                <SelectContent className="dark:bg-gray-900 dark:text-gray-100">
                   <SelectItem value="none">None</SelectItem>
                   <SelectItem value="some-less-1yr">Some (less than 1 year)</SelectItem>
                   <SelectItem value="1-3yr">1-3 Years</SelectItem>
@@ -463,15 +487,15 @@ const Register = () => {
       case 4:
         return (
           <div style={stepFadeStyle}>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">Account Security & Agreements <span className="text-red-500">*</span></Label>
-            <div className="grid grid-cols-2 gap-4">
+            <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">Account Security & Agreements <span className="text-red-500">*</span></Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
-                <Label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Password <span className="text-red-500">*</span></Label>
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1" htmlFor="password">Password <span className="text-red-500">*</span></Label>
                 <Input
                   id="password" name="password" type={showPassword ? 'text' : 'password'}
                   placeholder="Create a strong password"
                   value={form.password} onChange={e => handleFieldChange('password', e.target.value)}
-                  className="pl-10 pr-10 mt-1" required
+                  className="pl-10 pr-10 mt-1 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" required
                 />
                 <button
                   type="button"
@@ -483,12 +507,12 @@ const Register = () => {
                 </button>
               </div>
               <div className="relative">
-                <Label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></Label>
+                <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1" htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></Label>
                 <Input
                   id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm your password"
                   value={form.confirmPassword} onChange={e => handleFieldChange('confirmPassword', e.target.value)}
-                  className="pl-10 pr-10 mt-1" required
+                  className="pl-10 pr-10 mt-1 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" required
                 />
                 <button
                   type="button"
@@ -504,10 +528,10 @@ const Register = () => {
               </div>
             </div>
             <div className="space-y-2 mt-4">
-              <div className="block text-sm font-medium text-gray-700">Agreements <span className="text-red-500">*</span></div>
+              <div className="block text-sm font-medium text-gray-700 dark:text-gray-100">Agreements <span className="text-red-500">*</span></div>
               {AGREE_TEXTS.map((text, i) => (
                 <div key={i} className="mb-2">
-                  <span className="text-xs">{i + 1}. {text}</span>
+                  <span className="text-xs text-gray-800 dark:text-gray-200">{i + 1}. {text}</span>
                   <RadioGroup className="flex space-x-6 mt-1"
                     value={
                       form.agreements[i] === null
@@ -519,11 +543,11 @@ const Register = () => {
                     onValueChange={val => handleAgreement(i, val)}>
                     <div className="flex items-center space-x-1">
                       <RadioGroupItem id={`agree${i}`} value="agree" className="mr-2" />
-                      <Label htmlFor={`agree${i}`}>I AGREE</Label>
+                      <Label htmlFor={`agree${i}`} className="text-gray-800 dark:text-gray-200">I AGREE</Label>
                     </div>
                     <div className="flex items-center space-x-1">
                       <RadioGroupItem id={`disagree${i}`} value="disagree" className="mr-2" />
-                      <Label htmlFor={`disagree${i}`}>I DO NOT AGREE</Label>
+                      <Label htmlFor={`disagree${i}`} className="text-gray-800 dark:text-gray-200">I DO NOT AGREE</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -537,35 +561,39 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 flex flex-col items-center py-8 px-2">
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-700 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Welcome to Fast Track Drivers Academy Academy</h1>
-        <div className="text-lg text-gray-700 font-medium">Let’s get you started — {steps.length} quick steps!</div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-slate-950 flex flex-col items-center py-8 px-3 text-gray-900 dark:text-gray-50">
+      <div className="mb-8 text-center space-y-2 max-w-3xl">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 via-blue-500 to-indigo-600 bg-clip-text text-transparent dark:from-blue-300 dark:via-indigo-300 dark:to-indigo-100">
+          Welcome to Fast Track Drivers Academy Academy
+        </h1>
+        <div className="text-base md:text-lg text-gray-700 dark:text-gray-200 font-medium">
+          Let’s get you started — {steps.length} quick steps!
+        </div>
       </div>
-      <Card className="w-full max-w-2xl shadow-xl">
+      <Card className="w-full max-w-2xl shadow-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur border border-gray-200 dark:border-gray-800">
         <CardHeader className="flex flex-col items-center">
-          <div className="flex items-center gap-2 mb-2 text-sm">
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-2 text-xs md:text-sm">
             {steps.map((s, idx) => (
               <div key={s.label} className="flex items-center gap-2">
                 <span className={`rounded-full w-7 h-7 flex items-center justify-center text-white font-bold text-xs
-                  ${idx === step ? 'bg-blue-500' : idx < step ? 'bg-green-400' : 'bg-gray-300'}
-                `}>{idx + 1}</span>{idx < steps.length-1 && <div className="h-1 w-6 bg-gray-300 rounded" />}
+                  ${idx === step ? 'bg-blue-500' : idx < step ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'}
+                `}>{idx + 1}</span>{idx < steps.length-1 && <div className="h-1 w-6 bg-gray-300 dark:bg-gray-700 rounded" />}
               </div>
             ))}
           </div>
-          <CardTitle className="text-xl text-center">Step {step + 1}: {steps[step].label}</CardTitle>
+          <CardTitle className="text-lg md:text-xl text-center text-gray-900 dark:text-white">Step {step + 1}: {steps[step].label}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-8">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-6">
             {renderStepContent(step)}
-            <div className="flex justify-between gap-3 mt-8">
-              <Button type="button" variant="secondary" className="px-8" disabled={step === 0} onClick={() => setStep(s => Math.max(0, s-1))}>
+            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-4">
+              <Button type="button" variant="secondary" className="px-8 order-2 sm:order-1" disabled={step === 0} onClick={() => setStep(s => Math.max(0, s-1))}>
                 Back
               </Button>
               {step < steps.length - 1 ? (
                 <Button
                   type="button"
-                  className="px-8"
+                  className="px-8 order-1 sm:order-2"
                   onClick={() => {
                   // Always allow clicking Next, but validate on click
                   const currentStepFields = steps[step].fields;
@@ -691,7 +719,7 @@ const Register = () => {
               ) : (
                 <Button
                   type="submit"
-                  className="px-8"
+                  className="px-8 order-1 sm:order-2"
                   disabled={!canSubmit || loading}
                 >
                   {loading ? 'Creating Account...' : 'Create Account'}
@@ -701,13 +729,13 @@ const Register = () => {
           </form>
           <Separator />
           <div className="text-center text-sm">
-            <span className="text-gray-600">Already have an account? </span>
-            <Link to="/login" className="text-blue-600 hover:underline font-medium">Sign in</Link>
+            <span className="text-gray-600 dark:text-gray-300">Already have an account? </span>
+            <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Sign in</Link>
           </div>
         </CardContent>
       </Card>
       <div className="text-center mt-8">
-        <Link to="/" className="text-gray-600 hover:text-gray-800 transition-colors">
+        <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors">
           ← Back to Home
         </Link>
       </div>

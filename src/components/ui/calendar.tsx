@@ -213,7 +213,7 @@ const Calendar: React.FC<CalendarProps> = ({
               {daysOfWeek.map((day) => (
                 <th
                   key={day}
-                  className="text-gray-500 rounded-md w-9 font-normal text-[0.8rem] text-center p-0"
+                  className="text-gray-500 dark:text-gray-400 rounded-md w-9 font-normal text-[0.8rem] text-center p-0"
                 >
                   <div className="py-2">{day}</div>
                 </th>
@@ -239,10 +239,10 @@ const Calendar: React.FC<CalendarProps> = ({
                         disabled={isDisabled}
                         className={`
                           h-9 w-9 p-0 font-normal inline-flex items-center justify-center rounded-md transition-colors
-                          ${!dayObj.isCurrentMonth ? 'text-gray-400 opacity-50' : 'text-gray-900'}
+                          ${!dayObj.isCurrentMonth ? 'text-gray-400 dark:text-gray-500 opacity-50' : 'text-gray-900 dark:text-gray-100'}
                           ${isSelectedDay ? 'bg-blue-600 text-white hover:bg-blue-600 hover:text-white font-semibold' : ''}
-                          ${isTodayDay && !isSelectedDay ? 'bg-gray-100 text-gray-900 font-semibold' : ''}
-                          ${!isSelectedDay && !isTodayDay ? 'hover:bg-gray-100' : ''}
+                          ${isTodayDay && !isSelectedDay ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold' : ''}
+                          ${!isSelectedDay && !isTodayDay ? 'hover:bg-gray-100 dark:hover:bg-gray-700' : ''}
                           ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
                         `}
                         style={!isSelectedDay && !isTodayDay ? modifierStyle : {}}
