@@ -570,7 +570,7 @@ const Register = () => {
           Let’s get you started — {steps.length} quick steps!
         </div>
       </div>
-      <Card className="w-full max-w-4xl shadow-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur border border-gray-200 dark:border-gray-800">
+      <Card className="w-full max-w-2xl shadow-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur border border-gray-200 dark:border-gray-800">
         <CardHeader className="flex flex-col items-center">
           <div className="flex flex-wrap items-center justify-center gap-2 mb-2 text-xs md:text-sm">
             {steps.map((s, idx) => (
