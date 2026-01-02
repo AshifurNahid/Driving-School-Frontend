@@ -22,19 +22,25 @@ const RegisterVerifyOTP = () => {
   const { loading, error, successMessage } = useSelector((state: RootState) => state.auth);
 
   // Get email from sessionStorage
-  const registrationEmail = sessionStorage.getItem('registrationEmail') || '';
+  const verificationEmail =
+    sessionStorage.getItem('verificationEmail') ||
+    sessionStorage.getItem('registrationEmail') ||
+    '';
+  const verificationContext = sessionStorage.getItem('verificationContext') || 'registration';
+  const backPath = verificationContext === 'login' ? '/login' : '/register';
+  const backLabel = verificationContext === 'login' ? 'Back to Login' : 'Back to Registration';
 
   useEffect(() => {
     // Redirect if no email in session
-    if (!registrationEmail) {
+    if (!verificationEmail) {
       toast({
         title: 'Session Expired',
-        description: 'Please register again.',
+        description: 'Please start the verification process again.',
         variant: 'destructive',
       });
-      navigate('/register');
+      navigate(verificationContext === 'login' ? '/login' : '/register');
     }
-  }, [registrationEmail, navigate, toast]);
+  }, [verificationEmail, navigate, toast, verificationContext]);
 
   useEffect(() => {
     if (successMessage && submitted) {
@@ -42,12 +48,28 @@ const RegisterVerifyOTP = () => {
         title: 'Verification Successful',
         description: successMessage,
       });
+      const storedUser = localStorage.getItem('userInfo');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser?.email === verificationEmail) {
+            localStorage.setItem(
+              'userInfo',
+              JSON.stringify({ ...parsedUser, is_email_verified: true })
+            );
+          }
+        } catch (err) {
+          console.error('Failed to update user verification status', err);
+        }
+      }
       // Clear email from sessionStorage
       sessionStorage.removeItem('registrationEmail');
+      sessionStorage.removeItem('verificationEmail');
+      sessionStorage.removeItem('verificationContext');
       navigate('/login');
       setSubmitted(false);
     }
-  }, [successMessage, submitted, navigate, toast]);
+  }, [successMessage, submitted, navigate, toast, verificationEmail]);
 
   useEffect(() => {
     if (error && submitted) {
@@ -72,6 +94,15 @@ const RegisterVerifyOTP = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!verificationEmail) {
+      toast({
+        title: 'Verification Needed',
+        description: 'Email is missing. Please start verification again.',
+        variant: 'destructive',
+      });
+      navigate(backPath);
+      return;
+    }
     if (!otp.trim()) {
       toast({
         title: 'Validation Error',
@@ -80,12 +111,21 @@ const RegisterVerifyOTP = () => {
       });
       return;
     }
-    dispatch(verifyRegistrationOTP(registrationEmail, otp) as any);
+    dispatch(verifyRegistrationOTP(verificationEmail, otp) as any);
     setSubmitted(true);
   };
 
   const handleResend = () => {
-    dispatch(resendRegistrationOTP(registrationEmail) as any);
+    if (!verificationEmail) {
+      toast({
+        title: 'Verification Needed',
+        description: 'Email is missing. Please start verification again.',
+        variant: 'destructive',
+      });
+      navigate(backPath);
+      return;
+    }
+    dispatch(resendRegistrationOTP(verificationEmail) as any);
     setResending(true);
   };
 
@@ -109,7 +149,7 @@ const RegisterVerifyOTP = () => {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center text-gray-900 dark:text-white font-semibold">Email Verification</CardTitle>
             <CardDescription className="text-center text-gray-600 dark:text-gray-400 font-medium">
-              We've sent a verification code to <strong>{registrationEmail}</strong>
+              We've sent a verification code to <strong>{verificationEmail}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -151,17 +191,17 @@ const RegisterVerifyOTP = () => {
 
             <div className="text-center text-sm">
               <span className="text-gray-600 dark:text-gray-400 font-medium">Wrong email? </span>
-              <Link to="/register" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                Register again
+              <Link to={backPath} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                {verificationContext === 'login' ? 'Go back to login' : 'Register again'}
               </Link>
             </div>
           </CardContent>
         </Card>
 
         <div className="text-center mt-8">
-          <Link to="/register" className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors font-medium inline-flex items-center">
+          <Link to={backPath} className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors font-medium inline-flex items-center">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Registration
+            {backLabel}
           </Link>
         </div>
       </div>
