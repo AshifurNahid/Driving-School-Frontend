@@ -13,8 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -53,6 +53,8 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [birthCalendarOpen, setBirthCalendarOpen] = useState(false);
+  const [permitCalendarOpen, setPermitCalendarOpen] = useState(false);
   const [touched, setTouched] = useState<{ [k: string]: boolean }>({});
   const [submitted, setSubmitted] = useState(false);
   const dispatch = useDispatch();
@@ -270,8 +272,6 @@ const Register = () => {
 
     const birthDate = birthDateISO ? new Date(birthDateISO) : undefined;
     const permitDate = permitDateISO ? new Date(permitDateISO) : undefined;
-    const todayISO = new Date().toISOString().split('T')[0];
-
     const handleBirthDateChange = (val: string) => {
       const [y, m, d] = val.split('-');
       handleFieldChange('birthYear', y || '');
@@ -309,25 +309,38 @@ const Register = () => {
               </div>
             </div>
             <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mt-4 mb-1">Date of Birth <span className="text-red-500">*</span></Label>
-            <div className="mt-1 border rounded-md p-2 bg-white dark:bg-gray-800 dark:border-gray-600">
-              <Calendar
-                selected={birthDate}
-                onSelect={(date) => {
-                  if (!date) {
-                    handleBirthDateChange('');
-                    return;
-                  }
-                  const y = date.getFullYear().toString();
-                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-                  const d = date.getDate().toString().padStart(2, '0');
-                  handleBirthDateChange(`${y}-${m}-${d}`);
-                }}
-                fromYear={BIRTH_YEAR_FROM}
-                toYear={BIRTH_YEAR_TO}
-                disabled={(date) => date.getFullYear() < BIRTH_YEAR_FROM || date.getFullYear() > BIRTH_YEAR_TO}
-                className="dark:text-gray-100"
-              />
-            </div>
+            <Popover open={birthCalendarOpen} onOpenChange={setBirthCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+                >
+                  {birthDate ? birthDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : <span className="text-gray-500 dark:text-gray-400">Select date of birth</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start" side="bottom" sideOffset={4}>
+                <Calendar
+                  selected={birthDate}
+                  onSelect={(date) => {
+                    if (!date) {
+                      handleBirthDateChange('');
+                      return;
+                    }
+                    const y = date.getFullYear().toString();
+                    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const d = date.getDate().toString().padStart(2, '0');
+                    handleBirthDateChange(`${y}-${m}-${d}`);
+                    setBirthCalendarOpen(false);
+                  }}
+                  fromYear={BIRTH_YEAR_FROM}
+                  toYear={BIRTH_YEAR_TO}
+                  disabled={(date) => date.getFullYear() < BIRTH_YEAR_FROM || date.getFullYear() > BIRTH_YEAR_TO}
+                  initialFocus
+                  className="bg-white dark:bg-gray-800 rounded-md"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         );
       case 1:
@@ -411,23 +424,36 @@ const Register = () => {
         return (
           <div style={stepFadeStyle}>
             <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Learner's Permit Issue Date <span className="text-red-500">*</span></Label>
-            <div className="mt-2 border rounded-md p-2 bg-white dark:bg-gray-800 dark:border-gray-600">
-              <Calendar
-                selected={permitDate}
-                onSelect={(date) => {
-                  if (!date) {
-                    handlePermitDateChange('');
-                    return;
-                  }
-                  const y = date.getFullYear().toString();
-                  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-                  const d = date.getDate().toString().padStart(2, '0');
-                  handlePermitDateChange(`${y}-${m}-${d}`);
-                }}
-                disabled={(date) => date > new Date()}
-                className="dark:text-gray-100"
-              />
-            </div>
+            <Popover open={permitCalendarOpen} onOpenChange={setPermitCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+                >
+                  {permitDate ? permitDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : <span className="text-gray-500 dark:text-gray-400">Select permit issue date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start" side="bottom" sideOffset={4}>
+                <Calendar
+                  selected={permitDate}
+                  onSelect={(date) => {
+                    if (!date) {
+                      handlePermitDateChange('');
+                      return;
+                    }
+                    const y = date.getFullYear().toString();
+                    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const d = date.getDate().toString().padStart(2, '0');
+                    handlePermitDateChange(`${y}-${m}-${d}`);
+                    setPermitCalendarOpen(false);
+                  }}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
+                  className="bg-white dark:bg-gray-800 rounded-md"
+                />
+              </PopoverContent>
+            </Popover>
             <p className="text-xs text-gray-500 dark:text-gray-300 mt-1">Date cannot be in the future.</p>
             <div className="mt-5">
               <Label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-1">Do you have a driver licence from another country? <span className="text-red-500">*</span></Label>
