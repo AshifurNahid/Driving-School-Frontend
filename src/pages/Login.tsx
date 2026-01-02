@@ -28,6 +28,8 @@ const Login = () => {
     if (userInfo) {
       if (!userInfo.is_email_verified) {
         setNeedsVerification(true);
+        sessionStorage.setItem('verificationEmail', userInfo.email);
+        sessionStorage.setItem('verificationContext', 'login');
         toast({
           title: 'Email Not Verified',
           description: 'Please verify your email to continue.',
@@ -183,6 +185,11 @@ const Login = () => {
               <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/30 dark:text-yellow-100 space-y-3">
                 <div className="text-sm font-medium">
                   Your email address is not verified. Please verify to access your account.
+                </div>
+                <div className="text-sm text-yellow-700 dark:text-yellow-200/80">
+                  We will send a verification code to{' '}
+                  <span className="font-semibold">{userInfo?.email || email}</span> so you can
+                  complete verification on the OTP screen.
                 </div>
                 <Button
                   type="button"
