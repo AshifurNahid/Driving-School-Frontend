@@ -266,11 +266,11 @@ const CourseDetail = () => {
                                     <div className="flex items-center gap-2">
                                       <Play className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                                       <span className="text-sm text-gray-700 dark:text-gray-300">{item?.lesson_title}</span>
-                                      {itemIndex < 2 && (
+                                      {/* {itemIndex < 2 && (
                                         <Badge variant="outline" className="text-xs text-teal-600 dark:text-teal-400 border-teal-600 dark:border-teal-400">
                                           Preview
                                         </Badge>
-                                      )}
+                                      )} */}
                                     </div>
                                     <span className="text-sm text-gray-500 dark:text-gray-400">{item?.duration}</span>
                                   </div>
@@ -497,10 +497,10 @@ const CourseDetail = () => {
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <Button size="lg" variant="secondary" className="bg-white/90 text-black hover:bg-white">
+                  {/* <Button size="lg" variant="secondary" className="bg-white/90 text-black hover:bg-white">
                     <Play className="h-5 w-5 mr-2" />
                     Preview this course
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
 
