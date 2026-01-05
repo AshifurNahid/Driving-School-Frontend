@@ -11,8 +11,10 @@ export type LearningSelection = {
 export const resolveAttachmentUrl = (path?: string | null): string | null => {
   if (!path) return null;
   const isExternal = /^https?:\/\//i.test(path);
-  return isExternal ? path : `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  if (isExternal) return path;
+  return `${API_BASE.replace(/\/$/, "")}/r${path.startsWith("/") ? path : `/${path}`}`;
 };
+
 
 export const findInitialSelection = (
   modules?: ExtendedCourseModule[]
