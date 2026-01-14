@@ -151,7 +151,7 @@ const AppointmentsSection = ({
     
     // Payment Details
     pdf.text('PAYMENT DETAILS', 20, 180);
-    pdf.text(`Amount Paid: $${appointment.amountPaid}`, 20, 200);
+    pdf.text(`CHARGE AMOUNT: $${appointment.amountPaid}`, 20, 200);
     
     // Permit Details
     pdf.text('PERMIT INFORMATION', 20, 220);

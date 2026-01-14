@@ -873,7 +873,7 @@ const AppointmentManagement = () => {
                     <Badge className="bg-purple-100 text-purple-700 border border-purple-200">{bookingInfo.appointmentStatus || 'N/A'}</Badge>
                   )}
                   {renderInfoRow('Hours Booked', bookingInfo.hoursConsumed)}
-                  {renderInfoRow('Amount Paid', bookingInfo.amountPaid ? `$${bookingInfo.amountPaid}` : 'N/A')}
+                  {renderInfoRow('Charge Amount', bookingInfo.amountPaid ? `$${bookingInfo.amountPaid}` : 'N/A')}
                   {renderInfoRow('Note', bookingInfo.note || 'N/A')}
                   {renderInfoRow('Cancellation Reason', bookingInfo.cancelReason || bookingInfo.cancellationReason || 'N/A')}
                   {renderInfoRow(

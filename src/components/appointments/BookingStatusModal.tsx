@@ -149,7 +149,7 @@ const BookingStatusModal: React.FC<BookingStatusModalProps> = ({
                     {(appointmentData.appointmentSlot as any)?.price > 0 && (
                       <div className="flex items-center gap-3">
                         <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        <span><strong>Amount Paid:</strong> ${(appointmentData.appointmentSlot as any)?.price}</span>
+                        <span><strong>Charge Amount:</strong> ${(appointmentData.appointmentSlot as any)?.price}</span>
                       </div>
                     )}
                   </>

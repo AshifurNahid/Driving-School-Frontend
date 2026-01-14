@@ -254,7 +254,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
     
-    pdf.text('Amount Paid:', col1X, yPos);
+    pdf.text('CHARGE AMOUNT:', col1X, yPos);
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
     pdf.setFontSize(14);
@@ -451,7 +451,7 @@ const AppointmentDetailModal: React.FC<AppointmentDetailModalProps> = ({
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Amount Paid:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Charge Amount:</span>
                   <span className="font-bold text-green-600 dark:text-green-400 text-lg">
                     ${appointment.amountPaid}
                   </span>
