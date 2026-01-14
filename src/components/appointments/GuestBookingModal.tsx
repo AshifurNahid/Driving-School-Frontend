@@ -255,15 +255,17 @@ const GuestBookingModal: React.FC<GuestBookingModalProps> = ({
                 <p className="font-semibold">{slot.startTime} - {slot.endTime}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2.5 rounded-full">
-                <User className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+             {slot.instructorName && (
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-muted text-foreground/80">
+                  <User className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Instructor</p>
+                  <p className="font-semibold leading-tight">{slot.instructorName}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Instructor</p>
-                <p className="font-semibold">{slot.instructorName || `Instructor ${slot.instructorId}`}</p>
-              </div>
-            </div>
+            )}
             <div className="flex items-center gap-3">
               <div className="bg-blue-100 dark:bg-blue-900/50 p-2.5 rounded-full">
                 <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />

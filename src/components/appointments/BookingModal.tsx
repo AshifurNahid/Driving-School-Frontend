@@ -180,15 +180,17 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 <p className="font-semibold leading-tight">{formatTimeRange(slot.startTime, slot.endTime)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-muted text-foreground/80">
-                <User className="h-4 w-4" />
+            {slot.instructorName && (
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-md bg-muted text-foreground/80">
+                  <User className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Instructor</p>
+                  <p className="font-semibold leading-tight">{slot.instructorName}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Instructor</p>
-                <p className="font-semibold leading-tight">{slot.instructorName || `Instructor ${slot.instructorId}`}</p>
-              </div>
-            </div>
+            )}
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-md bg-muted text-foreground/80">
                 <MapPin className="h-4 w-4" />
